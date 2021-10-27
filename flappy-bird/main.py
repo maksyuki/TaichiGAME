@@ -8,8 +8,7 @@ SCREEN_WIDTH = 288
 SCREEN_HEIGH = 512
 
 PIPE_WIDTH = 50
-PIPE_HEIGH = 300
-PIPE_GAP_SIZE = 100
+PIPE_GAP_SIZE = 50
 
 BIRD_WIDTH = 20
 BIRD_HEIGH = 20
@@ -18,120 +17,87 @@ FLOOR_HEIGH = 80
 BASE_HEIGH = SCREEN_HEIGH - FLOOR_HEIGH
 
 FPS = 60
-GRAVITY_CONSTANT = 9.8
-
-class Rect():
-    def __init__(self, pos, width, heigh):
-        self.left = pos[0] - width / 2
-        self.right = pos[0] + width / 2
-        self.top = pos[1] - heigh / 2
-        self.bottom = pos[1] + heigh / 2
-        print(self.left)
-        print(self.right)
-        print(self.top)
-        print(self.bottom)
-
-    def updatePos(self, speed, pos_type):
-        if pos_type == 0:
-            self.top -= speed
-            self.bottom -= speed
-        else:
-            self.top += speed
-            self.bottom += speed
-
-    def getTop(self):
-        return self.top
-    
-    def setTop(self, val):
-        self.top = val
-    
-    def getBottom(self):
-        return self.bottom
-    
-    def setBottom(self, val):
-        self.bottom = val
-
-    def getTopLeft(self):
-        return [self.left, self.top]
-    
-    def getBottomRight(self):
-        return [self.right, self.bottom]
+GRAVITY_CONSTANT = -9.8
+DELTA_UP_VEC = 2
+DELTA_UP_VEC_LIMIT = 4
 
 class Bird():
     def __init__(self, pos):
-        self.is_flapped = False
         self.is_touch_boudary = False
-        self.up_speed = 10
-        self.down_speed = 0
-        self.time_pass = FPS / 1000000
-        self.rect = Rect(pos, BIRD_WIDTH / SCREEN_WIDTH, BIRD_HEIGH / SCREEN_HEIGH)
+        self.delta_time = FPS / 10000.0
+        self.vec = 0
+        self.pos = pos
 
-        
+
     def update(self):
-        if self.is_flapped:
-            self.up_speed -= GRAVITY_CONSTANT * self.time_pass
-            self.rect.updatePos(self.up_speed, 0)
-            if self.up_speed <= 0:
-                self.down()
-                self.up_speed = 10
-                self.down_speed = 0
+        if self.pos[1] + BIRD_HEIGH / 2 >= SCREEN_HEIGH or self.pos[1] - BIRD_HEIGH / 2 < FLOOR_HEIGH:
+            self.is_touch_boudary = True
+            self.vec = 0
         else:
-            self.down_speed += GRAVITY_CONSTANT / 2 * self.time_pass
-            self.rect.updatePos(self.down_speed, 1)
+            self.vec += GRAVITY_CONSTANT * self.delta_time
 
-        if self.rect.getTop() <= 0:
-            self.up_speed = 0
-            self.is_dead = True
-            self.rect.setTop(0)
+        self.pos[1] += self.vec
 
-        if self.rect.getBottom() >= BASE_HEIGH:
-            self.up_speed = 0
-            self.is_dead = True
-            self.down_speed = 0
-            self.rect.setBottom(BASE_HEIGH)
-        
-        print("p1 = ", self.rect.left, self.rect.top)
-        print("p2 = ", self.rect.right, self.rect.bottom)
 
     def up(self):
-        if self.is_flapped:
-            self.up_speed = max(12, self.up_speed + 1)
-        else:
-            self.is_flapped = True
+        self.vec += max(DELTA_UP_VEC_LIMIT, DELTA_UP_VEC)
 
     def down(self):
-        self.is_flapped = False
+        print("down")
 
+    def calcX(self, sig):
+        return (self.pos[0] + sig * BIRD_WIDTH / 2) / SCREEN_WIDTH
+    
+    def calcY(self, sig):
+        return (self.pos[1] + sig * BIRD_HEIGH / 2) / SCREEN_HEIGH
 
     def draw(self, gui):
-        # gui.rect(self.rect.getTopLeft(), self.rect.getBottomRight(), color=0xff0000)
-        gui.rect([0.2, 0.2], [0.3, 0.3], color=0x00ff00)
-        gui.rect([0.2, 0.4], [0.3, 0.5], color=0xff0000)
-        gui.rect([0.1, 0.2], [0.2, 0.3], color=0x0000bb)
+        gui.rect([self.calcX(-1), self.calcY(1)], [self.calcX(1), self.calcY(-1)], color=0xff0000)
 
 
 class Pipe():
     def __init__(self, pos):
-        print("a")
+        self.pos = pos
+        self.heigh = 100
+        self.vec = 10
+        self.delta_time = FPS / 500.0
 
-    def gen():
-        print("a")
+    def update(self):
+        self.pos[0] -= self.vec * self.delta_time
+        
+
+    def calcX(self, sig):
+        return (self.pos[0] + sig * PIPE_WIDTH) / SCREEN_WIDTH
+
+    def calcY(self, low, sig):
+        if low == 0:
+            if sig == 0: return (FLOOR_HEIGH + self.heigh) / SCREEN_HEIGH
+            else: return FLOOR_HEIGH / SCREEN_HEIGH
+        else:
+            if sig == 0: return SCREEN_HEIGH / SCREEN_HEIGH
+            else: return (FLOOR_HEIGH + self.heigh + PIPE_GAP_SIZE) / SCREEN_HEIGH
 
     def draw(self, gui):
-        print("a")
+        gui.rect([self.calcX(0), self.calcY(0,0)], [self.calcX(1), self.calcY(0,1)], color=0xffffff)
+        gui.rect([self.calcX(0), self.calcY(1,0)], [self.calcX(1), self.calcY(1,1)], color=0xffffff)
 
 
 class Monitor():
     gui = ti.GUI("flappy bird", (SCREEN_WIDTH, SCREEN_HEIGH))
 
     def __init__(self):
-        self.bird = Bird([0.3, 0.5])
-        
+        self.bird = Bird([0.3 * SCREEN_WIDTH, 0.5 * SCREEN_HEIGH])
+        self.pipe1 = Pipe([1 * SCREEN_WIDTH, FLOOR_HEIGH])
+        self.pipe2 = Pipe([2 * SCREEN_WIDTH, FLOOR_HEIGH])
+
     def drawScore(self):
-        print("a")
+        print("drawScore")
 
     def drawGameOver(self):
-        print("a")
+        print("drawGameOver")
+
+    def drawGround(self):
+        Monitor.gui.line([0, FLOOR_HEIGH / SCREEN_HEIGH], [1, FLOOR_HEIGH / SCREEN_HEIGH], color=0xffffff)
 
     def draw(self):
         while Monitor.gui.running:
@@ -140,7 +106,7 @@ class Monitor():
                     exit()
                 elif e.key == ti.GUI.UP:
                     print("press up key")
-                    # self.bird.up()
+                    self.bird.up()
                 elif e.key == ti.GUI.DOWN:
                     print("press down key")
                 elif e.key == ti.GUI.LEFT:
@@ -149,7 +115,14 @@ class Monitor():
                     print("press right key")
 
             # self.bird.update()
+            self.pipe1.update()
+            self.pipe2.update()
+
             self.bird.draw(Monitor.gui)
+            self.pipe1.draw(Monitor.gui)
+            self.pipe2.draw(Monitor.gui)
+
+            self.drawGround()
             Monitor.gui.show()
 
 
