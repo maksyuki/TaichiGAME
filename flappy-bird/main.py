@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import taichi as ti
+import random
+from PIL import Image
+import numpy as np
 
 ti.init(arch=ti.gpu)
 
@@ -56,9 +59,9 @@ class Bird():
 
 
 class Pipe():
-    def __init__(self, pos):
+    def __init__(self, pos, heigh):
         self.pos = pos
-        self.heigh = 100
+        self.heigh = heigh
         self.vec = 10
         self.delta_time = FPS / 500.0
 
@@ -87,8 +90,30 @@ class Monitor():
 
     def __init__(self):
         self.bird = Bird([0.3 * SCREEN_WIDTH, 0.5 * SCREEN_HEIGH])
-        self.pipe1 = Pipe([1 * SCREEN_WIDTH, FLOOR_HEIGH])
-        self.pipe2 = Pipe([2 * SCREEN_WIDTH, FLOOR_HEIGH])
+        self.pipes = []
+        self.pipes.append(Pipe([1 * SCREEN_WIDTH, FLOOR_HEIGH], self.genRandHeigh()))
+        self.pipes.append(Pipe([1.5 * SCREEN_WIDTH, FLOOR_HEIGH], self.genRandHeigh()))
+        self.bgd_img = np.array(Image.open('./resources/bgd-img-day.png').convert("RGB")).swapaxes(0, 1)
+        self.bgd_img = np.flip(self.bgd_img, axis=1)
+        self.game_over = np.array(Image.open('./resources/gameover.png').convert("RGB")).swapaxes(0, 1)
+        self.game_over = np.flip(self.game_over, axis=1)
+        print(self.game_over.ndim)
+        print(self.game_over.shape)
+        # print(self.game_over[0, 2])
+        # print(self.game_over[0, 41])
+        for i in range(192):
+            for j in range(42):
+                self.bgd_img[0+i, 256+j] = self.game_over[i, j]
+
+
+    def movePipe(self):
+        for p in self.pipes:
+            if p.pos[0] >= 0 and p.pos[0] < 10:
+                p.pos[0] = 1 * SCREEN_WIDTH
+                p.heigh = self.genRandHeigh()
+
+    def genRandHeigh(self):
+        return random.randint(FLOOR_HEIGH + 40, FLOOR_HEIGH + 140)
 
     def drawScore(self):
         print("drawScore")
@@ -100,6 +125,7 @@ class Monitor():
         Monitor.gui.line([0, FLOOR_HEIGH / SCREEN_HEIGH], [1, FLOOR_HEIGH / SCREEN_HEIGH], color=0xffffff)
 
     def draw(self):
+        # self.drawGameOver()
         while Monitor.gui.running:
             for e in Monitor.gui.get_events(ti.GUI.PRESS):
                 if e.key == ti.GUI.ESCAPE:
@@ -114,18 +140,17 @@ class Monitor():
                 elif e.key == ti.GUI.RIGHT:
                     print("press right key")
 
+            # for p in self.pipes:
+                # p.update()
+                # p.draw(Monitor.gui)
+
+            # self.movePipe()
             # self.bird.update()
-            self.pipe1.update()
-            self.pipe2.update()
-
-            self.bird.draw(Monitor.gui)
-            self.pipe1.draw(Monitor.gui)
-            self.pipe2.draw(Monitor.gui)
-
-            self.drawGround()
+            # self.bird.draw(Monitor.gui)
+            # self.drawGround()
+            Monitor.gui.set_image(self.bgd_img)
             Monitor.gui.show()
-
-
+        
 
 monitor = Monitor()
 monitor.draw()
