@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import taichi as ti
 import random
+import queue
 from PIL import Image
 import numpy as np
 
@@ -13,27 +14,32 @@ SCREEN_HEIGH = 512
 PIPE_WIDTH = 50
 PIPE_GAP_SIZE = 50
 
-BIRD_WIDTH = 20
-BIRD_HEIGH = 20
-
-FLOOR_HEIGH = 80
+FLOOR_HEIGH = 110
 BASE_HEIGH = SCREEN_HEIGH - FLOOR_HEIGH
 
 FPS = 60
-GRAVITY_CONSTANT = -9.8
+GRAVITY_CONSTANT = -9.8 / 2
 DELTA_UP_VEC = 2
 DELTA_UP_VEC_LIMIT = 4
 
-class Bird():
+class Tool:
+    def __init__(self):
+        print("tool")
+
+    def loadImg(self, path):
+        return np.flip(np.array(Image.open(path).convert("RGB")).swapaxes(0, 1), axis=1)
+
+class Bird(Tool):
     def __init__(self, pos):
         self.is_touch_boudary = False
         self.delta_time = FPS / 10000.0
         self.vec = 0
         self.pos = pos
+        self.img = self.loadImg('./resources/yellowbird-midflap.png')
 
 
     def update(self):
-        if self.pos[1] + BIRD_HEIGH / 2 >= SCREEN_HEIGH or self.pos[1] - BIRD_HEIGH / 2 < FLOOR_HEIGH:
+        if self.pos[1] + self.img.shape[1] >= SCREEN_HEIGH or self.pos[1] < FLOOR_HEIGH:
             self.is_touch_boudary = True
             self.vec = 0
         else:
@@ -48,17 +54,22 @@ class Bird():
     def down(self):
         print("down")
 
-    def calcX(self, sig):
-        return (self.pos[0] + sig * BIRD_WIDTH / 2) / SCREEN_WIDTH
+    def calcX(self):
+        return self.pos[0]
     
-    def calcY(self, sig):
-        return (self.pos[1] + sig * BIRD_HEIGH / 2) / SCREEN_HEIGH
+    def calcY(self):
+        return self.pos[1]
 
-    def draw(self, gui):
-        gui.rect([self.calcX(-1), self.calcY(1)], [self.calcX(1), self.calcY(-1)], color=0xff0000)
+    def setX(self, val):
+        self.pos[0] = val
 
+    def setY(self, val):
+        self.pos[1] = val
+    
+    def setVec(self, val):
+        self.vec = val
 
-class Pipe():
+class Pipe(Tool):
     def __init__(self, pos, heigh):
         self.pos = pos
         self.heigh = heigh
@@ -85,25 +96,40 @@ class Pipe():
         gui.rect([self.calcX(0), self.calcY(1,0)], [self.calcX(1), self.calcY(1,1)], color=0xffffff)
 
 
-class Monitor():
+class RunState():
+    IDLE1 = 0
+    IDLE2 = 1
+    RUNNING = 2
+    OVER1 = 3
+    OVER2 = 4
+    
+class Monitor(Tool):
     gui = ti.GUI("flappy bird", (SCREEN_WIDTH, SCREEN_HEIGH))
 
     def __init__(self):
         self.bird = Bird([0.3 * SCREEN_WIDTH, 0.5 * SCREEN_HEIGH])
+        self.state = RunState.IDLE1
         self.pipes = []
         self.pipes.append(Pipe([1 * SCREEN_WIDTH, FLOOR_HEIGH], self.genRandHeigh()))
         self.pipes.append(Pipe([1.5 * SCREEN_WIDTH, FLOOR_HEIGH], self.genRandHeigh()))
-        self.bgd_img = np.array(Image.open('./resources/bgd-img-day.png').convert("RGB")).swapaxes(0, 1)
-        self.bgd_img = np.flip(self.bgd_img, axis=1)
-        self.game_over = np.array(Image.open('./resources/gameover.png').convert("RGB")).swapaxes(0, 1)
-        self.game_over = np.flip(self.game_over, axis=1)
-        print(self.game_over.ndim)
-        print(self.game_over.shape)
-        # print(self.game_over[0, 2])
-        # print(self.game_over[0, 41])
-        for i in range(192):
-            for j in range(42):
-                self.bgd_img[0+i, 256+j] = self.game_over[i, j]
+        self.bgd_img = self.loadImg('./resources/bgd-img-day.png')
+        self.grd_img = self.loadImg('./resources/base.png')
+        self.start_img = self.loadImg('./resources/message.png')
+        self.gameover_img = self.loadImg('./resources/gameover.png')
+        self.calcImg(self.bgd_img, self.grd_img)
+
+    def calcImg(self, main_img, rel_img, x_offset = 0, y_offset = 0):
+        width = min(main_img.shape[0], rel_img.shape[0])
+        heigh = min(main_img.shape[1], rel_img.shape[1])
+        for i in range(width):
+            for j in range(heigh):
+                if(self.limitColor(rel_img[i,j][0]) and self.limitColor(rel_img[i,j][1])
+                and self.limitColor(rel_img[i,j][2])):
+                    main_img[x_offset+i, y_offset+j] = rel_img[i,j]
+
+
+    def limitColor(self, val):
+        return val > 0 and val <= 255
 
 
     def movePipe(self):
@@ -115,17 +141,37 @@ class Monitor():
     def genRandHeigh(self):
         return random.randint(FLOOR_HEIGH + 40, FLOOR_HEIGH + 140)
 
+    def start(self):
+        self.state = RunState.RUNNING
+
+    def restart(self):
+        self.state = RunState.IDLE1
+
     def drawScore(self):
         print("drawScore")
 
+    def drawStartMenu(self):
+        self.draw_img = self.bgd_img.copy()
+        self.calcImg(self.draw_img, self.start_img, int((self.bgd_img.shape[0] - self.start_img.shape[0]) / 2),
+        int((self.bgd_img.shape[1] - self.start_img.shape[1]) / 2))
+
     def drawGameOver(self):
-        print("drawGameOver")
+        self.draw_img = self.bgd_img.copy()
+        self.calcImg(self.draw_img, self.gameover_img, int((self.bgd_img.shape[0] - self.gameover_img.shape[0]) / 2),
+        int((self.bgd_img.shape[1] - self.gameover_img.shape[1]) / 2))
 
     def drawGround(self):
         Monitor.gui.line([0, FLOOR_HEIGH / SCREEN_HEIGH], [1, FLOOR_HEIGH / SCREEN_HEIGH], color=0xffffff)
 
+    def render(self):
+        self.draw_img = self.bgd_img.copy()
+        self.calcImg(self.draw_img, self.bird.img, int(self.bird.calcX()), int(self.bird.calcY()))
+        # print(self.bird.calcX())
+        # print(self.bird.calcY())
+        
+
+
     def draw(self):
-        # self.drawGameOver()
         while Monitor.gui.running:
             for e in Monitor.gui.get_events(ti.GUI.PRESS):
                 if e.key == ti.GUI.ESCAPE:
@@ -134,9 +180,11 @@ class Monitor():
                     print("press up key")
                     self.bird.up()
                 elif e.key == ti.GUI.DOWN:
-                    print("press down key")
+                    print("press down key start")
+                    self.start()
                 elif e.key == ti.GUI.LEFT:
-                    print("press LEFT key")
+                    print("press LEFT key restart")
+                    self.restart()
                 elif e.key == ti.GUI.RIGHT:
                     print("press right key")
 
@@ -145,12 +193,28 @@ class Monitor():
                 # p.draw(Monitor.gui)
 
             # self.movePipe()
-            # self.bird.update()
-            # self.bird.draw(Monitor.gui)
-            # self.drawGround()
-            Monitor.gui.set_image(self.bgd_img)
+            if self.state == RunState.IDLE1:
+                self.state = RunState.IDLE2
+                self.bird.setY(0.5 * SCREEN_HEIGH)
+                self.bird.setVec(0)
+                self.bird.is_touch_boudary = False
+                self.drawStartMenu()
+            elif self.state == RunState.IDLE2:
+                print("idle2")
+            elif self.state  == RunState.RUNNING:
+                if self.bird.is_touch_boudary == False:
+                    self.bird.update()
+                    self.render()
+                else:
+                    self.state = RunState.OVER1
+            elif self.state == RunState.OVER1:
+                self.state = RunState.OVER2
+                self.drawGameOver()
+            elif self.state == RunState.OVER2:
+                print("over2")
+
+            Monitor.gui.set_image(self.draw_img)
             Monitor.gui.show()
-        
 
 monitor = Monitor()
 monitor.draw()
