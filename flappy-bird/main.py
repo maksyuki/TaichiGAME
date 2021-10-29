@@ -11,7 +11,6 @@ ti.init(arch=ti.gpu)
 SCREEN_WIDTH = 288
 SCREEN_HEIGH = 512
 
-PIPE_WIDTH = 50
 PIPE_GAP_SIZE = 50
 
 FLOOR_HEIGH = 110
@@ -26,8 +25,11 @@ class Tool:
     def __init__(self):
         print("tool")
 
-    def loadImg(self, path):
-        return np.flip(np.array(Image.open(path).convert("RGB")).swapaxes(0, 1), axis=1)
+    def loadImg(self, path, reverse=False):
+        if reverse:
+            return np.array(Image.open(path).convert("RGB")).swapaxes(0, 1)
+        else:
+            return np.flip(np.array(Image.open(path).convert("RGB")).swapaxes(0, 1), axis=1)
 
 class Bird(Tool):
     def __init__(self, pos):
@@ -75,25 +77,20 @@ class Pipe(Tool):
         self.heigh = heigh
         self.vec = 10
         self.delta_time = FPS / 500.0
+        self.bot_img = self.loadImg('./resources/pipe-green.png')
+        self.top_img = self.loadImg('./resources/pipe-green.png', True)
+
+
 
     def update(self):
         self.pos[0] -= self.vec * self.delta_time
         
 
-    def calcX(self, sig):
-        return (self.pos[0] + sig * PIPE_WIDTH) / SCREEN_WIDTH
+    def calcX(self):
+        return self.pos[0]
 
-    def calcY(self, low, sig):
-        if low == 0:
-            if sig == 0: return (FLOOR_HEIGH + self.heigh) / SCREEN_HEIGH
-            else: return FLOOR_HEIGH / SCREEN_HEIGH
-        else:
-            if sig == 0: return SCREEN_HEIGH / SCREEN_HEIGH
-            else: return (FLOOR_HEIGH + self.heigh + PIPE_GAP_SIZE) / SCREEN_HEIGH
-
-    def draw(self, gui):
-        gui.rect([self.calcX(0), self.calcY(0,0)], [self.calcX(1), self.calcY(0,1)], color=0xffffff)
-        gui.rect([self.calcX(0), self.calcY(1,0)], [self.calcX(1), self.calcY(1,1)], color=0xffffff)
+    def calcY(self):
+        return self.pos[1]
 
 
 class RunState():
@@ -105,21 +102,24 @@ class RunState():
     
 class Monitor(Tool):
     gui = ti.GUI("flappy bird", (SCREEN_WIDTH, SCREEN_HEIGH))
+    # video_manager = ti.VideoManager(output_dir="./results", framerate=24, automatic_build=False)
 
     def __init__(self):
-        self.bird = Bird([0.3 * SCREEN_WIDTH, 0.5 * SCREEN_HEIGH])
         self.state = RunState.IDLE1
+        self.bird = Bird([0.3 * SCREEN_WIDTH, 0.5 * SCREEN_HEIGH])
         self.pipes = []
-        self.pipes.append(Pipe([1 * SCREEN_WIDTH, FLOOR_HEIGH], self.genRandHeigh()))
+        self.pipes.append(Pipe([0.6 * SCREEN_WIDTH, FLOOR_HEIGH], self.genRandHeigh()))
         self.pipes.append(Pipe([1.5 * SCREEN_WIDTH, FLOOR_HEIGH], self.genRandHeigh()))
+
         self.bgd_img = self.loadImg('./resources/bgd-img-day.png')
         self.grd_img = self.loadImg('./resources/base.png')
         self.start_img = self.loadImg('./resources/message.png')
         self.gameover_img = self.loadImg('./resources/gameover.png')
+
         self.calcImg(self.bgd_img, self.grd_img)
 
     def calcImg(self, main_img, rel_img, x_offset = 0, y_offset = 0):
-        width = min(main_img.shape[0], rel_img.shape[0])
+        width = min(main_img.shape[0], rel_img.shape[0]) # 
         heigh = min(main_img.shape[1], rel_img.shape[1])
         for i in range(width):
             for j in range(heigh):
@@ -166,6 +166,9 @@ class Monitor(Tool):
     def render(self):
         self.draw_img = self.bgd_img.copy()
         self.calcImg(self.draw_img, self.bird.img, int(self.bird.calcX()), int(self.bird.calcY()))
+        # self.calcImg(self.draw_img, self.pipes[0].img, int(self.bird.calcX()), int(self.bird.calcY()))
+        # self.calcImg(self.draw_img, self.pipes[0].bot_img, 80, 23)
+        # self.calcImg(self.draw_img, self.pipes[0].top_img, 80, 150)
         # print(self.bird.calcX())
         # print(self.bird.calcY())
         
@@ -189,8 +192,7 @@ class Monitor(Tool):
                     print("press right key")
 
             # for p in self.pipes:
-                # p.update()
-                # p.draw(Monitor.gui)
+            #     p.update()
 
             # self.movePipe()
             if self.state == RunState.IDLE1:
@@ -199,8 +201,7 @@ class Monitor(Tool):
                 self.bird.setVec(0)
                 self.bird.is_touch_boudary = False
                 self.drawStartMenu()
-            elif self.state == RunState.IDLE2:
-                print("idle2")
+
             elif self.state  == RunState.RUNNING:
                 if self.bird.is_touch_boudary == False:
                     self.bird.update()
@@ -210,11 +211,14 @@ class Monitor(Tool):
             elif self.state == RunState.OVER1:
                 self.state = RunState.OVER2
                 self.drawGameOver()
-            elif self.state == RunState.OVER2:
-                print("over2")
 
+            # Monitor.video_manager.write_frame(self.draw_img)
             Monitor.gui.set_image(self.draw_img)
             Monitor.gui.show()
 
+
 monitor = Monitor()
 monitor.draw()
+# Monitor.video_manager.make_video(gif=True, mp4=True)
+# print(f'MP4 video is saved to {Monitor.video_manager.get_output_filename(".mp4")}')
+# print(f'GIF video is saved to {Monitor.video_manager.get_output_filename(".gif")}')
