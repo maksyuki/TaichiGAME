@@ -111,25 +111,28 @@ class Monitor(Tool):
         self.pipes.append(Pipe([0.6 * SCREEN_WIDTH, FLOOR_HEIGH], self.genRandHeigh()))
         self.pipes.append(Pipe([1.5 * SCREEN_WIDTH, FLOOR_HEIGH], self.genRandHeigh()))
 
-        self.bgd_img = self.loadImg('./resources/bgd-img-day.png')
-        self.grd_img = self.loadImg('./resources/base.png')
-        self.start_img = self.loadImg('./resources/message.png')
-        self.gameover_img = self.loadImg('./resources/gameover.png')
-
+        self.bgd_img = Image.open('./resources/bgd-img-day.png').convert("RGBA")
+        self.grd_img = Image.open('./resources/base.png').convert("RGBA")
+        self.start_img = Image.open('./resources/message.png').convert("RGBA")
+        self.gameover_img = Image.open('./resources/gameover.png').convert("RGBA")
         self.calcImg(self.bgd_img, self.grd_img)
 
+
     def calcImg(self, main_img, rel_img, x_offset = 0, y_offset = 0):
-        width = min(main_img.shape[0], rel_img.shape[0]) # 
-        heigh = min(main_img.shape[1], rel_img.shape[1])
-        for i in range(width):
-            for j in range(heigh):
-                if(self.limitColor(rel_img[i,j][0]) and self.limitColor(rel_img[i,j][1])
-                and self.limitColor(rel_img[i,j][2])):
-                    main_img[x_offset+i, y_offset+j] = rel_img[i,j]
-
-
-    def limitColor(self, val):
-        return val > 0 and val <= 255
+        # TODO: need to handle the rel_img out of boundary(some )
+        vala = min(main_img.size[0], x_offset+rel_img.size[0])
+        valb = min(main_img.size[1], main_img.size[1]-y_offset)
+        box1 = (x_offset, main_img.size[1]-y_offset-rel_img.size[1], vala, valb)
+        print(main_img.size)
+        print(box1)
+        box2 = (0, 0, vala, 112)
+        print(rel_img.size)
+        print(box2)
+        tmp_img1 = main_img.crop(box1)
+        tmp_img2 = rel_img.crop(box2)
+        tmp_img1 = Image.alpha_composite(tmp_img1, tmp_img2)
+        main_img.paste(tmp_img1, box1)
+        # main_img = main_img.transpose(Image.ROTATE_180)
 
 
     def movePipe(self):
@@ -200,7 +203,7 @@ class Monitor(Tool):
                 self.bird.setY(0.5 * SCREEN_HEIGH)
                 self.bird.setVec(0)
                 self.bird.is_touch_boudary = False
-                self.drawStartMenu()
+                # self.drawStartMenu()
 
             elif self.state  == RunState.RUNNING:
                 if self.bird.is_touch_boudary == False:
@@ -213,7 +216,11 @@ class Monitor(Tool):
                 self.drawGameOver()
 
             # Monitor.video_manager.write_frame(self.draw_img)
-            Monitor.gui.set_image(self.draw_img)
+            # Monitor.gui.set_image(self.draw_img)
+            demo_img = np.array(self.bgd_img.convert("RGB")).swapaxes(0, 1)
+            # print(self.bgd_img.size)
+            # print(demo_img.shape)
+            Monitor.gui.set_image(demo_img)
             Monitor.gui.show()
 
 
