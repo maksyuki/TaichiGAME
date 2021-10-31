@@ -120,6 +120,27 @@ class Monitor(Tool):
 
     def calcImg(self, main_img, rel_img, x_offset = 0, y_offset = 0):
         # TODO: need to handle the rel_img out of boundary(some )
+        # inner:[0<x_off+rel.width<main.width]     (x_off, y_off+rel.heigh)                (x_off+ref.width, y_off) 
+        # ===>  [0<y_off+rel.heigh<main.heigh]     (x_off, main.heigh-(y_off+rel.heigh))   (x_off+ref.width, main.heigh-y_off)
+
+        # up limit:[y_off+rel.heigh>main.heigh]    (x_off, main.heigh)                     (x_off+ref.width, y_off)
+        # ===>                                     (x_off, main.heigh-main.heigh)          (x_off+ref.width, main.heigh-y_off)
+
+        # down limit:[y_off<0]                     (x_off, y_off+rel.heigh)                (x_off+ref.width,  0)
+        # ===>                                     (x_off, main.heigh-(y_off+rel.heigh))   (x_off+ref.width,  main.heigh)
+
+
+        # left limit:[x_off<0]                     (0, y_off+rel.heigh)                    (x_off+rel.width,  y_off)
+        # ===>                                     (0, main.heigh-(y_off_rel.heigh))       (x_off+rel.width,  main.heigh-y_off)
+
+        # right limit:[x_off_rel.width>main.width] (x_off, y_off+rel.heigh)                (main.width,       y_off)
+        # ===>                                     (x_off, main.heigh-(y_off_rel.heigh))   (main.width,       main.heigh-y_off)
+
+        # (max(x_off, 0), min(y_off+rel.heigh, main.heigh)) (min(x_off+rel.width, main.width), max(y_off, 0))
+        # ===> 
+        # (max(x_off, 0), main.heigh - min(y_off+rel.heigh, main.heigh)) 
+        # (min(x_off+rel.width, main.width), main.heigh - max(y_off, 0))
+
         vala = min(main_img.size[0], x_offset+rel_img.size[0])
         valb = min(main_img.size[1], main_img.size[1]-y_offset)
         box1 = (x_offset, main_img.size[1]-y_offset-rel_img.size[1], vala, valb)
