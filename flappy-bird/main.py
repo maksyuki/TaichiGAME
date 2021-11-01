@@ -17,9 +17,9 @@ FLOOR_HEIGH = 110
 BASE_HEIGH = SCREEN_HEIGH - FLOOR_HEIGH
 
 FPS = 60
-GRAVITY_CONSTANT = -9.8 / 2
+GRAVITY_CONSTANT = -9.8 * 1.2
 DELTA_UP_VEC = 2
-DELTA_UP_VEC_LIMIT = 4
+DELTA_UP_VEC_LIMIT = 2.5
 
 class Tool:
     def __init__(self):
@@ -37,11 +37,17 @@ class Bird(Tool):
         self.delta_time = FPS / 10000.0
         self.vec = 0
         self.pos = pos
-        self.img = self.loadImg('./resources/yellowbird-midflap.png')
+        self.img = Image.open('./resources/yellowbird-upflap.png').convert("RGBA")
+        self.img1 = Image.open('./resources/yellowbird-midflap.png').convert("RGBA")
+        self.img2 = Image.open('./resources/yellowbird-downflap.png').convert("RGBA")
 
+    def initState(self, main_img):
+        self.setY(main_img, 0.5 * SCREEN_HEIGH)
+        self.setVec(0)
+        self.is_touch_boudary = False
 
     def update(self):
-        if self.pos[1] + self.img.shape[1] >= SCREEN_HEIGH or self.pos[1] < FLOOR_HEIGH:
+        if self.pos[1] + self.img.size[1] >= SCREEN_HEIGH or self.pos[1] < FLOOR_HEIGH:
             self.is_touch_boudary = True
             self.vec = 0
         else:
@@ -59,13 +65,13 @@ class Bird(Tool):
     def calcX(self):
         return self.pos[0]
     
-    def calcY(self):
+    def calcY(self, main_img):
         return self.pos[1]
 
     def setX(self, val):
         self.pos[0] = val
 
-    def setY(self, val):
+    def setY(self, main_img, val):
         self.pos[1] = val
     
     def setVec(self, val):
@@ -77,9 +83,8 @@ class Pipe(Tool):
         self.heigh = heigh
         self.vec = 10
         self.delta_time = FPS / 500.0
-        self.bot_img = self.loadImg('./resources/pipe-green.png')
-        self.top_img = self.loadImg('./resources/pipe-green.png', True)
-
+        self.bot_img = Image.open('./resources/pipe-green.png').convert("RGBA")
+        self.top_img = Image.open('./resources/pipe-green.png').convert("RGBA")
 
 
     def update(self):
@@ -119,42 +124,28 @@ class Monitor(Tool):
 
 
     def calcImg(self, main_img, rel_img, x_offset = 0, y_offset = 0):
-        # TODO: need to handle the rel_img out of boundary(some )
-        # inner:[0<x_off+rel.width<main.width]     (x_off, y_off+rel.heigh)                (x_off+ref.width, y_off) 
-        # ===>  [0<y_off+rel.heigh<main.heigh]     (x_off, main.heigh-(y_off+rel.heigh))   (x_off+ref.width, main.heigh-y_off)
-
-        # up limit:[y_off+rel.heigh>main.heigh]    (x_off, main.heigh)                     (x_off+ref.width, y_off)
-        # ===>                                     (x_off, main.heigh-main.heigh)          (x_off+ref.width, main.heigh-y_off)
-
-        # down limit:[y_off<0]                     (x_off, y_off+rel.heigh)                (x_off+ref.width,  0)
-        # ===>                                     (x_off, main.heigh-(y_off+rel.heigh))   (x_off+ref.width,  main.heigh)
-
-
-        # left limit:[x_off<0]                     (0, y_off+rel.heigh)                    (x_off+rel.width,  y_off)
-        # ===>                                     (0, main.heigh-(y_off_rel.heigh))       (x_off+rel.width,  main.heigh-y_off)
-
-        # right limit:[x_off_rel.width>main.width] (x_off, y_off+rel.heigh)                (main.width,       y_off)
-        # ===>                                     (x_off, main.heigh-(y_off_rel.heigh))   (main.width,       main.heigh-y_off)
-
         # (max(x_off, 0), min(y_off+rel.heigh, main.heigh)) (min(x_off+rel.width, main.width), max(y_off, 0))
         # ===> 
         # (max(x_off, 0), main.heigh - min(y_off+rel.heigh, main.heigh)) 
         # (min(x_off+rel.width, main.width), main.heigh - max(y_off, 0))
+        ori_y1 = min(y_offset+rel_img.size[1], main_img.size[1])
+        ori_y2 = max(y_offset, 0)
+        x1 = max(x_offset, 0)
+        x2 = min(x_offset+rel_img.size[0], main_img.size[0])
+        y1 = main_img.size[1] - ori_y1
+        y2 = main_img.size[1] - ori_y2
 
-        vala = min(main_img.size[0], x_offset+rel_img.size[0])
-        valb = min(main_img.size[1], main_img.size[1]-y_offset)
-        box1 = (x_offset, main_img.size[1]-y_offset-rel_img.size[1], vala, valb)
-        print(main_img.size)
-        print(box1)
-        box2 = (0, 0, vala, 112)
-        print(rel_img.size)
-        print(box2)
+        box1 = (x1, y1, x2, y2)
+        box2 = (x1-x_offset, rel_img.size[1]-(ori_y1-y_offset), x2-x_offset, rel_img.size[1]-(ori_y2-y_offset))
+
+        # print(box1)
+        # print(main_img.size)
+        # print(box2)
+        # print(rel_img.size)
         tmp_img1 = main_img.crop(box1)
         tmp_img2 = rel_img.crop(box2)
         tmp_img1 = Image.alpha_composite(tmp_img1, tmp_img2)
         main_img.paste(tmp_img1, box1)
-        # main_img = main_img.transpose(Image.ROTATE_180)
-
 
     def movePipe(self):
         for p in self.pipes:
@@ -176,25 +167,24 @@ class Monitor(Tool):
 
     def drawStartMenu(self):
         self.draw_img = self.bgd_img.copy()
-        self.calcImg(self.draw_img, self.start_img, int((self.bgd_img.shape[0] - self.start_img.shape[0]) / 2),
-        int((self.bgd_img.shape[1] - self.start_img.shape[1]) / 2))
+        self.calcImg(self.draw_img, self.start_img, int((self.bgd_img.size[0] - self.start_img.size[0]) / 2),
+        int((self.bgd_img.size[1] - self.start_img.size[1]) / 2))
 
     def drawGameOver(self):
         self.draw_img = self.bgd_img.copy()
-        self.calcImg(self.draw_img, self.gameover_img, int((self.bgd_img.shape[0] - self.gameover_img.shape[0]) / 2),
-        int((self.bgd_img.shape[1] - self.gameover_img.shape[1]) / 2))
+        self.calcImg(self.draw_img, self.gameover_img, int((self.bgd_img.size[0] - self.gameover_img.size[0]) / 2),
+        int((self.bgd_img.size[1] - self.gameover_img.size[1]) / 2))
 
     def drawGround(self):
         Monitor.gui.line([0, FLOOR_HEIGH / SCREEN_HEIGH], [1, FLOOR_HEIGH / SCREEN_HEIGH], color=0xffffff)
 
     def render(self):
         self.draw_img = self.bgd_img.copy()
-        self.calcImg(self.draw_img, self.bird.img, int(self.bird.calcX()), int(self.bird.calcY()))
-        # self.calcImg(self.draw_img, self.pipes[0].img, int(self.bird.calcX()), int(self.bird.calcY()))
-        # self.calcImg(self.draw_img, self.pipes[0].bot_img, 80, 23)
+        self.calcImg(self.draw_img, self.bird.img, int(self.bird.calcX()), int(self.bird.calcY(self.bgd_img)))
+        self.calcImg(self.draw_img, self.pipes[0].bot_img, 80, 23)
         # self.calcImg(self.draw_img, self.pipes[0].top_img, 80, 150)
         # print(self.bird.calcX())
-        # print(self.bird.calcY())
+        # print(self.bird.calcY(self.bgd_img))
         
 
 
@@ -221,10 +211,8 @@ class Monitor(Tool):
             # self.movePipe()
             if self.state == RunState.IDLE1:
                 self.state = RunState.IDLE2
-                self.bird.setY(0.5 * SCREEN_HEIGH)
-                self.bird.setVec(0)
-                self.bird.is_touch_boudary = False
-                # self.drawStartMenu()
+                self.bird.initState(self.bgd_img)
+                self.drawStartMenu()
 
             elif self.state  == RunState.RUNNING:
                 if self.bird.is_touch_boudary == False:
@@ -237,16 +225,13 @@ class Monitor(Tool):
                 self.drawGameOver()
 
             # Monitor.video_manager.write_frame(self.draw_img)
-            # Monitor.gui.set_image(self.draw_img)
-            demo_img = np.array(self.bgd_img.convert("RGB")).swapaxes(0, 1)
-            # print(self.bgd_img.size)
-            # print(demo_img.shape)
-            Monitor.gui.set_image(demo_img)
+            Monitor.gui.set_image(np.flip(np.array(self.draw_img.convert("RGB")).swapaxes(0, 1), axis=1))
             Monitor.gui.show()
 
 
 monitor = Monitor()
 monitor.draw()
+
 # Monitor.video_manager.make_video(gif=True, mp4=True)
 # print(f'MP4 video is saved to {Monitor.video_manager.get_output_filename(".mp4")}')
 # print(f'GIF video is saved to {Monitor.video_manager.get_output_filename(".gif")}')
