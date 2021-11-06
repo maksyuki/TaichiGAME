@@ -234,8 +234,8 @@ class Monitor(Tool):
         self.calcImg(self.draw_img, self.pipes[0].top_img, int(self.pipes[0].pos[0]), 300+self.pipes[0].heigh, True)
         self.calcImg(self.draw_img, self.bird.img, int(self.bird.calcX()), int(self.bird.calcY(self.bgd_img)))
         self.drawScore(self.draw_img)
-        # print(self.bird.calcX())
-        # print(self.bird.calcY(self.bgd_img))
+        print(self.bird.calcX())
+        print(self.bird.calcY(self.bgd_img))
         
 
     def draw(self):
