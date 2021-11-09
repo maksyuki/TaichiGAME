@@ -27,9 +27,12 @@ class Bird():
         self.delta_time = FPS / 10000.0
         self.vec = 0
         self.pos = pos
-        self.img = Image.open('./resources/yellowbird-upflap.png').convert("RGBA")
-        self.img1 = Image.open('./resources/yellowbird-midflap.png').convert("RGBA")
-        self.img2 = Image.open('./resources/yellowbird-downflap.png').convert("RGBA")
+        self.img_cnt = 0
+        self.img = []
+        # self.img = Image.open('./resources/yellowbird-upflap.png').convert("RGBA")
+        self.img.append(Image.open('./resources/yellowbird-upflap.png').convert("RGBA"))
+        self.img.append(Image.open('./resources/yellowbird-midflap.png').convert("RGBA"))
+        self.img.append(Image.open('./resources/yellowbird-downflap.png').convert("RGBA"))
 
     def initState(self, main_img):
         self.setY(main_img, 0.5 * SCREEN_HEIGH)
@@ -37,7 +40,8 @@ class Bird():
         self.is_touch_boudary = False
 
     def update(self):
-        if self.pos[1] + self.img.size[1] >= SCREEN_HEIGH or self.pos[1] < FLOOR_HEIGH:
+        self.img_cnt = (self.img_cnt + 1) % 3
+        if self.pos[1] + self.img[0].size[1] >= SCREEN_HEIGH or self.pos[1] < FLOOR_HEIGH:
             self.is_touch_boudary = True
             self.vec = 0
         else:
@@ -48,9 +52,6 @@ class Bird():
 
     def up(self):
         self.vec += max(DELTA_UP_VEC_LIMIT, DELTA_UP_VEC)
-
-    def down(self):
-        print("down")
 
     def calcX(self):
         return self.pos[0]
@@ -117,7 +118,6 @@ class Monitor():
 
         self.initState()
         self.bgd_img = Image.open('./resources/bgd-img-day.png').convert("RGBA")
-        # self.grd_img = Image.open('./resources/base.png').convert("RGBA")
         self.start_img = Image.open('./resources/message.png').convert("RGBA")
         self.gameover_img = Image.open('./resources/gameover.png').convert("RGBA")
         self.score_img = []
@@ -131,8 +131,6 @@ class Monitor():
         self.score_img.append(Image.open('./resources/7.png').convert("RGBA"))
         self.score_img.append(Image.open('./resources/8.png').convert("RGBA"))
         self.score_img.append(Image.open('./resources/9.png').convert("RGBA"))
-
-        # self.calcImg(self.bgd_img, self.grd_img)
 
     def initState(self):
         self.score = 0
@@ -178,8 +176,8 @@ class Monitor():
         return random.randint(0, 200) - 100 #[-100, 100]
 
     def geoIntersectCheck(self, pipe):
-        bird_center_x = self.bird.pos[0] + self.bird.img.size[0] / 3.0
-        bird_center_y = self.bird.pos[1] + self.bird.img.size[1] / 3.0
+        bird_center_x = self.bird.pos[0] + self.bird.img[0].size[0] / 3.0
+        bird_center_y = self.bird.pos[1] + self.bird.img[0].size[1] / 3.0
         pipe_center_x = pipe.pos[0] + pipe.bot_img.size[0] / 2.0
         pipe_center_y = pipe.pos[1] + pipe.bot_img.size[1] / 2.0
 
@@ -188,8 +186,8 @@ class Monitor():
         # print(abs(bird_center_y - pipe_center_y))
         # print(abs(self.bird.img.size[1] + pipe.bot_img.size[1]) / 2.0)
 
-        if ((abs(bird_center_x - pipe_center_x) < abs(self.bird.img.size[0] + pipe.bot_img.size[0]) / 2.0) and
-           (abs(bird_center_y - pipe_center_y) < abs(self.bird.img.size[1] + pipe.bot_img.size[1]) / 2.0)):
+        if ((abs(bird_center_x - pipe_center_x) < abs(self.bird.img[0].size[0] + pipe.bot_img.size[0]) / 2.0) and
+           (abs(bird_center_y - pipe_center_y) < abs(self.bird.img[0].size[1] + pipe.bot_img.size[1]) / 2.0)):
             return True
         else:
             return False
@@ -229,7 +227,7 @@ class Monitor():
         self.draw_img = self.bgd_img.copy()
         self.calcImg(self.draw_img, self.pipes[0].bot_img, int(self.pipes[0].pos[0]), -100+self.pipes[0].heigh)
         self.calcImg(self.draw_img, self.pipes[0].top_img, int(self.pipes[0].pos[0]), 300+self.pipes[0].heigh, True)
-        self.calcImg(self.draw_img, self.bird.img, int(self.bird.calcX()), int(self.bird.calcY(self.bgd_img)))
+        self.calcImg(self.draw_img, self.bird.img[self.bird.img_cnt], int(self.bird.calcX()), int(self.bird.calcY(self.bgd_img)))
         self.calcImg(self.draw_img, self.ground.img)
         self.drawScore(self.draw_img)
         print(self.bird.calcX())
