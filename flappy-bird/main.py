@@ -21,17 +21,7 @@ GRAVITY_CONSTANT = -9.8 * 1.2
 DELTA_UP_VEC = 2
 DELTA_UP_VEC_LIMIT = 2.5
 
-class Tool:
-    def __init__(self):
-        print("tool")
-
-    def loadImg(self, path, reverse=False):
-        if reverse:
-            return np.array(Image.open(path).convert("RGB")).swapaxes(0, 1)
-        else:
-            return np.flip(np.array(Image.open(path).convert("RGB")).swapaxes(0, 1), axis=1)
-
-class Bird(Tool):
+class Bird():
     def __init__(self, pos):
         self.is_touch_boudary = False
         self.delta_time = FPS / 10000.0
@@ -77,7 +67,13 @@ class Bird(Tool):
     def setVec(self, val):
         self.vec = val
 
-class Pipe(Tool):
+class Ground():
+    def __init__(self):
+        self.vec = 10
+        self.delta_time = FPS / 500.0
+        self.img = Image.open('./resources/base.png').convert("RGBA")
+
+class Pipe():
     def __init__(self, pos, heigh):
         self.pos = pos
         self.heigh = heigh
@@ -106,21 +102,22 @@ class RunState():
     RUNNING = 2
     OVER1 = 3
     OVER2 = 4
-    
-class Monitor(Tool):
+
+class Monitor():
     gui = ti.GUI("flappy bird", (SCREEN_WIDTH, SCREEN_HEIGH))
     # video_manager = ti.VideoManager(output_dir="./results", framerate=24, automatic_build=False)
 
     def __init__(self):
         self.state = RunState.IDLE1
         self.bird = Bird([0.3 * SCREEN_WIDTH, 0.5 * SCREEN_HEIGH])
+        self.ground = Ground()
         self.pipes = []
         self.pipes.append(Pipe([0.9 * SCREEN_WIDTH, FLOOR_HEIGH], self.genRandHeigh()))
         # self.pipes.append(Pipe([1 * SCREEN_WIDTH, FLOOR_HEIGH], self.genRandHeigh()))
 
         self.initState()
         self.bgd_img = Image.open('./resources/bgd-img-day.png').convert("RGBA")
-        self.grd_img = Image.open('./resources/base.png').convert("RGBA")
+        # self.grd_img = Image.open('./resources/base.png').convert("RGBA")
         self.start_img = Image.open('./resources/message.png').convert("RGBA")
         self.gameover_img = Image.open('./resources/gameover.png').convert("RGBA")
         self.score_img = []
@@ -135,7 +132,7 @@ class Monitor(Tool):
         self.score_img.append(Image.open('./resources/8.png').convert("RGBA"))
         self.score_img.append(Image.open('./resources/9.png').convert("RGBA"))
 
-        self.calcImg(self.bgd_img, self.grd_img)
+        # self.calcImg(self.bgd_img, self.grd_img)
 
     def initState(self):
         self.score = 0
@@ -199,9 +196,9 @@ class Monitor(Tool):
 
     def collisionCheck(self):
         for p in self.pipes:
-            if self.geoIntersectCheck(p):
-                self.is_collision = True
-                return
+            # if self.geoIntersectCheck(p):
+            #     self.is_collision = True
+            #     return
 
             if p.pos[0] + p.bot_img.size[0] < self.bird.pos[0] and self.score_iter == False:
                 self.score = self.score + 1
@@ -233,6 +230,7 @@ class Monitor(Tool):
         self.calcImg(self.draw_img, self.pipes[0].bot_img, int(self.pipes[0].pos[0]), -100+self.pipes[0].heigh)
         self.calcImg(self.draw_img, self.pipes[0].top_img, int(self.pipes[0].pos[0]), 300+self.pipes[0].heigh, True)
         self.calcImg(self.draw_img, self.bird.img, int(self.bird.calcX()), int(self.bird.calcY(self.bgd_img)))
+        self.calcImg(self.draw_img, self.ground.img)
         self.drawScore(self.draw_img)
         print(self.bird.calcX())
         print(self.bird.calcY(self.bgd_img))
