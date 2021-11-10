@@ -69,10 +69,17 @@ class Bird():
         self.vec = val
 
 class Ground():
-    def __init__(self):
+    def __init__(self, pos=[0, 0]):
+        self.pos = pos
         self.vec = 10
         self.delta_time = FPS / 500.0
         self.img = Image.open('./resources/base.png').convert("RGBA")
+
+    def update(self):
+        self.pos[0] -= self.vec * self.delta_time
+
+    def setX(self, val):
+        self.pos[0] = val
 
 class Pipe():
     def __init__(self, pos, heigh):
@@ -111,7 +118,11 @@ class Monitor():
     def __init__(self):
         self.state = RunState.IDLE1
         self.bird = Bird([0.3 * SCREEN_WIDTH, 0.5 * SCREEN_HEIGH])
-        self.ground = Ground()
+        self.ground = []
+        self.ground.append(Ground())
+        self.ground.append(Ground())
+        self.ground[1].setX(self.ground[1].img.size[0])
+
         self.pipes = []
         self.pipes.append(Pipe([0.9 * SCREEN_WIDTH, FLOOR_HEIGH], self.genRandHeigh()))
         # self.pipes.append(Pipe([1 * SCREEN_WIDTH, FLOOR_HEIGH], self.genRandHeigh()))
@@ -165,12 +176,16 @@ class Monitor():
         tmp_img1 = Image.alpha_composite(tmp_img1, tmp_img2)
         main_img.paste(tmp_img1, box1)
 
-    def movePipe(self):
+    def moveScene(self):
         for p in self.pipes:
             if p.pos[0] >= 0 and p.pos[0] < 10:
                 p.pos[0] = 1 * SCREEN_WIDTH
                 p.heigh = self.genRandHeigh()
                 self.score_iter = False
+        
+        for g in self.ground:
+            if g.pos[0] <= -g.img.size[0]:
+                g.pos[0] = g.img.size[0]
 
     def genRandHeigh(self):
         return random.randint(0, 200) - 100 #[-100, 100]
@@ -228,7 +243,7 @@ class Monitor():
         self.calcImg(self.draw_img, self.pipes[0].bot_img, int(self.pipes[0].pos[0]), -100+self.pipes[0].heigh)
         self.calcImg(self.draw_img, self.pipes[0].top_img, int(self.pipes[0].pos[0]), 300+self.pipes[0].heigh, True)
         self.calcImg(self.draw_img, self.bird.img[self.bird.img_cnt], int(self.bird.calcX()), int(self.bird.calcY(self.bgd_img)))
-        self.calcImg(self.draw_img, self.ground.img)
+        self.calcImg(self.draw_img, self.ground[0].img, int(self.ground[0].pos[0]))
         self.drawScore(self.draw_img)
         print(self.bird.calcX())
         print(self.bird.calcY(self.bgd_img))
@@ -260,6 +275,10 @@ class Monitor():
             elif self.state  == RunState.RUNNING:
                 if self.bird.is_touch_boudary == False and self.is_collision == False:
                     self.bird.update()
+
+                    for g in self.ground:
+                        g.update()
+
                     for p in self.pipes:
                         p.update()
 
@@ -270,7 +289,7 @@ class Monitor():
                 self.state = RunState.OVER2
                 self.drawGameOver()
 
-            self.movePipe()
+            self.moveScene()
             self.collisionCheck()
             # Monitor.video_manager.write_frame(self.draw_img)
             Monitor.gui.set_image(np.flip(np.array(self.draw_img.convert("RGB")).swapaxes(0, 1), axis=1))
