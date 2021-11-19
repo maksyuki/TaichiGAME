@@ -21,6 +21,7 @@ GRAVITY_CONSTANT = -9.8 * 1.2
 DELTA_UP_VEC = 2
 DELTA_UP_VEC_LIMIT = 2.5
 
+
 class Bird():
     def __init__(self, pos):
         self.is_touch_boudary = False
@@ -30,9 +31,12 @@ class Bird():
         self.img_cnt = 0
         self.img = []
         # self.img = Image.open('./resources/yellowbird-upflap.png').convert("RGBA")
-        self.img.append(Image.open('./resources/yellowbird-upflap.png').convert("RGBA"))
-        self.img.append(Image.open('./resources/yellowbird-midflap.png').convert("RGBA"))
-        self.img.append(Image.open('./resources/yellowbird-downflap.png').convert("RGBA"))
+        self.img.append(
+            Image.open('./resources/yellowbird-upflap.png').convert("RGBA"))
+        self.img.append(
+            Image.open('./resources/yellowbird-midflap.png').convert("RGBA"))
+        self.img.append(
+            Image.open('./resources/yellowbird-downflap.png').convert("RGBA"))
 
     def initState(self, main_img):
         self.setY(main_img, 0.5 * SCREEN_HEIGH)
@@ -41,7 +45,8 @@ class Bird():
 
     def update(self):
         self.img_cnt = (self.img_cnt + 1) % 3
-        if self.pos[1] + self.img[0].size[1] >= SCREEN_HEIGH or self.pos[1] < FLOOR_HEIGH:
+        if self.pos[1] + self.img[0].size[1] >= SCREEN_HEIGH or self.pos[
+                1] < FLOOR_HEIGH:
             self.is_touch_boudary = True
             self.vec = 0
         else:
@@ -49,13 +54,12 @@ class Bird():
 
         self.pos[1] += self.vec
 
-
     def up(self):
         self.vec += max(DELTA_UP_VEC_LIMIT, DELTA_UP_VEC)
 
     def calcX(self):
         return self.pos[0]
-    
+
     def calcY(self, main_img):
         return self.pos[1]
 
@@ -64,9 +68,10 @@ class Bird():
 
     def setY(self, main_img, val):
         self.pos[1] = val
-    
+
     def setVec(self, val):
         self.vec = val
+
 
 class Ground():
     def __init__(self, pos=[0, 0]):
@@ -81,6 +86,7 @@ class Ground():
     def setX(self, val):
         self.pos[0] = val
 
+
 class Pipe():
     def __init__(self, pos, heigh):
         self.pos = pos
@@ -90,10 +96,8 @@ class Pipe():
         self.bot_img = Image.open('./resources/pipe-green.png').convert("RGBA")
         self.top_img = Image.open('./resources/pipe-green.png').convert("RGBA")
 
-
     def update(self):
         self.pos[0] -= self.vec * self.delta_time
-        
 
     def calcX(self):
         return self.pos[0]
@@ -104,6 +108,7 @@ class Pipe():
     def setX(self, val):
         self.pos[0] = val
 
+
 class RunState():
     IDLE1 = 0
     IDLE2 = 1
@@ -111,8 +116,10 @@ class RunState():
     OVER1 = 3
     OVER2 = 4
 
+
 class Monitor():
     gui = ti.GUI("flappy bird", (SCREEN_WIDTH, SCREEN_HEIGH))
+
     # video_manager = ti.VideoManager(output_dir="./results", framerate=24, automatic_build=False)
 
     def __init__(self):
@@ -124,13 +131,16 @@ class Monitor():
         self.ground[1].setX(self.ground[1].img.size[0])
 
         self.pipes = []
-        self.pipes.append(Pipe([0.9 * SCREEN_WIDTH, FLOOR_HEIGH], self.genRandHeigh()))
+        self.pipes.append(
+            Pipe([0.9 * SCREEN_WIDTH, FLOOR_HEIGH], self.genRandHeigh()))
         # self.pipes.append(Pipe([1 * SCREEN_WIDTH, FLOOR_HEIGH], self.genRandHeigh()))
 
         self.initState()
-        self.bgd_img = Image.open('./resources/bgd-img-day.png').convert("RGBA")
+        self.bgd_img = Image.open('./resources/bgd-img-day.png').convert(
+            "RGBA")
         self.start_img = Image.open('./resources/message.png').convert("RGBA")
-        self.gameover_img = Image.open('./resources/gameover.png').convert("RGBA")
+        self.gameover_img = Image.open('./resources/gameover.png').convert(
+            "RGBA")
         self.score_img = []
         self.score_img.append(Image.open('./resources/0.png').convert("RGBA"))
         self.score_img.append(Image.open('./resources/1.png').convert("RGBA"))
@@ -152,18 +162,19 @@ class Monitor():
 
     def calcImg(self, main_img, rel_img, x_offset=0, y_offset=0, rotate=False):
         # (max(x_off, 0), min(y_off+rel.heigh, main.heigh)) (min(x_off+rel.width, main.width), max(y_off, 0))
-        # ===> 
-        # (max(x_off, 0), main.heigh - min(y_off+rel.heigh, main.heigh)) 
+        # ===>
+        # (max(x_off, 0), main.heigh - min(y_off+rel.heigh, main.heigh))
         # (min(x_off+rel.width, main.width), main.heigh - max(y_off, 0))
-        ori_y1 = min(y_offset+rel_img.size[1], main_img.size[1])
+        ori_y1 = min(y_offset + rel_img.size[1], main_img.size[1])
         ori_y2 = max(y_offset, 0)
         x1 = max(x_offset, 0)
-        x2 = min(x_offset+rel_img.size[0], main_img.size[0])
+        x2 = min(x_offset + rel_img.size[0], main_img.size[0])
         y1 = main_img.size[1] - ori_y1
         y2 = main_img.size[1] - ori_y2
 
         box1 = (x1, y1, x2, y2)
-        box2 = (x1-x_offset, rel_img.size[1]-(ori_y1-y_offset), x2-x_offset, rel_img.size[1]-(ori_y2-y_offset))
+        box2 = (x1 - x_offset, rel_img.size[1] - (ori_y1 - y_offset),
+                x2 - x_offset, rel_img.size[1] - (ori_y2 - y_offset))
 
         # print(box1)
         # print(main_img.size)
@@ -182,13 +193,13 @@ class Monitor():
                 p.pos[0] = 1 * SCREEN_WIDTH
                 p.heigh = self.genRandHeigh()
                 self.score_iter = False
-        
+
         for g in self.ground:
             if g.pos[0] <= -g.img.size[0]:
                 g.pos[0] = g.img.size[0]
 
     def genRandHeigh(self):
-        return random.randint(0, 200) - 100 #[-100, 100]
+        return random.randint(0, 200) - 100  #[-100, 100]
 
     def geoIntersectCheck(self, pipe):
         bird_center_x = self.bird.pos[0] + self.bird.img[0].size[0] / 3.0
@@ -201,8 +212,10 @@ class Monitor():
         # print(abs(bird_center_y - pipe_center_y))
         # print(abs(self.bird.img.size[1] + pipe.bot_img.size[1]) / 2.0)
 
-        if ((abs(bird_center_x - pipe_center_x) < abs(self.bird.img[0].size[0] + pipe.bot_img.size[0]) / 2.0) and
-           (abs(bird_center_y - pipe_center_y) < abs(self.bird.img[0].size[1] + pipe.bot_img.size[1]) / 2.0)):
+        if ((abs(bird_center_x - pipe_center_x) <
+             abs(self.bird.img[0].size[0] + pipe.bot_img.size[0]) / 2.0) and
+            (abs(bird_center_y - pipe_center_y) <
+             abs(self.bird.img[0].size[1] + pipe.bot_img.size[1]) / 2.0)):
             return True
         else:
             return False
@@ -213,7 +226,8 @@ class Monitor():
             #     self.is_collision = True
             #     return
 
-            if p.pos[0] + p.bot_img.size[0] < self.bird.pos[0] and self.score_iter == False:
+            if p.pos[0] + p.bot_img.size[0] < self.bird.pos[
+                    0] and self.score_iter == False:
                 self.score = self.score + 1
                 self.score_iter = True
 
@@ -225,29 +239,40 @@ class Monitor():
 
     def drawScore(self, main_img):
         idx = self.score % 10
-        self.calcImg(main_img, self.score_img[idx], int((self.bgd_img.size[0] - self.score_img[idx].size[0]) / 2),
-        int((self.bgd_img.size[1]-self.score_img[idx].size[1])/2)+150)
+        self.calcImg(
+            main_img, self.score_img[idx],
+            int((self.bgd_img.size[0] - self.score_img[idx].size[0]) / 2),
+            int((self.bgd_img.size[1] - self.score_img[idx].size[1]) / 2) +
+            150)
 
     def drawStartMenu(self):
         self.draw_img = self.bgd_img.copy()
-        self.calcImg(self.draw_img, self.start_img, int((self.bgd_img.size[0]-self.start_img.size[0])/2),
-        int((self.bgd_img.size[1]-self.start_img.size[1])/2))
+        self.calcImg(self.draw_img, self.start_img,
+                     int((self.bgd_img.size[0] - self.start_img.size[0]) / 2),
+                     int((self.bgd_img.size[1] - self.start_img.size[1]) / 2))
 
     def drawGameOver(self):
         self.draw_img = self.bgd_img.copy()
-        self.calcImg(self.draw_img, self.gameover_img, int((self.bgd_img.size[0]-self.gameover_img.size[0])/2),
-        int((self.bgd_img.size[1] - self.gameover_img.size[1])/2))
+        self.calcImg(
+            self.draw_img, self.gameover_img,
+            int((self.bgd_img.size[0] - self.gameover_img.size[0]) / 2),
+            int((self.bgd_img.size[1] - self.gameover_img.size[1]) / 2))
 
     def render(self):
         self.draw_img = self.bgd_img.copy()
-        self.calcImg(self.draw_img, self.pipes[0].bot_img, int(self.pipes[0].pos[0]), -100+self.pipes[0].heigh)
-        self.calcImg(self.draw_img, self.pipes[0].top_img, int(self.pipes[0].pos[0]), 300+self.pipes[0].heigh, True)
-        self.calcImg(self.draw_img, self.bird.img[self.bird.img_cnt], int(self.bird.calcX()), int(self.bird.calcY(self.bgd_img)))
-        self.calcImg(self.draw_img, self.ground[0].img, int(self.ground[0].pos[0]))
+        self.calcImg(self.draw_img, self.pipes[0].bot_img,
+                     int(self.pipes[0].pos[0]), -100 + self.pipes[0].heigh)
+        self.calcImg(self.draw_img, self.pipes[0].top_img,
+                     int(self.pipes[0].pos[0]), 300 + self.pipes[0].heigh,
+                     True)
+        self.calcImg(self.draw_img, self.bird.img[self.bird.img_cnt],
+                     int(self.bird.calcX()),
+                     int(self.bird.calcY(self.bgd_img)))
+        self.calcImg(self.draw_img, self.ground[0].img,
+                     int(self.ground[0].pos[0]))
         self.drawScore(self.draw_img)
         print(self.bird.calcX())
         print(self.bird.calcY(self.bgd_img))
-        
 
     def draw(self):
         while Monitor.gui.running:
@@ -272,7 +297,7 @@ class Monitor():
                 self.initState()
                 self.drawStartMenu()
 
-            elif self.state  == RunState.RUNNING:
+            elif self.state == RunState.RUNNING:
                 if self.bird.is_touch_boudary == False and self.is_collision == False:
                     self.bird.update()
 
@@ -292,7 +317,9 @@ class Monitor():
             self.moveScene()
             self.collisionCheck()
             # Monitor.video_manager.write_frame(self.draw_img)
-            Monitor.gui.set_image(np.flip(np.array(self.draw_img.convert("RGB")).swapaxes(0, 1), axis=1))
+            Monitor.gui.set_image(
+                np.flip(np.array(self.draw_img.convert("RGB")).swapaxes(0, 1),
+                        axis=1))
             Monitor.gui.show()
 
 
