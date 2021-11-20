@@ -1,5 +1,3 @@
-# from ..common.config import Config
-
 import numpy as np
 
 
@@ -143,8 +141,7 @@ class Vector2():
         return self
 
     def negative(self):
-        self.val = -self.val
-        return Vector2(self.val)
+        return Vector2(-self.val)
 
     def swap(self, other):
         self.val, other.val = other.val, self.val
@@ -155,8 +152,7 @@ class Vector2():
         return self
 
     def normal(self):
-        self.val /= self.len()
-        return Vector2(self.val)
+        return Vector2(self.val / self.len())
 
     def is_origin(self):
         return np.isclose(self.val, [0, 0]).all()
@@ -170,7 +166,6 @@ class Vector2():
     def perpendicular(self):
         return Vector2([-self.val[1], self.val[0]])
 
-    # class method
     @staticmethod
     def dotProduct(veca, Vecb):
         return np.dot(veca.val, vecb.val)
