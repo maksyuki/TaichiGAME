@@ -1,13 +1,13 @@
 import numpy as np
 
 
-class Vector2():
-    def __init__(self, arr=[0.0, 0.0]):
+class Vector():
+    def __init__(self, arr):
         self.val = np.array(arr)
 
     # unary operator
     def __neg__(self):
-        return Vector2(-self.val)
+        return Vector(-self.val)
 
     def __pos__(self):
         pass
@@ -17,17 +17,17 @@ class Vector2():
 
     # binary operator
     def __add__(self, other):
-        return Vector2(self.val + other.val)
+        return Vector(self.val + other.val)
 
     def __sub__(self, other):
-        return Vector2(self.val - other.val)
+        return Vector(self.val - other.val)
 
     def __mul__(self, other):
-        return Vector2(self.val * other)
+        return Vector(self.val * other)
 
     def __truediv__(self, other):
         assert (not np.isclose(other, 0))
-        return Vector2(self.val / other)
+        return Vector(self.val / other)
 
     def __floordiv__(self, other):
         pass
@@ -141,7 +141,7 @@ class Vector2():
         return self
 
     def negative(self):
-        return Vector2(-self.val)
+        return Vector(-self.val)
 
     def swap(self, other):
         self.val, other.val = other.val, self.val
@@ -152,7 +152,7 @@ class Vector2():
         return self
 
     def normal(self):
-        return Vector2(self.val / self.len())
+        return Vector(self.val / self.len())
 
     def is_origin(self):
         return np.isclose(self.val, [0, 0]).all()
@@ -164,7 +164,7 @@ class Vector2():
         return np.cross(self.val, other.val)
 
     def perpendicular(self):
-        return Vector2([-self.val[1], self.val[0]])
+        return Vector([-self.val[1], self.val[0]])
 
     @staticmethod
     def dotProduct(veca, Vecb):
@@ -175,9 +175,9 @@ class Vector2():
         return np.cross(veca.val, vecb.val)
 
 
-vec1 = Vector2([1.0, 2.0])
-vec2 = Vector2([2.0, 3.0])
-vec3 = Vector2([1, 2])
+vec1 = Vector([1.0, 2.0])
+vec2 = Vector([2.0, 3.0])
+vec3 = Vector([1, 2])
 print(vec1 + vec2)
 print(vec1 - vec2)
 print(-vec1)
