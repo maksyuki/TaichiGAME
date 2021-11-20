@@ -1,13 +1,19 @@
 import numpy as np
 
+# now just for the 2x2 mat or 1x2 vec
+class Matrix():
+    def __init__(self, arr, data_type='mat', row=2, col=2):
+        self.data_type = data_type
 
-class Vector():
-    def __init__(self, arr):
-        self.val = np.array(arr)
+        if self.data_type == 'mat':
+            self.val = np.array(arr).reshape(row, col)
+        elif self.data_type == 'vec':
+            self.val = np.array(arr)
+
 
     # unary operator
     def __neg__(self):
-        return Vector(-self.val)
+        return Matrix(-self.val, self.data_type)
 
     def __pos__(self):
         pass
@@ -17,17 +23,17 @@ class Vector():
 
     # binary operator
     def __add__(self, other):
-        return Vector(self.val + other.val)
+        return Matrix(self.val + other.val, self.data_type)
 
     def __sub__(self, other):
-        return Vector(self.val - other.val)
+        return Matrix(self.val - other.val, self.data_type)
 
     def __mul__(self, other):
-        return Vector(self.val * other)
+        return Matrix(self.val * other, self.data_type)
 
     def __truediv__(self, other):
         assert (not np.isclose(other, 0))
-        return Vector(self.val / other)
+        return Matrix(self.val / other, self.data_type)
 
     def __floordiv__(self, other):
         pass
@@ -115,10 +121,22 @@ class Vector():
         pass
 
     def __str__(self):
-        if self.val.size == 2:
-            return 'x = ' + str(self.val[0]) + ' y = ' + str(self.val[1])
+        if self.val.ndim == 2:
+            return '[' + str(self.val[0, 0]) + ' ' + str(self.val[0, 1]) + ']\n' + '[' + str(self.val[1, 0]) + ' ' + str(self.val[1, 1]) + ']\n'
         else:
-            return 'x = ' + str(self.val[0]) + ' y = ' + str(self.val[1]) + ' z = ' + str(self.val[2])
+            return '[' + str(self.val[0]) + ' ' + str(self.val[1]) + ']'
+
+    def row1(self):
+        # return Matrix(self.val[0])
+        pass
+    
+    def row2(self):
+        # return Matrix(self.val[1])
+        pass
+
+    def value(self, row=0, col=0):
+        return self.val[row][col]
+
 
     def len_square(self):
         return np.square(self.val).sum()
@@ -127,18 +145,24 @@ class Vector():
         return np.sqrt(self.len_square())
 
     def theta(self):
-        if self.val.size == 2:
-            return np.arctan2(self.val[1], self.val[0])
+        assert (self.val.ndim == 1 and self.val.size == 2)
+        return np.arctan2(self.val[1], self.val[0])
 
+    # TODO: some bug!
     def set(self, arr):
         self.val = arr
         return self
 
     def clear(self):
-        if self.val.size == 2:
-            self.set([0, 0])
+        if self.val.ndim == 2:
+            self.val[0, 0] = 0
+            self.val[0, 1] = 0
+            self.val[1, 0] = 0
+            self.val[1, 1] = 0
         else:
-            self.set([0, 0, 0])
+            self.val[0] = 0
+            self.val[1] = 0
+
         return self
 
     def negate(self):
@@ -146,7 +170,7 @@ class Vector():
         return self
 
     def negative(self):
-        return Vector(-self.val)
+        return Matrix(-self.val, self.data_type)
 
     def swap(self, other):
         self.val, other.val = other.val, self.val
@@ -157,36 +181,38 @@ class Vector():
         return self
 
     def normal(self):
-        return Vector(self.val / self.len())
+        return Matrix(self.val / self.len(), self.data_type)
 
     def is_origin(self):
-        if self.val.size == 2:
-            return np.isclose(self.val, [0, 0]).all()
-        else:
-            return np.isclose(self.val, [0, 0, 0]).all()
+        assert (self.val.ndim == 1 and self.val.size == 2)
+        return np.isclose(self.val, [0, 0]).all()
 
     def dot(self, other):
+        assert (self.val.ndim == 1 and self.val.size == 2)
         return np.dot(self.val, other.val)
 
     def cross(self, other):
+        assert (self.val.ndim == 1 and self.val.size == 2)
         return np.cross(self.val, other.val)
 
     def perpendicular(self):
-        if self.val.size == 2:
-            return Vector([-self.val[1], self.val[0]])
+        assert (self.val.ndim == 1 and self.val.size == 2)
+        return Matrix([-self.val[1], self.val[0]], self.data_type)
 
     @staticmethod
-    def dotProduct(veca, Vecb):
-        return np.dot(veca.val, vecb.val)
+    def dotProduct(mata, Vecb):
+        assert (self.val.ndim == 1 and self.val.size == 2)
+        return np.dot(mata.val, matb.val)
 
     @staticmethod
-    def crossProduct(veca, vecb):
-        return np.cross(veca.val, vecb.val)
+    def crossProduct(mata, matb):
+        assert (self.val.ndim == 1 and self.val.size == 2)
+        return np.cross(mata.val, matb.val)
 
 
-vec1 = Vector([1.0, 2.0])
-vec2 = Vector([2.0, 3.0])
-vec3 = Vector([1, 2])
+vec1 = Matrix([1.0, 2.0], 'vec')
+vec2 = Matrix([2.0, 3.0], 'vec')
+vec3 = Matrix([1, 2], 'vec')
 print(vec1 + vec2)
 print(vec1 - vec2)
 print(-vec1)
@@ -207,7 +233,31 @@ print(vec1.perpendicular())
 vec1 += vec2
 print(vec1)
 
-vec3 = Vector([1.0, 2.0, 3.0])
-vec4 = Vector([2.0, 3.0, 4.0])
-print(vec3 + vec4)
-print(vec4.len_square())
+##################################
+mat1 = Matrix([1.0, 2.0, 2.0, 3.0])
+mat2 = Matrix([2.0, 3.0, 3.0, 4.0])
+mat3 = Matrix([1.0, 2.0, 2.0, 3.0])
+print(mat1 + mat2)
+print(mat1 - mat2)
+print(-mat1)
+print(mat1 * 2)
+print(mat1 / 2)
+print(mat1 == mat2)
+print(mat1 != mat2)
+print(mat1 == mat3)
+print(mat1.len_square())
+print(mat1.len())
+# print(mat1.theta())
+# print(mat1.normalize())
+# print(mat1.swap(mat2))
+# print(mat1.is_origin())
+# print(mat1.dot(mat2))
+# print(mat1.cross(mat2))
+# print(mat1.perpendicular())
+# mat1 += mat2
+# print(mat1)
+
+# mat3 = Matrix([1.0, 2.0, 3.0])
+# mat4 = Matrix([2.0, 3.0, 4.0])
+# print(mat3 + mat4)
+# print(mat4.len_square())
