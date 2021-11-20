@@ -1,5 +1,6 @@
 import numpy as np
 
+
 # now just for the 2x2 mat or 1x2 vec
 class Matrix():
     def __init__(self, arr, data_type='mat', row=2, col=2):
@@ -9,7 +10,6 @@ class Matrix():
             self.val = np.array(arr).reshape(row, col)
         elif self.data_type == 'vec':
             self.val = np.array(arr)
-
 
     # unary operator
     def __neg__(self):
@@ -122,21 +122,45 @@ class Matrix():
 
     def __str__(self):
         if self.val.ndim == 2:
-            return '[' + str(self.val[0, 0]) + ' ' + str(self.val[0, 1]) + ']\n' + '[' + str(self.val[1, 0]) + ' ' + str(self.val[1, 1]) + ']\n'
+            return '[' + str(self.val[0, 0]) + ' ' + str(
+                self.val[0, 1]) + ']\n' + '[' + str(
+                    self.val[1, 0]) + ' ' + str(self.val[1, 1]) + ']\n'
         else:
-            return '[' + str(self.val[0]) + ' ' + str(self.val[1]) + ']'
+            return '[' + str(self.val[0]) + ' ' + str(self.val[1]) + ']\n'
 
     def row1(self):
-        # return Matrix(self.val[0])
-        pass
-    
+        assert (self.val.ndim == 2)
+        return Matrix(self.val[0], 'vec')
+
     def row2(self):
-        # return Matrix(self.val[1])
-        pass
+        assert (self.val.ndim == 2)
+        return Matrix(self.val[1], 'vec')
 
     def value(self, row=0, col=0):
-        return self.val[row][col]
+        assert (self.val.ndim == 2)
+        return self.val[row, col]
 
+    def determinant(self):
+        assert (self.val.ndim == 2)
+        return np.linalg.det(self.val)
+
+    def transpose(self):
+        assert (self.val.ndim == 2)
+        self.val = self.val.transpose()
+        return self
+
+    def invert(self):
+        assert (self.val.ndim == 2)
+        self.val = np.linalg.inv(self.val)
+        return self
+
+    def skewSymmetricMatrix(self, vec):
+        assert (self.val.ndim == 2)
+        return Matrix([0, -vec.val[1], vec.val[0], 0])
+
+    def identityMatrix(self):
+        assert (self.val.ndim == 2)
+        return Matrix([1, 0, 0, 1])
 
     def len_square(self):
         return np.square(self.val).sum()
