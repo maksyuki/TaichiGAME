@@ -115,7 +115,10 @@ class Vector():
         pass
 
     def __str__(self):
-        return 'x = ' + str(self.val[0]) + ' y = ' + str(self.val[1])
+        if self.val.size == 2:
+            return 'x = ' + str(self.val[0]) + ' y = ' + str(self.val[1])
+        else:
+            return 'x = ' + str(self.val[0]) + ' y = ' + str(self.val[1]) + ' z = ' + str(self.val[2])
 
     def len_square(self):
         return np.square(self.val).sum()
@@ -124,16 +127,18 @@ class Vector():
         return np.sqrt(self.len_square())
 
     def theta(self):
-        return np.arctan2(self.val[1], self.val[0])
+        if self.val.size == 2:
+            return np.arctan2(self.val[1], self.val[0])
 
-    def set(self, x=0.0, y=0.0):
-        self.val[0] = x
-        self.val[1] = y
+    def set(self, arr):
+        self.val = arr
         return self
 
     def clear(self):
-        self.val[0] = 0
-        self.val[1] = 0
+        if self.val.size == 2:
+            self.set([0, 0])
+        else:
+            self.set([0, 0, 0])
         return self
 
     def negate(self):
@@ -155,7 +160,10 @@ class Vector():
         return Vector(self.val / self.len())
 
     def is_origin(self):
-        return np.isclose(self.val, [0, 0]).all()
+        if self.val.size == 2:
+            return np.isclose(self.val, [0, 0]).all()
+        else:
+            return np.isclose(self.val, [0, 0, 0]).all()
 
     def dot(self, other):
         return np.dot(self.val, other.val)
@@ -164,7 +172,8 @@ class Vector():
         return np.cross(self.val, other.val)
 
     def perpendicular(self):
-        return Vector([-self.val[1], self.val[0]])
+        if self.val.size == 2:
+            return Vector([-self.val[1], self.val[0]])
 
     @staticmethod
     def dotProduct(veca, Vecb):
@@ -189,12 +198,16 @@ print(vec1 == vec3)
 print(vec1.len_square())
 print(vec1.len())
 print(vec1.theta())
-# print(vec1.normalize())
-# print(vec1.swap(vec2))
+print(vec1.normalize())
+print(vec1.swap(vec2))
 print(vec1.is_origin())
 print(vec1.dot(vec2))
 print(vec1.cross(vec2))
 print(vec1.perpendicular())
-print(vec1.set(233, 555).clear())
 vec1 += vec2
 print(vec1)
+
+vec3 = Vector([1.0, 2.0, 3.0])
+vec4 = Vector([2.0, 3.0, 4.0])
+print(vec3 + vec4)
+print(vec4.len_square())
