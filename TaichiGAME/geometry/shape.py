@@ -18,8 +18,8 @@ class Shape():
     def __init__(self):
         pass
 
-    def get_type(self):
-        return self.type
+    def type(self):
+        return self._type
 
     def scale(self, factor):
         pass
@@ -33,9 +33,9 @@ class Shape():
 
 class ShapePrimitive():
     def __init__(self):
-        self.shape = None
-        self.transform = None
-        self.rotation = 0
+        self._shape = None
+        self._transform = None
+        self._rotation = 0
 
     def translate(self, src):
         pass
@@ -43,49 +43,49 @@ class ShapePrimitive():
 
 class Point(Shape):
     def __init__(self):
-        self.type = self.Type.Point
-        self.pos = Matrix([0, 0], 'vec')
+        self._type = self.Type.Point
+        self._pos = Matrix([0, 0], 'vec')
 
-    def get_pos(self):
-        return self.pos
+    def pos(self):
+        return self._pos
 
     def set_pos(self, pos):
-        self.pos = pos
+        self._pos = pos
 
     def scale(self, factor):
-        self.pos *= factor
+        self._pos *= factor
 
     def contains(self, point):
-        return np.isclose(self.pos - point)
+        return np.isclose(self._pos - point)
 
     def center(self):
-        return self.pos
+        return self._pos
 
 
 class Polygon(Shape):
     def __init__(self):
-        self.type = self.Type.Polygon
-        self.vertices = []
+        self._type = self.Type.Polygon
+        self._vertices = []
 
-    def get_vertices(self):
-        return self.vertices
+    def vertices(self):
+        return self._vertices
 
     def append(self, vertices):
         for v in vertices:
-            self.vertices.append(v)
+            self._vertices.append(v)
         self.update_vertices()
 
     def scale(self, factor):
-        assert (len(self.vertices))
-        self.vertices = [v * factor for v in self.vertices]
+        assert (len(self._vertices))
+        self._vertices = [v * factor for v in self._vertices]
 
     def contains(self, point):
-        assert (len(self.vertices) > 2)
-        num = len(self.vertices)
+        assert (len(self._vertices) > 2)
+        num = len(self._vertices)
         for i in range(num):
-            p1 = self.vertices[i]
-            p2 = self.vertices[i + 1]
-            ref = self.vertices[1] if i + 2 == num else self.vertices[
+            p1 = self._vertices[i]
+            p2 = self._vertices[i + 1]
+            ref = self._vertices[1] if i + 2 == num else self._vertices[
                 i + 2]  # TODO: why [1]?
             if not GeomAlgo2D.is_point_on_same_side(p1, p2, ref, point):
                 return False
@@ -93,240 +93,288 @@ class Polygon(Shape):
         return True
 
     def center(self):
-        return GeomAlgo2D.calculate_center(self.vertices)
+        return GeomAlgo2D.calculate_center(self._vertices)
 
     def update_vertices(self):
         center_point = self.center()
-        self.vertices = [v - center_point for v in self.vertices]
+        self._vertices = [v - center_point for v in self._vertices]
 
 
 class Rectangle(Polygon):
     def __init__(self, width, height):
         super().__init__()
-        self.set(width, height)
+        self.set_value(width, height)
 
-    def set(self, width, height):
-        self.width = width
-        self.height = height
+    def set_value(self, width, height):
+        self._width = width
+        self._height = height
         self.calc_vertices()
 
-    def get_width(self):
-        return self.width
+    def width(self):
+        return self._width
 
     def set_width(self, width):
-        self.width = width
+        self._width = width
         self.calc_vertices()
 
-    def get_height(self):
-        return self.height
+    def height(self):
+        return self._height
 
     def set_height(self, height):
-        self.height = height
+        self._height = height
         self.calc_vertices()
 
     def scale(self, factor):
-        self.width *= factor
-        self.height *= factor
+        self._width *= factor
+        self._height *= factor
         self.calc_vertices()
 
     def contains(self, point):
-        return (point.val[0] > -self.width * 0.5 and point.val[0] <
-                self.width * 0.5) and (point.val[1] > -self.height * 0.5
-                                       and point.val[1] < self.height * 0.5)
+        return (point.val[0] > -self._width * 0.5 and point.val[0] <
+                self._width * 0.5) and (point.val[1] > -self._height * 0.5
+                                        and point.val[1] < self._height * 0.5)
 
     def calc_vertices(self):
-        self.vertices = []
-        self.vertices.append(
-            Matrix([-self.width * 0.5, self.height * 0.5], 'vec'))
-        self.vertices.append(
-            Matrix([-self.width * 0.5, -self.height * 0.5], 'vec'))
-        self.vertices.append(
-            Matrix([self.width * 0.5, -self.height * 0.5], 'vec'))
-        self.vertices.append(
-            Matrix([self.width * 0.5, self.height * 0.5], 'vec'))
-        self.vertices.append(
-            Matrix([-self.width * 0.5, self.height * 0.5], 'vec'))
+        self._vertices = []
+        self._vertices.append(
+            Matrix([-self._width * 0.5, self._height * 0.5], 'vec'))
+        self._vertices.append(
+            Matrix([-self._width * 0.5, -self._height * 0.5], 'vec'))
+        self._vertices.append(
+            Matrix([self._width * 0.5, -self._height * 0.5], 'vec'))
+        self._vertices.append(
+            Matrix([self._width * 0.5, self._height * 0.5], 'vec'))
+        self._vertices.append(
+            Matrix([-self._width * 0.5, self._height * 0.5], 'vec'))
 
 
 class Circle(Shape):
     def __init__(self, radius):
-        self.type = self.Type.Circle
-        self.radius = radius
+        self._type = self.Type.Circle
+        self._radius = radius
 
-    def get_radius(self):
-        return self.radius
+    def radius(self):
+        return self._radius
 
     def set_radius(self, radius):
-        self.radius = radius
+        self._radius = radius
 
     def scale(self, factor):
-        self.radius *= factor
+        self._radius *= factor
 
     def contains(self, point):
-        return np.isclose(point.len_square(), self.radius * self.radius)
+        return np.isclose(point.len_square(), self._radius * self._radius)
 
     def center(self):
         return Matrix([0, 0], 'vec')
 
 
 class Ellipse(Shape):
-    def __init__(self):
-        pass
+    def __init__(self, width, height):
+        self._type = self.Type.Ellipse
+        self._width = width
+        self._height = height
 
-    def set(self):
-        pass
+    def set_value(self, width, height):
+        self._width = width
+        self._height = height
 
     def width(self):
-        pass
+        return self._width
 
-    def set_width(self):
-        pass
+    def set_width(self, width):
+        self._width = width
 
     def height(self):
-        pass
+        return self._height
 
-    def set_height(self):
-        pass
+    def set_height(self, height):
+        self._height = height
 
-    def scale(self):
-        pass
+    def scale(self, factor):
+        self._width *= factor
+        self._height *= factor
 
-    def contains(self):
-        pass
+    def contains(self, point):
+        return False
 
     def center(self):
-        pass
+        return Matrix([0, 0], 'vec')
 
-    def A():
-        pass
+    def A(self):
+        return self._width / 2.0
 
-    def B():
-        pass
+    def B(self):
+        return self._height / 2.0
 
-    def C():
-        pass
+    def C(self):
+        va = self.A()
+        vb = self.B()
+        return np.sqrt(va * va - vb * vb)
 
 
 class Edge(Shape):
     def __init__(self):
-        pass
+        self._type = self.Type.Edge
 
-    def set(self):
-        pass
+    def set_value(self, start_point, end_point):
+        self._start_point = start_point
+        self._end_point = end_point
+        self._normal = (self.end_point -
+                        self.start_point).perpendicular().normal().negate()
 
-    def startPoint(self):
-        pass
+    def start_point(self):
+        return self._start_point
 
-    def setStartPoint(self):
-        pass
+    def set_start_point(self, point):
+        self._start_point = point
 
-    def endPoint(self):
-        pass
+    def end_point(self):
+        return self._end_point
 
-    def setEndPoint(self):
-        pass
+    def set_end_point(self, point):
+        self._end_point = point
 
-    def scale(self):
-        pass
+    def scale(self, factor):
+        self._start_point *= factor
+        self._end_point *= factor
 
-    def contains(self):
-        pass
+    def contains(self, point):
+        return GeomAlgo2D.is_point_on_segment(self._start_point,
+                                              self._end_point, point)
 
     def center(self):
-        pass
+        return (self._start_point + self._end_point) / 2.0
 
     def normal(self):
-        pass
+        return self._normal
 
-    def setNormal(self):
-        pass
+    def set_normal(self, normal):
+        self._normal = normal
 
 
 class Curve(Shape):
     def __init__(self):
-        pass
+        self._type = self.Type.Curve
+        self._start_point = Matrix[0, 0, 'vec']
+        self._ctrl_point1 = Matrix[0, 0, 'vec']
+        self._ctrl_point2 = Matrix[0, 0, 'vec']
+        self._end_point = Matrix[0, 0, 'vec']
 
-    def startPoint(self):
-        pass
+    def start_point(self):
+        return self._start_point
 
-    def setStartPoint(self):
-        pass
+    def set_start_point(self, point):
+        self._start_point = point
 
     def control1(self):
-        pass
+        return self._ctrl_point1
 
-    def setControl1(self):
-        pass
+    def set_control1(self, point):
+        self._ctrl_point1 = point
 
     def control2(self):
-        pass
+        return self._ctrl_point2
 
-    def setControl2(self):
-        pass
+    def set_control2(self, point):
+        self._ctrl_point2 = point
 
-    def endPoint(self):
-        pass
+    def end_point(self):
+        return self._end_point
 
-    def setEndPoint(self):
-        pass
+    def set_end_point(self, point):
+        self._end_point = point
 
-    def scale(self):
-        pass
+    def scale(self, factor):
+        self._start_point *= factor
+        self._ctrl_point1 *= factor
+        self._ctrl_point2 *= factor
+        self._end_point *= factor
 
-    def contains(self):
-        pass
+    def contains(self, Point):
+        return False
 
     def center(self):
-        pass
+        return Matrix([0, 0], 'vec')
 
 
 class Capsule(Shape):
-    def __init__(self):
-        pass
+    def __init__(self, width, height):
+        self._type = self.Type.Capsule
+        self._width = width
+        self._height = height
 
-    def set(self):
-        pass
+    def set_value(self, width, height):
+        self._width = width
+        self._height = height
 
     def width(self):
-        pass
+        return self._width
 
-    def set_width(self):
-        pass
+    def set_width(self, width):
+        sellf._width = width
 
     def height(self):
-        pass
+        return self._height
 
-    def set_height(self):
-        pass
+    def set_height(self, height):
+        self._height = height
 
     def topLeft(self):
-        pass
+        res = Matrix([0, 0], 'vec')
+        if self._width > self._height:
+            tmp = self._height / 2.0
+            res.set_value(-self._width / 2.0 + tmp, tmp)
+        else:
+            tmp = self._width / 2.0
+            res.set_value(-tmp, self._height / 2.0 - tmp)
+
+        return res
 
     def bottomLeft(self):
-        pass
+        res = Matrix([0, 0], 'vec')
+        if self._width > self._height:
+            tmp = self._height / 2.0
+            res.set_value(-self._width / 2.0 + tmp, -tmp)
+        else:
+            tmp = self._width / 2.0
+            res.set_value(-tmp, -self._height / 2.0 + tmp)
+
+        return res
 
     def topRight(self):
-        pass
+        return -self.bottomLeft()
 
     def bottomRight(self):
-        pass
+        return -self.topLeft()
 
     def boxVertices(self):
-        pass
+        vertices = []
+        vertices.append(self.topLeft())
+        vertices.append(self.bottomLeft())
+        vertices.append(self.bottomRight())
+        vertices.append(self.topRight())
+        vertices.append(self.topLeft())
+        return vertices
 
-    def scale(self):
-        pass
+    def scale(self, factor):
+        self._width *= factor
+        self._height *= factor
 
-    def contains(self):
-        pass
+    # TODO: no impl
+    def contains(self, point):
+        return False
 
     def center(self):
-        pass
+        return Matrix([0, 0], 'vec')
 
 
 class Sector(Shape):
     def __init__(self):
-        pass
+        self._type = self.Type.Sector
+        self._start_radian = 0
+        self._end_radian = 0
+        self._radius = 0
 
     def vertices(self):
         pass
@@ -349,7 +397,7 @@ class Sector(Shape):
     def set_radius(self):
         pass
 
-    def set(self):
+    def set_value(self):
         pass
 
     def area(self):
@@ -358,8 +406,9 @@ class Sector(Shape):
     def scale(self):
         pass
 
-    def contains(self):
-        pass
+    def contains(self, point):
+        theta = point.theta()
+        return
 
     def center(self):
         pass
