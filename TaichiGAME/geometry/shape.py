@@ -373,45 +373,66 @@ class Sector(Shape):
     def __init__(self):
         self._type = self.Type.Sector
         self._start_radian = 0
-        self._end_radian = 0
+        self._span_radian = 0
         self._radius = 0
 
     def vertices(self):
-        pass
+        res = []
+        res.append(Matrix([0, 0], 'vec'))
+        res.append(
+            Matrix.rotate_mat(self._start_radian) *
+            Matrix([self._radius, 0], 'vec'))
+        res.append(
+            Matrix.rotate_mat(self._start_radian + self._span_radian) *
+            Matrix([self._radius, 0], 'vec'))
+        res.append(Matrix([0, 0], 'vec'))
+        return res
 
-    def startRadian(self):
-        pass
+    def start_radian(self):
+        return self._start_radian
 
-    def setStartRadian(self):
-        pass
+    def set_start_radian(self, radian):
+        self._start_radian = radian
 
-    def spanRadian(self):
-        pass
+    def span_radian(self):
+        return self._span_radian
 
-    def setSpanRaidin(self):
-        pass
+    def set_span_raidin(self, radian):
+        self._span_radian = radian
 
     def radius(self):
-        pass
+        return self._radius
 
-    def set_radius(self):
-        pass
+    def set_radius(self, radius):
+        self._radius = radius
 
-    def set_value(self):
-        pass
+    def set_value(self, start, span, radius):
+        self._start_radian = start
+        self._span_radian = span
+        self._radius = radius
 
     def area(self):
-        pass
+        return self._span_radian * self._radius * self._radius / 2.0
 
-    def scale(self):
-        pass
+    def scale(self, factor):
+        self._radius *= factor
 
     def contains(self, point):
         theta = point.theta()
-        return
+        return theta >= self._start_radian and theta <= self._start_radian + self._span_radian and point.len_square(
+        ) <= self._radius * self._radius
 
     def center(self):
-        pass
+        vertices = self.vertices()
+        point1 = vertices[1]
+        point2 = vertices[2]
+        normal = (point1 - point2) / 2
+        normal.normalize()
+
+        point_len = (point1 - point2).len()
+        rad_len = self._radius * self._span_radian
+        res = normal * (2.0 * self._radius * point_len / (3.0 * rad_len))
+        return res
 
 
 p1 = Point()
