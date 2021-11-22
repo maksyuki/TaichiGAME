@@ -93,7 +93,7 @@ class Polygon(Shape):
         return True
 
     def center(self):
-        return GeomAlgo2D.calculate_center(self._vertices)
+        return GeomAlgo2D.calc_center(self._vertices)
 
     def update_vertices(self):
         center_point = self.center()
