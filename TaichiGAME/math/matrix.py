@@ -173,7 +173,7 @@ class Matrix():
         return np.arctan2(self.val[1], self.val[0])
 
     # TODO: some bug!
-    def set(self, arr):
+    def set_value(self, arr):
         self.val = arr
         return self
 
