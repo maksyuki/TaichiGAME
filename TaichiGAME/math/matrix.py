@@ -225,14 +225,16 @@ class Matrix():
         return Matrix([-self.val[1], self.val[0]], self.data_type)
 
     @staticmethod
-    def dot_product(mata, Vecb):
-        assert (self.val.ndim == 1 and self.val.size == 2)
-        return np.dot(mata.val, matb.val)
+    def dot_product(veca, vecb):
+        assert (veca.val.ndim == 1 and veca.val.size == 2)
+        assert (vecb.val.ndim == 1 and vecb.val.size == 2)
+        return np.dot(veca.val, vecb.val)
 
     @staticmethod
-    def cross_product(mata, matb):
-        assert (self.val.ndim == 1 and self.val.size == 2)
-        return np.cross(mata.val, matb.val)
+    def cross_product(veca, vecb):
+        assert (veca.val.ndim == 1 and veca.val.size == 2)
+        assert (vecb.val.ndim == 1 and vecb.val.size == 2)
+        return np.cross(veca.val, vecb.val)
 
     @staticmethod
     def rotate_mat(self, radian):
