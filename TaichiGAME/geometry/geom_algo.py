@@ -1,14 +1,26 @@
+import numpy as np
+
 from ..math.matrix import Matrix
+
 
 class GeomAlgo2D():
     def __init__(self):
         pass
 
     def is_collinear(self, pa, pb, pc):
-        pass
+        return np.isclose((pa - pb).cross(pa - pc), 0)
 
-    def is_point_on_segment(self, pa, pb, pc):
-        pass
+    def is_fuzzy_collinear(self, pa, pb, target_point):
+        return target_point.val[0] >= np.min(
+            pa.val[0], pb.val[0]) and target_point.val[0] <= np.max(
+                pa.val[0], pb.val[0]) and target_point.val[1] >= np.min(
+                    pa.val[1], pb.val[1]) and target_point.val[1] <= np.max(
+                        pa.val[1], pb.val[1])
+
+    def is_point_on_segment(self, pa, pb, target_point):
+        return self.is_collinear(pa, pb,
+                                 target_point) and self.is_fuzzy_collinear(
+                                     pa, pb, target_point)
 
     def line_segment_intersection(self, pa, pb, pc, pd):
         pass
@@ -41,13 +53,34 @@ class GeomAlgo2D():
         pass
 
     def triangle_centroid(self, pa, pb, pc):
-        pass
+        return (pa + pb + pc) / 3.0
 
     def triangle_area(self, pa, pb, pc):
-        pass
+        return np.fabs(Matrix.cross_product(pa - pb, pa - pc) / 2.0)
 
+    #TODO: need to focus on the vertices format
     def calc_center(self, vertices):
-        pass
+        if len(vertices) >= 4:
+            pos = Matrix([0, 0], 'vec')
+            tot_area = 0
+            for i in range(len(vertices) - 1):
+                p1 = i + 1
+                p2 = i + 2
+                if p1 == len(vertices) - 2:
+                    break
+
+                tri_area = self.triangle_area(vertices[0], vertices[p1],
+                                              vertices[p2])
+                tri_centroid = self.triangle_centroid(vertices[0],
+                                                      vertices[p1],
+                                                      vertices[p2])
+                pos += tri_centroid * tri_area
+                tot_area += tri_area
+
+            pos /= tot_area
+            return pos
+        else:
+            return Matrix([0, 0], 'vec')
 
     def shortest_length_line_segment__ellipse(self, pa, pb, pc, pd):
         pass
@@ -76,5 +109,11 @@ class GeomAlgo2D():
     def is_triangle_contain_origin(self, pa, pb, pc):
         pass
 
-    def is_point_on_same_side(self, pa, pb, ref_point, target_point):
-        pass
+    def is_point_on_same_side(self, edge_point1, edge_point2, ref_point,
+                              target_point):
+        u = edge_point1 - edge_point2
+        v = ref_point - edge_point1
+        w = target_point - edge_point1
+        d1 = u.cross(v)
+        d2 = u.cross(w)
+        return np.sign(d1) == np.sign(d2)
