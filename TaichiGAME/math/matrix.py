@@ -6,6 +6,7 @@ class Matrix():
     def __init__(self, arr, data_type='mat', row=2, col=2):
         self.data_type = data_type
 
+        # TODO: need to refactor this code
         if self.data_type == 'mat':
             self.val = np.array(arr).reshape(row, col)
         elif self.data_type == 'vec':
@@ -154,11 +155,11 @@ class Matrix():
         self.val = np.linalg.inv(self.val)
         return self
 
-    def skewSymmetricMatrix(self, vec):
+    def skew_symmetric_mat(self, vec):
         assert (self.val.ndim == 2)
         return Matrix([0, -vec.val[1], vec.val[0], 0])
 
-    def identityMatrix(self):
+    def identity_mat(self):
         assert (self.val.ndim == 2)
         return Matrix([1, 0, 0, 1])
 
@@ -224,14 +225,26 @@ class Matrix():
         return Matrix([-self.val[1], self.val[0]], self.data_type)
 
     @staticmethod
-    def dotProduct(mata, Vecb):
+    def dot_product(mata, Vecb):
         assert (self.val.ndim == 1 and self.val.size == 2)
         return np.dot(mata.val, matb.val)
 
     @staticmethod
-    def crossProduct(mata, matb):
+    def cross_product(mata, matb):
         assert (self.val.ndim == 1 and self.val.size == 2)
         return np.cross(mata.val, matb.val)
+
+    @staticmethod
+    def rotate_mat(self, radian):
+        res = []
+        cos_val = np.cos(radian)
+        sin_val = np.sin(radian)
+        res.append(cos_val)
+        res.append(-sin_val)
+        res.append(sin_val)
+        res.appen(cos_val)
+
+        return Matrix(res)
 
 
 vec1 = Matrix([1.0, 2.0], 'vec')
