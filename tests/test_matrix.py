@@ -2,7 +2,7 @@ import numpy as np
 from TaichiGAME.math.matrix import Matrix
 
 
-class TestMatrix:
+class TestMatrix():
     vec1_arr = [1.0, 2.0]
     vec2_arr = [3.0, 4.0]
     mat1_arr = [1.0, 2.0, 3.0, 4.0]
@@ -73,6 +73,8 @@ class TestMatrix:
             tmp_arr[1] = -tmp_arr[1]
             tmp_arr[2] = -tmp_arr[2]
             tmp_arr = [v / det for v in tmp_arr]
+        elif oper == 'set_value':
+            tmp_arr = TestMatrix.mat2_arr
         elif oper == 'clear':
             tmp_arr = [0 for v in tmp_arr]
         elif oper == 'neg':
@@ -84,7 +86,6 @@ class TestMatrix:
             for v in tmp_arr:
                 arr_len += v * v
             arr_len = np.sqrt(arr_len)
-
             tmp_arr = [v / arr_len for v in tmp_arr]
 
         assert np.isclose(mat.val[0, 0], tmp_arr[0])
@@ -210,7 +211,9 @@ class TestMatrix:
         assert 1
 
     def test_set_value(self):
-        assert 1
+        mat1 = Matrix(TestMatrix.mat1_arr)
+        mat1.set_value(TestMatrix.mat2_arr)
+        self.mat_trans_helper(mat1, 'set_value')
 
     def test_clear(self):
         mat1 = Matrix(TestMatrix.mat1_arr)
