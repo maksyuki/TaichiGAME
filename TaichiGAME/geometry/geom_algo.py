@@ -9,21 +9,27 @@ class GeomAlgo2D():
 
     @staticmethod
     def is_collinear(pa, pb, pc):
-        return np.isclose((pa - pb).cross(pa - pc), 0)
+        return np.isclose((pa - pb).cross(pa - pc), [0.0, 0.0]).all()
+
+    @staticmethod
+    def judge_range(val, low, high):
+        return val >= low and val <= high
 
     @staticmethod
     def is_fuzzy_collinear(pa, pb, target_point):
-        return target_point.val[0] >= np.min(
-            pa.val[0], pb.val[0]) and target_point.val[0] <= np.max(
-                pa.val[0], pb.val[0]) and target_point.val[1] >= np.min(
-                    pa.val[1], pb.val[1]) and target_point.val[1] <= np.max(
-                        pa.val[1], pb.val[1])
+        x_min = np.fmin(pa.val[0], pb.val[0])
+        x_max = np.fmax(pa.val[0], pb.val[0])
+        y_min = np.fmin(pa.val[1], pb.val[1])
+        y_max = np.fmax(pa.val[1], pb.val[1])
+        return GeomAlgo2D.judge_range(target_point.val[0], x_min,
+                                      x_max) and GeomAlgo2D.judge_range(
+                                          target_point.val[1], y_min, y_max)
 
     @staticmethod
     def is_point_on_segment(pa, pb, target_point):
-        return GeomAlgo2D.is_collinear(pa, pb,
-                                 target_point) and GeomAlgo2D.is_fuzzy_collinear(
-                                     pa, pb, target_point)
+        return GeomAlgo2D.is_collinear(
+            pa, pb, target_point) and GeomAlgo2D.is_fuzzy_collinear(
+                pa, pb, target_point)
 
     def line_segment_intersection(self, pa, pb, pc, pd):
         pass
@@ -76,10 +82,9 @@ class GeomAlgo2D():
                     break
 
                 tri_area = GeomAlgo2D.triangle_area(vertices[0], vertices[p1],
-                                              vertices[p2])
-                tri_centroid = GeomAlgo2D.triangle_centroid(vertices[0],
-                                                      vertices[p1],
-                                                      vertices[p2])
+                                                    vertices[p2])
+                tri_centroid = GeomAlgo2D.triangle_centroid(
+                    vertices[0], vertices[p1], vertices[p2])
                 pos += tri_centroid * tri_area
                 tot_area += tri_area
 
@@ -115,7 +120,8 @@ class GeomAlgo2D():
     def is_triangle_contain_origin(self, pa, pb, pc):
         pass
 
-    def is_point_on_same_side(self, edge_point1, edge_point2, ref_point,
+    @staticmethod
+    def is_point_on_same_side(edge_point1, edge_point2, ref_point,
                               target_point):
         u = edge_point1 - edge_point2
         v = ref_point - edge_point1
