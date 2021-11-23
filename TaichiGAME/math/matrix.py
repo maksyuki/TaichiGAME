@@ -173,9 +173,11 @@ class Matrix():
         assert (self.val.ndim == 1 and self.val.size == 2)
         return np.arctan2(self.val[1], self.val[0])
 
-    # TODO: some bug!
     def set_value(self, arr):
-        self.val = arr
+        if self.val.ndim == 1:
+            self.val = np.array(arr)
+        else:
+            self.val = np.array(arr).reshape(2, 2)
         return self
 
     def clear(self):
