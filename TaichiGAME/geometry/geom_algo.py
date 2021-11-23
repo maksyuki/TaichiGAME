@@ -61,7 +61,7 @@ class GeomAlgo2D():
     #TODO: need to focus on the vertices format
     def calc_center(self, vertices):
         if len(vertices) >= 4:
-            pos = Matrix([0, 0], 'vec')
+            pos = Matrix([0.0, 0.0], 'vec')
             tot_area = 0
             for i in range(len(vertices) - 1):
                 p1 = i + 1
@@ -80,7 +80,7 @@ class GeomAlgo2D():
             pos /= tot_area
             return pos
         else:
-            return Matrix([0, 0], 'vec')
+            return Matrix([0.0, 0.0], 'vec')
 
     def shortest_length_line_segment__ellipse(self, pa, pb, pc, pd):
         pass
