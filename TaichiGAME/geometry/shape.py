@@ -56,7 +56,8 @@ class Point(Shape):
         self._pos *= factor
 
     def contains(self, point):
-        return np.isclose(self._pos - point)
+        return np.isclose(self._pos.val[0], point.val[0]) and np.isclose(
+            self._pos.val[1], point.val[1])
 
     def center(self):
         return self._pos
@@ -162,7 +163,7 @@ class Circle(Shape):
         self._radius *= factor
 
     def contains(self, point):
-        return np.isclose(point.len_square(), self._radius * self._radius)
+        return point.len_square() < self._radius * self._radius
 
     def center(self):
         return Matrix([0.0, 0.0], 'vec')
@@ -218,8 +219,8 @@ class Edge(Shape):
     def set_value(self, start_point, end_point):
         self._start_point = start_point
         self._end_point = end_point
-        self._normal = (self.end_point -
-                        self.start_point).perpendicular().normal().negate()
+        self._normal = (self._end_point -
+                        self._start_point).perpendicular().normal().negate()
 
     def start_point(self):
         return self._start_point
