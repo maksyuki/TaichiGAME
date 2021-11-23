@@ -7,19 +7,22 @@ class GeomAlgo2D():
     def __init__(self):
         pass
 
-    def is_collinear(self, pa, pb, pc):
+    @staticmethod
+    def is_collinear(pa, pb, pc):
         return np.isclose((pa - pb).cross(pa - pc), 0)
 
-    def is_fuzzy_collinear(self, pa, pb, target_point):
+    @staticmethod
+    def is_fuzzy_collinear(pa, pb, target_point):
         return target_point.val[0] >= np.min(
             pa.val[0], pb.val[0]) and target_point.val[0] <= np.max(
                 pa.val[0], pb.val[0]) and target_point.val[1] >= np.min(
                     pa.val[1], pb.val[1]) and target_point.val[1] <= np.max(
                         pa.val[1], pb.val[1])
 
-    def is_point_on_segment(self, pa, pb, target_point):
-        return self.is_collinear(pa, pb,
-                                 target_point) and self.is_fuzzy_collinear(
+    @staticmethod
+    def is_point_on_segment(pa, pb, target_point):
+        return GeomAlgo2D.is_collinear(pa, pb,
+                                 target_point) and GeomAlgo2D.is_fuzzy_collinear(
                                      pa, pb, target_point)
 
     def line_segment_intersection(self, pa, pb, pc, pd):
@@ -52,14 +55,17 @@ class GeomAlgo2D():
     def shortest_length_point_of_ellipse(self, pa, pb, pc):
         pass
 
-    def triangle_centroid(self, pa, pb, pc):
+    @staticmethod
+    def triangle_centroid(pa, pb, pc):
         return (pa + pb + pc) / 3.0
 
-    def triangle_area(self, pa, pb, pc):
+    @staticmethod
+    def triangle_area(pa, pb, pc):
         return np.fabs(Matrix.cross_product(pa - pb, pa - pc) / 2.0)
 
     #TODO: need to focus on the vertices format
-    def calc_center(self, vertices):
+    @staticmethod
+    def calc_center(vertices):
         if len(vertices) >= 4:
             pos = Matrix([0.0, 0.0], 'vec')
             tot_area = 0
@@ -69,9 +75,9 @@ class GeomAlgo2D():
                 if p1 == len(vertices) - 2:
                     break
 
-                tri_area = self.triangle_area(vertices[0], vertices[p1],
+                tri_area = GeomAlgo2D.triangle_area(vertices[0], vertices[p1],
                                               vertices[p2])
-                tri_centroid = self.triangle_centroid(vertices[0],
+                tri_centroid = GeomAlgo2D.triangle_centroid(vertices[0],
                                                       vertices[p1],
                                                       vertices[p2])
                 pos += tri_centroid * tri_area
