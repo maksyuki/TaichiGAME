@@ -4,10 +4,11 @@ from ...math.matrix import Matrix
 from ...geometry.gemo_algo import GeomAlgo2D
 from ...geometry.shape import *
 
+
 class DBVH():
     def __init__(self):
         pass
-    
+
     class Node():
         def __init__(self):
             pass
@@ -20,7 +21,7 @@ class DBVH():
 
         def is_leaf(self):
             pass
-        
+
         def is_branch(self):
             pass
 
@@ -29,13 +30,13 @@ class DBVH():
 
         def clear(self):
             pass
-    
+
     def insert(self, body):
         pass
 
     def update(self, body):
         pass
-    
+
     def extract(self, body):
         pass
 
@@ -50,20 +51,20 @@ class DBVH():
 
     def raycast(self, start_point, dir):
         pass
-    
+
     def generate(self):
         pass
 
     def leaves(self):
         pass
-    
+
     def query(self, src, nodes, skip_body=None):
         pass
 
     @staticmethod
     def query_nodes(node, src, nodes, skip_body=None):
         pass
-    
+
     def _raycast(self, res, node, start_point, dir):
         pass
 
@@ -90,4 +91,3 @@ class DBVH():
 
     def _height(self, node):
         pass
-        

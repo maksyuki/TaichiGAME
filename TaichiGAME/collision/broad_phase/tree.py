@@ -1,4 +1,3 @@
-
 class Tree():
     def __init__(self):
         pass
@@ -6,7 +5,7 @@ class Tree():
     class Node():
         def __init__(self):
             pass
-        
+
         def is_leaf(self):
             pass
 
@@ -18,10 +17,10 @@ class Tree():
 
         def is_empty(self):
             pass
-        
+
         def clear(self):
             pass
-        
+
     def query(self, body):
         pass
 
@@ -42,7 +41,7 @@ class Tree():
 
     def update(self, body):
         pass
-    
+
     def tree(self):
         pass
 
@@ -105,5 +104,3 @@ class Tree():
 
     def height(self, target_index):
         pass
-
-    
