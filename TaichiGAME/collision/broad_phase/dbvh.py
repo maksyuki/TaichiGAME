@@ -206,7 +206,13 @@ class DBVH():
         return node
 
     def _update(self, parent):
-        pass
+        if parent == None:
+            return
+
+        if parent.is_branch() or parent.is_root():
+            parent._aabb = AABB.unite(parent._left._aabb, parent._right._aabb)
+
+        self._update(parent._parent)
 
     def _balance(self, parent):
         pass
