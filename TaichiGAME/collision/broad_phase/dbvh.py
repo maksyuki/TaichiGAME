@@ -16,22 +16,44 @@ class DBVH():
             pass
 
         def separate(self, node):
-            pass
+            if node == None:
+                return
+
+            if node.is_leaf() and node.is_root():
+                return
+
+            if node == self._left:
+                self._left = None
+                node._parent = None
+                aabb = self._right._aabb
+            elif node == self._right:
+                self._right = None
+                node._parent = None
+                aabb = self._left._aabb
 
         def swap(self, src, target):
-            pass
+            if src == self._left:
+                self.separate(self._left)
+                target._parent = self
+                self._left = target
+
+            elif src == self._right:
+                self.separate(self._right)
+                target._parent = self
+                self._right = target
 
         def is_leaf(self):
-            pass
+            return self._left == None and self._right == None
 
         def is_branch(self):
-            pass
+            return self._left != None and self._right != None and self._parent != None
 
         def is_root(self):
-            pass
+            return self._parent == None
 
         def clear(self):
-            pass
+            self._body = None
+            self._aabb.clear()
 
     def find(self, body):
         for b in self._leaves.keys():
@@ -86,7 +108,13 @@ class DBVH():
         del self._leaves[body]
 
     def clean_up(self, node):
-        pass
+        if node == None:
+            return
+
+        self.clean_up(node._left)
+        self.clean_up(node._right)
+
+        node = None
 
     def root(self):
         return self._root
@@ -182,10 +210,23 @@ class DBVH():
                 self._update(val)
 
     def _delta_cost(self, node, aabb):
-        pass
+        if node == None:
+            return 0
+
+        if node.is_leaf():
+            return AABB.unite(node._aabb, aabb).surface_area()
+
+        return AABB.unite(node._aabb,
+                          aabb).surface_area() - node._aabb.surface_area()
 
     def _total_cost(self, node, aabb):  # FIXME: need to return the cost
-        pass
+        if node == None:
+            return None
+
+        cost = 0.0
+        tmp = self._delta_cost(node, aabb)
+        cost += tmp
+        return cost + self._total_cost(node._parent, aabb)
 
     def _merge(self, node, aabb, body):
         assert node != None
@@ -214,11 +255,104 @@ class DBVH():
 
         self._update(parent._parent)
 
-    def _balance(self, parent):
-        pass
+    def _LL(self, node):
+        if node == None or node.is_root():
+            return
 
+        if node._parent == self._root:
+            parent = node._parent
+            right = node._right
+            parent._left = right
+            node._parent = None
+
+            node._right = parent
+            right._parent = parent
+            parent._parent = node
+            self._root = node
+
+        parent = node._parent
+        right = node._right
+        garnd_parent = parent._parent
+        node._parent = garnd_parent
+
+        if parent == garnd_parent._left:
+            garnd_parent._left = node
+        else:
+            garnd_parent._right = node
+
+        node._right = parent
+        parent._parent = node
+        parent._left = right
+        right._parent = parent
+
+    def _RR(self, node):
+        if node == None or node.is_root():
+            return
+
+        if node._parent == self._root:
+            parent = node._parent
+            left = node._left
+            parent._right = left
+            node._parent = None
+
+            node._left = parent
+            left._parent = parent
+            parent._parent = node
+            self._root = node
+            return
+
+        parent = node._parent
+        left = node._left
+        garnd_parent = parent._parent
+
+        node._parent = garnd_parent
+        if parent == garnd_parent._right:
+            garnd_parent._right = node
+        else:
+            garnd_parent._left = node
+
+        node._left = parent
+        parent._parent = node
+
+        parent._right = left
+        left._parent = parent
+
+    def _balance(self, node):
+        if node == None:
+            return
+
+        left_height = self._height(node._left)
+        right_height = self._height(node._right)
+        if np.fabs(left_height - right_height) <= 1:
+            return
+
+        if left_height > right_height:
+            ll_height = self._height(node._left._left)
+            lr_height = self._height(node._left._right)
+
+            if ll_height < lr_height:
+                self._RR(node._left._right)
+            else:
+                self._LL(node._left._right)
+
+            self._LL(node._left)
+        else:
+            rr_height = self._height(node._right._right)
+            rl_height = self._height(node._right._left)
+            if rr_height < rl_height:
+                self._LL(node._right._left)
+            else:
+                self._RR(node._right._right)
+            self._RR(node._right)
+
+        self._balance(node._left)
+        self._balance(node._right)
+        self._balance(node._parent)
+
+    #FIXME:
     def _generate(self, node, pairs):
         pass
 
     def _height(self, node):
-        pass
+        return 0 if node == None else np.fmax(self._height(node._left),
+                                              self._height(node._right)) + 1
