@@ -1,4 +1,3 @@
-
 class VelocityConstraintPoint():
     def __init__(self):
         self._ra = Matrix([0.0, 0.0], 'vec')
@@ -27,13 +26,12 @@ class ContactConstraintPoint():
         self._vcp = VelocityConstraintPoint()
 
 
-
 class ContactMaintainer():
     def __init__(self):
         self._max_penetration = 0.01
         self._bias_factor = 0.03
         self._contact_table = {}
-    
+
     def clear_all(self):
         self._contact_table.clear()
 
@@ -41,11 +39,13 @@ class ContactMaintainer():
         for key, val in self._contact_table.items():
             if val.empty() or not val[0]._active:
                 continue
-            
+
             for ccp in val:
                 vcp = ccp._vcp
-                wa = Matrix.cross_product(ccp._bodya.angular_velocity(), vcp._ra)
-                wb = Matrix.cross_product(ccp._bodyb.angular_velocity(), vcp._rb)
+                wa = Matrix.cross_product(ccp._bodya.angular_velocity(),
+                                          vcp._ra)
+                wb = Matrix.cross_product(ccp._bodyb.angular_velocity(),
+                                          vcp._rb)
                 vcp._va = ccp._bodya.velocity() + wa
                 vcp._vb = ccp._bodyb.velocity() + wb
 
@@ -53,15 +53,18 @@ class ContactMaintainer():
                 jv = -1.0 * vcp._normal.dot(dv - vcp._velocity_bias)
                 lambda_n = vcp._effective_mass_normal * jv
                 old_impulse = vcp._accumulate_normal_impulse
-                vcp._accumulate_normal_impulse = np.fmax(old_impulse + lambda_n, 0)
+                vcp._accumulate_normal_impulse = np.fmax(
+                    old_impulse + lambda_n, 0)
                 lambda_n = vcp._accumulate_normal_impulse - old_impulse
                 impulse_n = lambda_n * vcp._normal
 
                 ccp._bodya.apply_impulse(impulse_n, vcp._ra)
                 ccp._bodyb.apply_impulse(-impulse_n, vcp._rb)
 
-                vcp._va = ccp._bodya.velocity() + Matrix.cross_product(ccp._bodya.angular_velocity(), vcp._ra)
-                vcp._vb = ccp._bodyb.velocity() + Matrix.cross_product(ccp._bodyb.angular_velocity(), vcp._rb)
+                vcp._va = ccp._bodya.velocity() + Matrix.cross_product(
+                    ccp._bodya.angular_velocity(), vcp._ra)
+                vcp._vb = ccp._bodyb.velocity() + Matrix.cross_product(
+                    ccp._bodyb.angular_velocity(), vcp._rb)
                 dv = vcp._va - vcp._vb
 
                 jvt = vcp._tangent.dot(dv)
@@ -69,14 +72,13 @@ class ContactMaintainer():
                 maxT = ccp._friction * vcp._accumulate_normal_impulse
                 old_impulse = vcp._accumulate_tangent_impulse
                 # FIXME: have np.clamp ??
-                vcp._accumulate_tangent_impulse = np.clamp(old_impulse + lambda_t, -maxT, maxT)
+                vcp._accumulate_tangent_impulse = np.clamp(
+                    old_impulse + lambda_t, -maxT, maxT)
                 lambda_t = vcp._accumulate_tangent_impulse - old_impulse
                 impulse_t = lambda_t * vcp._tangent
 
                 ccp._bodya.apply_impulse(impulse_t, vcp._ra)
                 ccp._bodyb.apply_impulse(-impulse_t, vcp._rb)
-
-
 
     def solve_position(self, dt):
         for key, val in self._contact_table.items():
@@ -94,17 +96,22 @@ class ContactMaintainer():
                 if c.dot(vcp._normal) < 0.0:
                     continue
 
-                bias = self._bias_factor * np.fmax(c.len() - self._max_penetration, 0.0)
+                bias = self._bias_factor * np.fmax(
+                    c.len() - self._max_penetration, 0.0)
                 val_lambda = vcp._effective_mass_normal * bias
                 impulse = val_lambda * vcp._normal
 
-                if bodya.type() != Body.BodyType.Static and not ccp._bodya.sleep():
+                if bodya.type(
+                ) != Body.BodyType.Static and not ccp._bodya.sleep():
                     bodya.position() += bodya.inverse_mass() * impulse
-                    bodya.rotation() += bodya.inverse_inertia() * vcp._ra.cross(impulse)
+                    bodya.rotation(
+                    ) += bodya.inverse_inertia() * vcp._ra.cross(impulse)
 
-                if bodyb.type() != Body.BodyType.Static and not ccp._bodyb.sleep():
+                if bodyb.type(
+                ) != Body.BodyType.Static and not ccp._bodyb.sleep():
                     bodyb.position() += bodyb.inverse_mass() * impulse
-                    bodyb.rotation() += bodyb.inverse_inertia() * vcp._rb.cross(impulse)
+                    bodyb.rotation(
+                    ) += bodyb.inverse_inertia() * vcp._rb.cross(impulse)
 
     def add(self, collision):
         bodya = collision._bodya
@@ -129,7 +136,7 @@ class ContactMaintainer():
                     break
             if existed:
                 continue
-            
+
             ccp = ContactConstraintPoint()
             ccp._locala = locala
             ccp._localb = localb
@@ -143,7 +150,6 @@ class ContactMaintainer():
         ccp._active = True
 
         ccp._friction = np.sqrt(ccp._bodya.friction() * ccp._bodyb.friction())
-        
 
     def clear_inactive_points(self):
         clear_list = []
@@ -152,7 +158,7 @@ class ContactMaintainer():
             if val.empty():
                 clear_list.append(key)
                 continue
-            
+
             for v in val:
                 if not v._active:
                     removed_list.append(v)
