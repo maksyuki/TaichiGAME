@@ -1,6 +1,5 @@
-from typing import List, Any
 import numpy as np
-
+from typing import List, Any
 
 # now just for the 2x2 mat or 1x2 vec
 class Matrix():
