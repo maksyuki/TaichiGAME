@@ -11,6 +11,7 @@ class TestMatrix():
     operator_map = {
         'none': 'none',
         'neg': 'unary',
+        'pos': 'unary',
         'add': 'binary',
         'sub': 'binary',
         'mul': 'binary',
@@ -24,9 +25,10 @@ class TestMatrix():
         eq_val = False
         is_first_val = True
         if TestMatrix.operator_map[oper] == 'unary':
-            for v in TestMatrix.mat1_arr:
-                if oper == 'neg':
-                    tmp_arr.append(-v)
+            if oper == 'neg':
+                tmp_arr = [-v for v in TestMatrix.mat1_arr]
+            elif oper == 'pos':
+                tmp_arr = TestMatrix.mat1_arr
         elif TestMatrix.operator_map[oper] == 'binary':
             for va, vb in zip(TestMatrix.mat1_arr, TestMatrix.mat2_arr):
                 if oper == 'add':
@@ -109,6 +111,10 @@ class TestMatrix():
     def test_neg_operator(self):
         mat = -Matrix(TestMatrix.mat1_arr)
         self.operator_helper(mat, 'neg')
+
+    def test_pos_operator(self):
+        mat = Matrix(TestMatrix.mat1_arr)
+        self.operator_helper(mat, 'pos')
 
     def test_add_operator(self):
         mat = Matrix(TestMatrix.mat1_arr) + Matrix(TestMatrix.mat2_arr)

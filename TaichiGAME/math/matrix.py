@@ -1,12 +1,16 @@
+from typing import List, Any
 import numpy as np
 
 
 # now just for the 2x2 mat or 1x2 vec
 class Matrix():
-    def __init__(self, arr, data_type='mat', row=2, col=2):
-        self.data_type = data_type
+    def __init__(self,
+                 arr: List[float],
+                 data_type: str = 'mat',
+                 row: int = 2,
+                 col: int = 2):
+        self.data_type: str = data_type
 
-        # TODO: need to refactor this code
         if self.data_type == 'mat':
             self.val = np.array(arr).reshape(row, col)
         elif self.data_type == 'vec':
@@ -17,7 +21,7 @@ class Matrix():
         return Matrix(-self.val, self.data_type)
 
     def __pos__(self):
-        pass
+        return Matrix(self.val, self.data_type)
 
     def __invert__(self):
         pass
@@ -129,58 +133,58 @@ class Matrix():
         else:
             return '[' + str(self.val[0]) + ' ' + str(self.val[1]) + ']\n'
 
-    def row1(self):
+    def row1(self) -> Any:
         assert (self.val.ndim == 2)
         return Matrix(self.val[0], 'vec')
 
-    def row2(self):
+    def row2(self) -> Any:
         assert (self.val.ndim == 2)
         return Matrix(self.val[1], 'vec')
 
-    def value(self, row=0, col=0):
+    def value(self, row: int = 0, col: int = 0) -> float:
         assert (self.val.ndim == 2)
         return self.val[row, col]
 
-    def determinant(self):
+    def determinant(self) -> Any:
         assert (self.val.ndim == 2)
         return np.linalg.det(self.val)
 
-    def transpose(self):
+    def transpose(self) -> Any:
         assert (self.val.ndim == 2)
         self.val = self.val.transpose()
         return self
 
-    def invert(self):
+    def invert(self) -> Any:
         assert (self.val.ndim == 2)
         self.val = np.linalg.inv(self.val)
         return self
 
-    def skew_symmetric_mat(self, vec):
+    def skew_symmetric_mat(self, vec: Any) -> Any:
         assert (self.val.ndim == 2)
         return Matrix([0, -vec.val[1], vec.val[0], 0])
 
-    def identity_mat(self):
+    def identity_mat(self) -> Any:
         assert (self.val.ndim == 2)
         return Matrix([1, 0, 0, 1])
 
-    def len_square(self):
+    def len_square(self) -> float:
         return np.square(self.val).sum()
 
-    def len(self):
+    def len(self) -> float:
         return np.sqrt(self.len_square())
 
-    def theta(self):
+    def theta(self) -> float:
         assert (self.val.ndim == 1 and self.val.size == 2)
         return np.arctan2(self.val[1], self.val[0])
 
-    def set_value(self, arr):
+    def set_value(self, arr: List[float]):
         if self.val.ndim == 1:
             self.val = np.array(arr)
         else:
             self.val = np.array(arr).reshape(2, 2)
         return self
 
-    def clear(self):
+    def clear(self)-> Any:
         if self.val.ndim == 2:
             self.val[0, 0] = 0
             self.val[0, 1] = 0
@@ -192,60 +196,60 @@ class Matrix():
 
         return self
 
-    def negate(self):
+    def negate(self)-> Any:
         self.val = -self.val
         return self
 
-    def negative(self):
+    def negative(self)-> Any:
         return Matrix(-self.val, self.data_type)
 
-    def swap(self, other):
+    def swap(self, other)-> Any:
         self.val, other.val = other.val, self.val
         return self
 
-    def normalize(self):
+    def normalize(self)-> Any:
         self.val /= self.len()
         return self
 
-    def normal(self):
+    def normal(self)-> Any:
         return Matrix(self.val / self.len(), self.data_type)
 
-    def is_origin(self):
+    def is_origin(self) -> bool:
         assert (self.val.ndim == 1 and self.val.size == 2)
         return np.isclose(self.val, [0, 0]).all()
 
-    def dot(self, other):
+    def dot(self, other: Any) -> float:
         assert (self.val.ndim == 1 and self.val.size == 2)
         return np.dot(self.val, other.val)
 
-    def cross(self, other):
+    def cross(self, other: Any)-> float:
         assert (self.val.ndim == 1 and self.val.size == 2)
         return np.cross(self.val, other.val)
 
-    def perpendicular(self):
+    def perpendicular(self)-> Any:
         assert (self.val.ndim == 1 and self.val.size == 2)
         return Matrix([-self.val[1], self.val[0]], self.data_type)
 
     @staticmethod
-    def dot_product(veca, vecb):
+    def dot_product(veca:Any, vecb:Any) -> float:
         assert (veca.val.ndim == 1 and veca.val.size == 2)
         assert (vecb.val.ndim == 1 and vecb.val.size == 2)
         return np.dot(veca.val, vecb.val)
 
     @staticmethod
-    def cross_product(veca, vecb):
+    def cross_product(veca:Any, vecb: Any) -> float:
         assert (veca.val.ndim == 1 and veca.val.size == 2)
         assert (vecb.val.ndim == 1 and vecb.val.size == 2)
         return np.cross(veca.val, vecb.val)
 
     @staticmethod
-    def rotate_mat(self, radian):
-        res = []
+    def rotate_mat(radian: float) -> Any:
+        res: List[float] = []
         cos_val = np.cos(radian)
         sin_val = np.sin(radian)
         res.append(cos_val)
         res.append(-sin_val)
         res.append(sin_val)
-        res.appen(cos_val)
+        res.append(cos_val)
 
         return Matrix(res)
