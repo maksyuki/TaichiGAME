@@ -1,4 +1,5 @@
 import numpy as np
+from typing import Optional
 
 from ..math.matrix import Matrix
 from .geom_algo import GeomAlgo2D
@@ -6,25 +7,22 @@ from .geom_algo import GeomAlgo2D
 
 class Shape():
     class Type():
-        Point = 0
-        Polygon = 1
-        Circle = 2
-        Ellipse = 3
-        Capsule = 4
-        Edge = 5
-        Curve = 6
-        Secto = 7
+        Point: int = 0
+        Polygon: int = 1
+        Circle: int = 2
+        Ellipse: int = 3
+        Capsule: int = 4
+        Edge: int = 5
+        Curve: int = 6
+        Secto: int = 7
 
-    def __init__(self):
-        pass
-
-    def type(self):
+    def type(self) -> int:
         return self._type
 
-    def scale(self, factor):
+    def scale(self, factor: float):
         pass
 
-    def contains(self, point):
+    def contains(self, point: Matrix):
         pass
 
     def center(self):
@@ -32,13 +30,16 @@ class Shape():
 
 
 class ShapePrimitive():
+    '''Basic Shape Description Primitive.
+       Including vertices/position/angle of shape
+    '''
     def __init__(self):
-        self._shape = None
-        self._transform = None
-        self._rotation = 0
+        self._shape: Optional[Shape] = None
+        self._transform: Optional[Matrix] = None
+        self._rotation: float = 0.0
 
-    def translate(self, src):
-        return Matrix.rotate_mat(self._rotation) * source + self._transform
+    def translate(self, src: Matrix) -> Matrix:
+        return Matrix.rotate_mat(self._rotation) * src + self._transform
 
 
 class Point(Shape):
