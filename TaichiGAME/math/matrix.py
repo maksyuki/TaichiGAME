@@ -44,7 +44,7 @@ class Matrix():
             return Matrix(self._val * other, self._data_type)
         else:
             assert self._val.shape[1] == other._val.shape[0]
-            return np.matmul(self._val, other._val)
+            return Matrix(self._val @ other._val, other._data_type)
 
     def __truediv__(self, other: float):
         assert not np.isclose(other, 0)
@@ -94,29 +94,30 @@ class Matrix():
         return not np.isclose(self._val, other._val).all()
 
     # assignment operator
-    def __isub__(self, other:Union[float, Any]):
+    def __isub__(self, other: Union[float, Any]):
         if isinstance(other, float) or isinstance(other, int):
             self._val -= other
         else:
             self._val -= other._val
         return self
 
-    def __iadd__(self, other:Union[float, Any]):
+    def __iadd__(self, other: Union[float, Any]):
         if isinstance(other, float) or isinstance(other, int):
             self._val += other
         else:
             self._val += other._val
         return self
 
-    def __imul__(self, other:Union[float, Any]):
+    def __imul__(self, other: Union[float, Any]):
         if isinstance(other, float) or isinstance(other, int):
             self._val *= other
         else:
             assert self._val.shape[1] == other._val.shape[0]
-            self._val = np.matmul(self._val, other._val)
+            self._val = self._val @ other._val
+
         return self
 
-    def __idiv__(self, other:float):
+    def __idiv__(self, other: float):
         assert not np.isclose(other, 0)
         self._val /= other
         return self
@@ -162,8 +163,8 @@ class Matrix():
 
     def value(self, row: int = 0, col: int = 0) -> float:
         assert self._val.shape == (2, 2)
-        assert  0 <= row <= self._val.shape[0]
-        assert  0 <= col <= self._val.shape[1]
+        assert 0 <= row <= self._val.shape[0]
+        assert 0 <= col <= self._val.shape[1]
         return self._val[row, col]
 
     def determinant(self) -> float:
@@ -171,7 +172,7 @@ class Matrix():
         return np.linalg.det(self._val)
 
     def transpose(self) -> Any:
-        self._val = self._val.transpose()
+        self._val = self._val.T
         return self
 
     def invert(self) -> Any:
@@ -238,12 +239,12 @@ class Matrix():
     def dot(self, other: Any) -> float:
         assert self._val.shape == (2, 1)
         assert other._val.shape == (2, 1)
-        return np.dot(self._val, other._val)
+        return np.dot(self._val.T, other._val)[0, 0]
 
     def cross(self, other: Any) -> float:
         assert self._val.shape == (2, 1)
         assert other._val.shape == (2, 1)
-        return np.cross(self._val, other._val)
+        return np.cross(self._val.reshape(2), other._val.reshape(2))
 
     def perpendicular(self) -> Any:
         assert self._val.shape == (2, 1)
@@ -253,13 +254,13 @@ class Matrix():
     def dot_product(veca: Any, vecb: Any) -> float:
         assert veca._val.shape == (2, 1)
         assert vecb._val.shape == (2, 1)
-        return np.dot(veca._val, vecb._val)
+        return np.dot(veca._val.T, vecb._val)[0, 0]
 
     @staticmethod
     def cross_product(veca: Any, vecb: Any) -> float:
         assert veca._val.shape == (2, 1)
         assert vecb._val.shape == (2, 1)
-        return np.cross(veca._val, vecb._val)
+        return np.cross(veca._val.reshape(2), vecb._val.reshape(2))
 
     @staticmethod
     def rotate_mat(radian: float) -> Any:
