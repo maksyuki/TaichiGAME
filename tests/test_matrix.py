@@ -1,5 +1,6 @@
+from typing import List, Dict, Optional
+
 import numpy as np
-from typing import Any, List, Dict, Optional
 
 from TaichiGAME.math.matrix import Matrix
 
@@ -24,26 +25,29 @@ class TestMatrix():
 
     def operator_helper(self,
                         mat: Matrix,
+                        ref1: List[float],
+                        ref2: List[float] = [],
                         oper: str = 'none',
                         eq_flag: Optional[bool] = None):
-        tmp_arr: List[float] = []
+        ref_data: List[float] = []
         eq_val: bool = False
         is_first_val: bool = True
+
         if TestMatrix.operator_map[oper] == 'unary':
             if oper == 'neg':
-                tmp_arr = [-v for v in TestMatrix.mat1_arr]
+                ref_data = [-v for v in ref1]
             elif oper == 'pos':
-                tmp_arr = TestMatrix.mat1_arr
+                ref_data = ref1
         elif TestMatrix.operator_map[oper] == 'binary':
-            for va, vb in zip(TestMatrix.mat1_arr, TestMatrix.mat2_arr):
+            for va, vb in zip(ref1, ref2):
                 if oper == 'add':
-                    tmp_arr.append(va + vb)
+                    ref_data.append(va + vb)
                 elif oper == 'sub':
-                    tmp_arr.append(va - vb)
+                    ref_data.append(va - vb)
                 elif oper == 'mul':
-                    tmp_arr.append(va * TestMatrix.mul_div_val)
+                    ref_data.append(va * TestMatrix.mul_div_val)
                 elif oper == 'truediv':
-                    tmp_arr.append(va / TestMatrix.mul_div_val)
+                    ref_data.append(va / TestMatrix.mul_div_val)
                 elif oper == 'eq' or oper == 'ne':
                     if is_first_val:
                         is_first_val = False
@@ -51,123 +55,143 @@ class TestMatrix():
                     else:
                         eq_val &= np.isclose(va, vb)
         else:
-            tmp_arr = TestMatrix.mat1_arr
+            ref_data = ref1
 
-        print(mat)
-        print(tmp_arr)
         if oper == 'eq' or oper == 'ne':
             assert eq_val == eq_flag
         else:
-            assert np.isclose(mat.val[0, 0], tmp_arr[0])
-            assert np.isclose(mat.val[0, 1], tmp_arr[1])
-            assert np.isclose(mat.val[1, 0], tmp_arr[2])
-            assert np.isclose(mat.val[1, 1], tmp_arr[3])
+            dut_data = mat._val.reshape(mat._val.size, 1)
+            for dut, ref in zip(dut_data, ref_data):
+                assert np.isclose(dut, ref)
 
     def value_helper(self, data: Matrix, row: int = -1, col: int = -1):
         if row != -1 and col == -1:
-            assert np.isclose(data.val[0], TestMatrix.mat1_arr[row * 2])
-            assert np.isclose(data.val[1], TestMatrix.mat1_arr[row * 2 + 1])
+            assert np.isclose(data._val[0], TestMatrix.mat1_arr[row * 2])
+            assert np.isclose(data._val[1], TestMatrix.mat1_arr[row * 2 + 1])
         else:
             assert np.isclose(data, TestMatrix.mat1_arr[row * 2 + col])
 
     def mat_trans_helper(self, mat: Matrix, oper: str = 'none'):
-        tmp_arr: List[float] = TestMatrix.mat1_arr
+        ref_data: List[float] = TestMatrix.mat1_arr
         if oper == 'transpose':
-            tmp_arr[1], tmp_arr[2] = tmp_arr[2], tmp_arr[1]
+            ref_data[1], ref_data[2] = ref_data[2], ref_data[1]
         elif oper == 'invert':
-            det: float = tmp_arr[0] * tmp_arr[3] - tmp_arr[1] * tmp_arr[2]
-            tmp_arr[0], tmp_arr[3] = tmp_arr[3], tmp_arr[0]
-            tmp_arr[1] = -tmp_arr[1]
-            tmp_arr[2] = -tmp_arr[2]
-            tmp_arr = [v / det for v in tmp_arr]
+            det: float = ref_data[0] * ref_data[3] - ref_data[1] * ref_data[2]
+            ref_data[0], ref_data[3] = ref_data[3], ref_data[0]
+            ref_data[1] = -ref_data[1]
+            ref_data[2] = -ref_data[2]
+            ref_data = [v / det for v in ref_data]
         elif oper == 'set_value':
-            tmp_arr: List[float] = TestMatrix.mat2_arr
+            ref_data: List[float] = TestMatrix.mat2_arr
         elif oper == 'clear':
-            tmp_arr: List[float] = [0 for v in tmp_arr]
+            ref_data: List[float] = [0 for v in ref_data]
         elif oper == 'neg':
-            tmp_arr: List[float] = [-v for v in tmp_arr]
+            ref_data: List[float] = [-v for v in ref_data]
         elif oper == 'swap':
-            tmp_arr: List[float] = TestMatrix.mat2_arr
+            ref_data: List[float] = TestMatrix.mat2_arr
         elif oper == 'norm':
-            arr_len: int = 0
-            for v in tmp_arr:
-                arr_len += v * v
+            arr_len: int = sum([v * v for v in ref_data])
             arr_len = np.sqrt(arr_len)
-            tmp_arr: List[float] = [v / arr_len for v in tmp_arr]
+            ref_data: List[float] = [v / arr_len for v in ref_data]
 
-        assert np.isclose(mat.val[0, 0], tmp_arr[0])
-        assert np.isclose(mat.val[0, 1], tmp_arr[1])
-        assert np.isclose(mat.val[1, 0], tmp_arr[2])
-        assert np.isclose(mat.val[1, 1], tmp_arr[3])
+        dut_data = mat._val.reshape(mat._val.size, 1)
+        for dut, ref in zip(dut_data, ref_data):
+            assert np.isclose(dut, ref)
 
     def test_vec_init(self):
         vec: Matrix = Matrix(TestMatrix.vec1_arr, 'vec')
-        assert vec.val.ndim == 1
-        assert vec.val.size == 2
-        assert np.isclose(vec.val[0], TestMatrix.vec1_arr[0])
-        assert np.isclose(vec.val[1], TestMatrix.vec1_arr[1])
+        assert vec._val.shape == (2, 1)
+        for dut, ref in zip(vec._val, TestMatrix.vec1_arr):
+            assert np.isclose(dut, ref)
 
     def test_mat_init(self):
         mat: Matrix = Matrix(TestMatrix.mat1_arr)
-        assert mat.val.ndim == 2
-        assert mat.val.size == 4
-        self.operator_helper(mat)
+        assert mat._val.shape == (2, 2)
+
+        dut_data = mat._val.reshape(4, 1)
+        for dut, ref in zip(dut_data, TestMatrix.mat1_arr):
+            assert np.isclose(dut, ref)
 
     def test_neg_operator(self):
+        vec: Matrix = -Matrix(TestMatrix.vec1_arr, 'vec')
+        self.operator_helper(vec, TestMatrix.vec1_arr, [], 'neg')
+
         mat: Matrix = -Matrix(TestMatrix.mat1_arr)
-        self.operator_helper(mat, 'neg')
+        self.operator_helper(mat, TestMatrix.mat1_arr, [], 'neg')
 
     def test_pos_operator(self):
         mat = Matrix(TestMatrix.mat1_arr)
-        self.operator_helper(mat, 'pos')
+        self.operator_helper(mat, TestMatrix.mat1_arr, [], 'pos')
 
     def test_add_operator(self):
         mat: Matrix = Matrix(TestMatrix.mat1_arr) + Matrix(TestMatrix.mat2_arr)
-        self.operator_helper(mat, 'add')
+        self.operator_helper(mat, TestMatrix.mat1_arr, TestMatrix.mat2_arr,
+                             'add')
 
     def test_sub_operator(self):
         mat: Matrix = Matrix(TestMatrix.mat1_arr) - Matrix(TestMatrix.mat2_arr)
-        self.operator_helper(mat, 'sub')
+        self.operator_helper(mat, TestMatrix.mat1_arr, TestMatrix.mat2_arr,
+                             'sub')
 
     def test_mul_operator(self):
         mat: Matrix = Matrix(TestMatrix.mat1_arr) * TestMatrix.mul_div_val
-        self.operator_helper(mat, 'mul')
+        self.operator_helper(mat, TestMatrix.mat1_arr, [], 'mul')
+
+        vec1: Matrix = Matrix(TestMatrix.vec1_arr, 'vec')
+        mat1: Matrix = Matrix(TestMatrix.mat1_arr)
+        mat2: Matrix = Matrix(TestMatrix.mat2_arr)
+        assert mat1 * vec1 == Matrix([5.0, 11.0], 'vec')
+        assert mat1 * mat2 == Matrix([19.0, 22.0, 43.0, 50.0])
 
     def test_truediv_operator(self):
         mat: Matrix = Matrix(TestMatrix.mat1_arr) / TestMatrix.mul_div_val
-        self.operator_helper(mat, 'truediv')
+        self.operator_helper(mat, TestMatrix.mat1_arr, [], 'truediv')
 
     def test_eq_operator(self):
         mat1: Matrix = Matrix(TestMatrix.mat1_arr)
         mat2: Matrix = Matrix(TestMatrix.mat2_arr)
-        self.operator_helper(mat1, 'eq', mat1 == mat2)
+        self.operator_helper(mat1, TestMatrix.mat1_arr, TestMatrix.mat2_arr,
+                             'eq', mat1 == mat2)
 
     def test_ne_operator(self):
         mat1: Matrix = Matrix(TestMatrix.mat1_arr)
         mat2: Matrix = Matrix(TestMatrix.mat2_arr)
-        self.operator_helper(mat1, 'ne', mat1 == mat2)
+        self.operator_helper(mat1, TestMatrix.mat1_arr, TestMatrix.mat2_arr,
+                             'ne', mat1 == mat2)
 
     def test_isub_operator(self):
         mat1: Matrix = Matrix(TestMatrix.mat1_arr)
         mat2: Matrix = Matrix(TestMatrix.mat2_arr)
         mat1 -= mat2
-        self.operator_helper(mat1, 'sub')
+        self.operator_helper(mat1, TestMatrix.mat1_arr, TestMatrix.mat2_arr,
+                             'sub')
 
     def test_iadd_operator(self):
         mat1: Matrix = Matrix(TestMatrix.mat1_arr)
         mat2: Matrix = Matrix(TestMatrix.mat2_arr)
         mat1 += mat2
-        self.operator_helper(mat1, 'add')
+        self.operator_helper(mat1, TestMatrix.mat1_arr, TestMatrix.mat2_arr,
+                             'add')
 
     def test_imul_operator(self):
         mat1: Matrix = Matrix(TestMatrix.mat1_arr)
         mat1 *= TestMatrix.mul_div_val
-        self.operator_helper(mat1, 'mul')
+        self.operator_helper(mat1, TestMatrix.mat1_arr, [], 'mul')
+
+        vec1: Matrix = Matrix(TestMatrix.vec1_arr, 'vec')
+        mat1: Matrix = Matrix(TestMatrix.mat1_arr)
+        mat1 *= vec1
+        assert mat1 == Matrix([5.0, 11.0], 'vec')
+
+        mat1: Matrix = Matrix(TestMatrix.mat1_arr)
+        mat2: Matrix = Matrix(TestMatrix.mat2_arr)
+        mat1 *= mat2
+        assert mat1 == Matrix([19.0, 22.0, 43.0, 50.0])
 
     def test_idiv_operator(self):
         mat1: Matrix = Matrix(TestMatrix.mat1_arr)
         mat1 /= TestMatrix.mul_div_val
-        self.operator_helper(mat1, 'truediv')
+        self.operator_helper(mat1, TestMatrix.mat1_arr, [], 'truediv')
 
     def test_row1(self):
         mat1: Matrix = Matrix(TestMatrix.mat1_arr)
@@ -179,10 +203,9 @@ class TestMatrix():
 
     def test_value(self):
         mat1: Matrix = Matrix(TestMatrix.mat1_arr)
-        self.value_helper(mat1.value(0, 0), 0, 0)
-        self.value_helper(mat1.value(0, 1), 0, 1)
-        self.value_helper(mat1.value(1, 0), 1, 0)
-        self.value_helper(mat1.value(1, 1), 1, 1)
+        for i in range(mat1._val.shape[0]):
+            for j in range(mat1._val.shape[1]):
+                self.value_helper(mat1.value(i, j), i, j)
 
     def test_determinant(self):
         mat1: Matrix = Matrix(TestMatrix.mat1_arr)
@@ -193,6 +216,12 @@ class TestMatrix():
     def test_transpose(self):
         mat1: Matrix = Matrix(TestMatrix.mat1_arr)
         self.mat_trans_helper(mat1.transpose(), 'transpose')
+
+        vec1: Matrix = Matrix(TestMatrix.vec1_arr, 'vec')
+        vec1.transpose()
+        assert vec1._val.shape == (1, 2)
+        assert np.isclose(vec1._val[0, 0], TestMatrix.vec1_arr[0])
+        assert np.isclose(vec1._val[0, 1], TestMatrix.vec1_arr[1])
 
     def test_invert(self):
         mat1: Matrix = Matrix(TestMatrix.mat1_arr)
@@ -206,16 +235,12 @@ class TestMatrix():
 
     def test_len_square(self):
         mat1: Matrix = Matrix(TestMatrix.mat1_arr)
-        res: float = 0.0
-        for v in TestMatrix.mat1_arr:
-            res += v * v
+        res: float = sum([v * v for v in TestMatrix.mat1_arr])
         assert np.isclose(mat1.len_square(), res)
 
     def test_len(self):
         mat1: Matrix = Matrix(TestMatrix.mat1_arr)
-        res: float = 0.0
-        for v in TestMatrix.mat1_arr:
-            res += v * v
+        res: float = sum([v * v for v in TestMatrix.mat1_arr])
         assert np.isclose(mat1.len(), np.sqrt(res))
 
     def test_theta(self):
@@ -260,17 +285,17 @@ class TestMatrix():
     def test_dot(self):
         vec1: Matrix = Matrix(TestMatrix.vec1_arr, 'vec')
         vec2: Matrix = Matrix(TestMatrix.vec2_arr, 'vec')
-
         res: float = TestMatrix.vec1_arr[0] * TestMatrix.vec2_arr[
             0] + TestMatrix.vec1_arr[1] * TestMatrix.vec2_arr[1]
+
         assert vec1.dot(vec2) == res
 
     def test_cross(self):
         vec1: Matrix = Matrix(TestMatrix.vec1_arr, 'vec')
         vec2: Matrix = Matrix(TestMatrix.vec2_arr, 'vec')
-
         res: float = TestMatrix.vec1_arr[0] * TestMatrix.vec2_arr[
             1] - TestMatrix.vec2_arr[0] * TestMatrix.vec1_arr[1]
+
         assert vec1.cross(vec2) == res
 
     def test_perpendicular(self):
