@@ -114,7 +114,7 @@ class TestMatrix():
         self.operator_helper(mat)
 
     def test_neg_operator(self):
-        mat:Matrix = -Matrix(TestMatrix.mat1_arr)
+        mat: Matrix = -Matrix(TestMatrix.mat1_arr)
         self.operator_helper(mat, 'neg')
 
     def test_pos_operator(self):
@@ -122,80 +122,80 @@ class TestMatrix():
         self.operator_helper(mat, 'pos')
 
     def test_add_operator(self):
-        mat:Matrix = Matrix(TestMatrix.mat1_arr) + Matrix(TestMatrix.mat2_arr)
+        mat: Matrix = Matrix(TestMatrix.mat1_arr) + Matrix(TestMatrix.mat2_arr)
         self.operator_helper(mat, 'add')
 
     def test_sub_operator(self):
-        mat:Matrix = Matrix(TestMatrix.mat1_arr) - Matrix(TestMatrix.mat2_arr)
+        mat: Matrix = Matrix(TestMatrix.mat1_arr) - Matrix(TestMatrix.mat2_arr)
         self.operator_helper(mat, 'sub')
 
     def test_mul_operator(self):
-        mat:Matrix = Matrix(TestMatrix.mat1_arr) * TestMatrix.mul_div_val
+        mat: Matrix = Matrix(TestMatrix.mat1_arr) * TestMatrix.mul_div_val
         self.operator_helper(mat, 'mul')
 
     def test_truediv_operator(self):
-        mat:Matrix = Matrix(TestMatrix.mat1_arr) / TestMatrix.mul_div_val
+        mat: Matrix = Matrix(TestMatrix.mat1_arr) / TestMatrix.mul_div_val
         self.operator_helper(mat, 'truediv')
 
     def test_eq_operator(self):
-        mat1:Matrix = Matrix(TestMatrix.mat1_arr)
-        mat2:Matrix = Matrix(TestMatrix.mat2_arr)
+        mat1: Matrix = Matrix(TestMatrix.mat1_arr)
+        mat2: Matrix = Matrix(TestMatrix.mat2_arr)
         self.operator_helper(mat1, 'eq', mat1 == mat2)
 
     def test_ne_operator(self):
-        mat1:Matrix = Matrix(TestMatrix.mat1_arr)
-        mat2:Matrix = Matrix(TestMatrix.mat2_arr)
+        mat1: Matrix = Matrix(TestMatrix.mat1_arr)
+        mat2: Matrix = Matrix(TestMatrix.mat2_arr)
         self.operator_helper(mat1, 'ne', mat1 == mat2)
 
     def test_isub_operator(self):
-        mat1:Matrix = Matrix(TestMatrix.mat1_arr)
-        mat2:Matrix = Matrix(TestMatrix.mat2_arr)
+        mat1: Matrix = Matrix(TestMatrix.mat1_arr)
+        mat2: Matrix = Matrix(TestMatrix.mat2_arr)
         mat1 -= mat2
         self.operator_helper(mat1, 'sub')
 
     def test_iadd_operator(self):
-        mat1:Matrix = Matrix(TestMatrix.mat1_arr)
-        mat2:Matrix = Matrix(TestMatrix.mat2_arr)
+        mat1: Matrix = Matrix(TestMatrix.mat1_arr)
+        mat2: Matrix = Matrix(TestMatrix.mat2_arr)
         mat1 += mat2
         self.operator_helper(mat1, 'add')
 
     def test_imul_operator(self):
-        mat1:Matrix = Matrix(TestMatrix.mat1_arr)
+        mat1: Matrix = Matrix(TestMatrix.mat1_arr)
         mat1 *= TestMatrix.mul_div_val
         self.operator_helper(mat1, 'mul')
 
     def test_idiv_operator(self):
-        mat1:Matrix = Matrix(TestMatrix.mat1_arr)
+        mat1: Matrix = Matrix(TestMatrix.mat1_arr)
         mat1 /= TestMatrix.mul_div_val
         self.operator_helper(mat1, 'truediv')
 
     def test_row1(self):
-        mat1:Matrix = Matrix(TestMatrix.mat1_arr)
+        mat1: Matrix = Matrix(TestMatrix.mat1_arr)
         self.value_helper(mat1.row1(), 0)
 
     def test_row2(self):
-        mat1:Matrix = Matrix(TestMatrix.mat1_arr)
+        mat1: Matrix = Matrix(TestMatrix.mat1_arr)
         self.value_helper(mat1.row2(), 1)
 
     def test_value(self):
-        mat1:Matrix = Matrix(TestMatrix.mat1_arr)
+        mat1: Matrix = Matrix(TestMatrix.mat1_arr)
         self.value_helper(mat1.value(0, 0), 0, 0)
         self.value_helper(mat1.value(0, 1), 0, 1)
         self.value_helper(mat1.value(1, 0), 1, 0)
         self.value_helper(mat1.value(1, 1), 1, 1)
 
     def test_determinant(self):
-        mat1:Matrix = Matrix(TestMatrix.mat1_arr)
-        res:float = TestMatrix.mat1_arr[0] * TestMatrix.mat1_arr[
+        mat1: Matrix = Matrix(TestMatrix.mat1_arr)
+        res: float = TestMatrix.mat1_arr[0] * TestMatrix.mat1_arr[
             3] - TestMatrix.mat1_arr[1] * TestMatrix.mat1_arr[2]
         assert np.isclose(mat1.determinant(), res)
 
     def test_transpose(self):
-        mat1:Matrix = Matrix(TestMatrix.mat1_arr)
+        mat1: Matrix = Matrix(TestMatrix.mat1_arr)
         self.mat_trans_helper(mat1.transpose(), 'transpose')
 
     def test_invert(self):
-        mat1:Matrix = Matrix(TestMatrix.mat1_arr)
+        mat1: Matrix = Matrix(TestMatrix.mat1_arr)
         self.mat_trans_helper(mat1.invert(), 'invert')
 
     def test_skew_symmetric_mat(self):
@@ -205,15 +205,15 @@ class TestMatrix():
         assert 1
 
     def test_len_square(self):
-        mat1:Matrix = Matrix(TestMatrix.mat1_arr)
-        res:float = 0.0
+        mat1: Matrix = Matrix(TestMatrix.mat1_arr)
+        res: float = 0.0
         for v in TestMatrix.mat1_arr:
             res += v * v
         assert np.isclose(mat1.len_square(), res)
 
     def test_len(self):
-        mat1:Matrix = Matrix(TestMatrix.mat1_arr)
-        res:float = 0.0
+        mat1: Matrix = Matrix(TestMatrix.mat1_arr)
+        res: float = 0.0
         for v in TestMatrix.mat1_arr:
             res += v * v
         assert np.isclose(mat1.len(), np.sqrt(res))
@@ -222,54 +222,54 @@ class TestMatrix():
         assert 1
 
     def test_set_value(self):
-        mat1:Matrix = Matrix(TestMatrix.mat1_arr)
+        mat1: Matrix = Matrix(TestMatrix.mat1_arr)
         mat1.set_value(TestMatrix.mat2_arr)
         self.mat_trans_helper(mat1, 'set_value')
 
     def test_clear(self):
-        mat1:Matrix = Matrix(TestMatrix.mat1_arr)
+        mat1: Matrix = Matrix(TestMatrix.mat1_arr)
         self.mat_trans_helper(mat1.clear(), 'clear')
 
     def test_negate(self):
-        mat1:Matrix = Matrix(TestMatrix.mat1_arr)
+        mat1: Matrix = Matrix(TestMatrix.mat1_arr)
         self.mat_trans_helper(mat1.negate(), 'neg')
 
     def test_negative(self):
-        mat1:Matrix = Matrix(TestMatrix.mat1_arr)
-        mat2:Matrix = mat1.negative()
+        mat1: Matrix = Matrix(TestMatrix.mat1_arr)
+        mat2: Matrix = mat1.negative()
         self.mat_trans_helper(mat2, 'neg')
 
     def test_swap(self):
-        mat1:Matrix = Matrix(TestMatrix.mat1_arr)
-        mat2:Matrix = Matrix(TestMatrix.mat2_arr)
+        mat1: Matrix = Matrix(TestMatrix.mat1_arr)
+        mat2: Matrix = Matrix(TestMatrix.mat2_arr)
         self.mat_trans_helper(mat1.swap(mat2), 'swap')
 
     def test_normalize(self):
-        mat1:Matrix = Matrix(TestMatrix.mat1_arr)
+        mat1: Matrix = Matrix(TestMatrix.mat1_arr)
         self.mat_trans_helper(mat1.normalize(), 'norm')
 
     def test_normal(self):
-        mat1:Matrix = Matrix(TestMatrix.mat1_arr)
-        mat2:Matrix = mat1.normal()
+        mat1: Matrix = Matrix(TestMatrix.mat1_arr)
+        mat2: Matrix = mat1.normal()
         self.mat_trans_helper(mat2, 'norm')
 
     def test_is_origin(self):
-        vec1:Matrix = Matrix(TestMatrix.vec1_arr, 'vec')
+        vec1: Matrix = Matrix(TestMatrix.vec1_arr, 'vec')
         assert vec1.is_origin() == False
 
     def test_dot(self):
-        vec1:Matrix = Matrix(TestMatrix.vec1_arr, 'vec')
-        vec2:Matrix = Matrix(TestMatrix.vec2_arr, 'vec')
+        vec1: Matrix = Matrix(TestMatrix.vec1_arr, 'vec')
+        vec2: Matrix = Matrix(TestMatrix.vec2_arr, 'vec')
 
-        res:float = TestMatrix.vec1_arr[0] * TestMatrix.vec2_arr[
+        res: float = TestMatrix.vec1_arr[0] * TestMatrix.vec2_arr[
             0] + TestMatrix.vec1_arr[1] * TestMatrix.vec2_arr[1]
         assert vec1.dot(vec2) == res
 
     def test_cross(self):
-        vec1:Matrix = Matrix(TestMatrix.vec1_arr, 'vec')
-        vec2:Matrix = Matrix(TestMatrix.vec2_arr, 'vec')
+        vec1: Matrix = Matrix(TestMatrix.vec1_arr, 'vec')
+        vec2: Matrix = Matrix(TestMatrix.vec2_arr, 'vec')
 
-        res:float = TestMatrix.vec1_arr[0] * TestMatrix.vec2_arr[
+        res: float = TestMatrix.vec1_arr[0] * TestMatrix.vec2_arr[
             1] - TestMatrix.vec2_arr[0] * TestMatrix.vec1_arr[1]
         assert vec1.cross(vec2) == res
 
@@ -277,18 +277,18 @@ class TestMatrix():
         assert 1
 
     def test_dot_product(self):
-        vec1:Matrix = Matrix(TestMatrix.vec1_arr, 'vec')
-        vec2:Matrix = Matrix(TestMatrix.vec2_arr, 'vec')
+        vec1: Matrix = Matrix(TestMatrix.vec1_arr, 'vec')
+        vec2: Matrix = Matrix(TestMatrix.vec2_arr, 'vec')
 
-        res:float = TestMatrix.vec1_arr[0] * TestMatrix.vec2_arr[
+        res: float = TestMatrix.vec1_arr[0] * TestMatrix.vec2_arr[
             0] + TestMatrix.vec1_arr[1] * TestMatrix.vec2_arr[1]
         assert Matrix.dot_product(vec1, vec2) == res
 
     def test_cross_product(self):
-        vec1:Matrix = Matrix(TestMatrix.vec1_arr, 'vec')
-        vec2:Matrix = Matrix(TestMatrix.vec2_arr, 'vec')
+        vec1: Matrix = Matrix(TestMatrix.vec1_arr, 'vec')
+        vec2: Matrix = Matrix(TestMatrix.vec2_arr, 'vec')
 
-        res:float = TestMatrix.vec1_arr[0] * TestMatrix.vec2_arr[
+        res: float = TestMatrix.vec1_arr[0] * TestMatrix.vec2_arr[
             1] - TestMatrix.vec2_arr[0] * TestMatrix.vec1_arr[1]
         assert Matrix.cross_product(vec1, vec2) == res
 
