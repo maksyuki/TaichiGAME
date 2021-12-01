@@ -37,33 +37,40 @@ class GeomAlgo2D():
             clip_len: int = len(clip_region)
             for i in range(clip_len - 1):
                 clipa: Matrix = clip_region[i]
-                clipb: Matrix = clip_region[i+1]
-                clipdir: Matrix = clip_region[1] if i + 2 == clip_len else clip_region[i+2]
+                clipb: Matrix = clip_region[i + 1]
+                clipdir: Matrix = clip_region[
+                    1] if i + 2 == clip_len else clip_region[i + 2]
 
                 is_same_side: List[bool] = []
                 poly_len: int = len(res)
                 for j in range(poly_len):
-                    is_same_side.append(GeomAlgo2D.is_point_on_same_side(clipa, clipb, clipdir, res[j]))
+                    is_same_side.append(
+                        GeomAlgo2D.is_point_on_same_side(
+                            clipa, clipb, clipdir, res[j]))
 
                 new_polygon: List[Matrix] = []
                 for j in range(1, poly_len):
-                    last_inside: bool = is_same_side[j-1]
+                    last_inside: bool = is_same_side[j - 1]
                     cur_inside: bool = is_same_side[j]
 
                     # last inside and cur outside
                     if last_inside and not cur_inside:
                         # push last point
-                        new_polygon.append(res[j-1])
+                        new_polygon.append(res[j - 1])
                         # push intersection point
-                        new_polygon.append(GeomAlgo2D.line_intersection(clipa,clipb, res[j-1], res[j]))
+                        new_polygon.append(
+                            GeomAlgo2D.line_intersection(
+                                clipa, clipb, res[j - 1], res[j]))
                     elif not last_inside and cur_inside:
                         # push intersection point first
-                        new_polygon.append(GeomAlgo2D.line_intersection(clipa,clipb, res[j-1], res[j]))
+                        new_polygon.append(
+                            GeomAlgo2D.line_intersection(
+                                clipa, clipb, res[j - 1], res[j]))
                     elif not last_inside and not cur_inside:
                         pass
                     elif last_inside and cur_inside:
-                        new_polygon.append(res[j-1])
-                
+                        new_polygon.append(res[j - 1])
+
                 res = copy.deepcopy(new_polygon)
                 res.append(res[0])
 
@@ -141,15 +148,18 @@ class GeomAlgo2D():
             pa, pb, target) and GeomAlgo2D.is_fuzzy_collinear(pa, pb, target)
 
     @staticmethod
-    def is_fuzzy_point_on_segment(pa: Matrix, pb: Matrix, target: Matrix) -> bool:
+    def is_fuzzy_point_on_segment(pa: Matrix, pb: Matrix,
+                                  target: Matrix) -> bool:
         return np.isclose(GeomAlgo2D.point_to_line_segment(pa, pb, target), 0)
 
     @staticmethod
-    def line_segment_intersection(pa: Matrix, pb: Matrix, pc: Matrix, pd: Matrix) -> Matrix:
+    def line_segment_intersection(pa: Matrix, pb: Matrix, pc: Matrix,
+                                  pd: Matrix) -> Matrix:
         pass
-    
+
     @staticmethod
-    def line_intersection(pa: Matrix, pb: Matrix, pc: Matrix, pd: Matrix) -> Optional[Matrix]:
+    def line_intersection(pa: Matrix, pb: Matrix, pc: Matrix,
+                          pd: Matrix) -> Optional[Matrix]:
         '''check if line pa-pb and pc-pd is intersection
         if yes, return the intersection point
         https://blog.csdn.net/qq_45735851/article/details/114434281
@@ -170,19 +180,23 @@ class GeomAlgo2D():
         Optional[Matrix]
             if insect, return insect point, otherwise return None
         '''
-        linea: Matrix = pb - pa # w
-        lineb: Matrix = pd - pc # v
+        linea: Matrix = pb - pa  # w
+        lineb: Matrix = pd - pc  # v
         if np.isclose(Matrix.cross_product(linea, lineb), 0):
             return None
 
         u: Matrix = pc - pa
-        t: float = Matrix.cross_product(linea, u) / Matrix.cross_product(lineb, linea)
-        res: Matrix = Matrix([pc._val[0]+t*lineb._val[0], pc._val[1]+t*lineb._val[1]], 'vec')
+        t: float = Matrix.cross_product(linea, u) / Matrix.cross_product(
+            lineb, linea)
+        res: Matrix = Matrix(
+            [pc._val[0] + t * lineb._val[0], pc._val[1] + t * lineb._val[1]],
+            'vec')
 
         return res
-        
+
     @staticmethod
-    def triangle_circum_center(pa: Matrix, pb: Matrix, pc: Matrix) -> Optional[Matrix]:
+    def triangle_circum_center(pa: Matrix, pb: Matrix,
+                               pc: Matrix) -> Optional[Matrix]:
         '''calc the circum-circle center from triangle pa-pb-pc
 
         Parameters
@@ -201,7 +215,7 @@ class GeomAlgo2D():
         '''
         if np.isclose(GeomAlgo2D.triangle_area(pa, pb, pc), 0):
             return None
-        
+
         # 2 * (x2 - x1) * x + 2 * (y2 - y1) y = x2 ^ 2 + y2 ^ 2 - x1 ^ 2 - y1 ^ 2
         # 2 * (x3 - x2) * x + 2 * (y3 - y2) y = x3 ^ 2 + y3 ^ 2 - x2 ^ 2 - y2 ^ 2
         val11: float = 2.0 * (pb._val[0] - pa._val[0])
@@ -209,12 +223,16 @@ class GeomAlgo2D():
         val21: float = 2.0 * (pc._val[0] - pb._val[0])
         val22: float = 2.0 * (pc._val[1] - pb._val[1])
         coef_mat: Matrix = Matrix([val11, val12, val21, val22])
-        equal_val: Matrix = Matrix([pb.len_square() - pa.len_square(), pc.len_square() - pb.len_square()], 'vec')
+        equal_val: Matrix = Matrix([
+            pb.len_square() - pa.len_square(),
+            pc.len_square() - pb.len_square()
+        ], 'vec')
 
         return coef_mat.invert() * equal_val
 
     @staticmethod
-    def triangle_inscribed_center(pa: Matrix, pb: Matrix, pc: Matrix) -> Optional[Matrix]:
+    def triangle_inscribed_center(pa: Matrix, pb: Matrix,
+                                  pc: Matrix) -> Optional[Matrix]:
         '''calc the inscribed-circle center from triangle pa-pb-pc
 
         Parameters
@@ -237,11 +255,12 @@ class GeomAlgo2D():
         ab_len: float = (pb - pa).len()
         bc_len: float = (pc - pb).len()
         ca_len: float = (pc - pa).len()
-        return (ab_len * pc + bc_len * pa + ca_len * pb) / (ab_len + bc_len + ca_len)
-
+        return (ab_len * pc + bc_len * pa + ca_len * pb) / (ab_len + bc_len +
+                                                            ca_len)
 
     @staticmethod
-    def calc_circum_center(pa: Matrix, pb: Matrix, pc: Matrix) -> Optional[Tuple[Matrix, float]]:
+    def calc_circum_center(pa: Matrix, pb: Matrix,
+                           pc: Matrix) -> Optional[Tuple[Matrix, float]]:
         '''return the circum-circle's center and radius from triangle pa-pb-pc
 
         Parameters
@@ -266,7 +285,8 @@ class GeomAlgo2D():
         return (center, radius)
 
     @staticmethod
-    def calc_inscribed_center(pa: Matrix, pb: Matrix, pc: Matrix) -> Optional[Tuple[Matrix, float]]:
+    def calc_inscribed_center(pa: Matrix, pb: Matrix,
+                              pc: Matrix) -> Optional[Tuple[Matrix, float]]:
         '''return the inscribed-circle's center and radius from triangle pa-pb-pc
 
         Parameters
@@ -310,14 +330,16 @@ class GeomAlgo2D():
         bool
             True: is convex, False: not is
         '''
-        
+
         num: float = len(vertices)
         if num == 4:
             return True
 
         for i in range(num - 1):
-            ab: Matrix = vertices[i+1] - vertices[i]
-            ac: Matrix = vertices[i+2] - vertices[i] if i + 2 != num else vertices[1] - vertices[i]
+            ab: Matrix = vertices[i + 1] - vertices[i]
+            ac: Matrix = vertices[
+                i +
+                2] - vertices[i] if i + 2 != num else vertices[1] - vertices[i]
 
             if Matrix.cross_product(ab, ac) < 0:
                 return False
@@ -328,7 +350,7 @@ class GeomAlgo2D():
     def graham_scan_cmp(a: Matrix, b: Matrix) -> int:
         first_val1: float = np.arctan2(a._val[1], a._val[0])
         first_val2: float = np.arctan2(b._val[1], b._val[0])
-        if  not np.isclose(first_val1, first_val2):
+        if not np.isclose(first_val1, first_val2):
             if first_val1 < first_val2:
                 return -1
             elif first_val1 > first_val2:
@@ -341,7 +363,6 @@ class GeomAlgo2D():
                     return -1
                 elif second_val1 > second_val2:
                     return 1
-        
 
     @staticmethod
     def graham_scan(vertices: List[Matrix]) -> List[Matrix]:
@@ -370,7 +391,7 @@ class GeomAlgo2D():
             j: int = stack[-1]
             if j == 0:
                 break
-                
+
             if check_idx >= len(sort_vert):
                 check_idx = 0
 
@@ -389,7 +410,8 @@ class GeomAlgo2D():
         return res
 
     @staticmethod
-    def point_to_line_segment(pa: Matrix, pb: Matrix, pc: Matrix) -> Optional[Matrix]:
+    def point_to_line_segment(pa: Matrix, pb: Matrix,
+                              pc: Matrix) -> Optional[Matrix]:
         '''calculate point on line segment pa-pb that is the shortest length to pc
 
         Parameters
@@ -406,7 +428,7 @@ class GeomAlgo2D():
         Optional[Matrix]
             shortest-dis point to the segment, otherwise None
         '''
-        
+
         if pa == pb:
             return None
 
@@ -423,9 +445,9 @@ class GeomAlgo2D():
 
         return pb if (pc - pa).len_square() > (pc - pb).len_squre() else pa
 
-
     @staticmethod
-    def shortest_length_point_of_ellipse(a: float, b: float, pc: Matrix) -> Optional[Matrix]:
+    def shortest_length_point_of_ellipse(a: float, b: float,
+                                         pc: Matrix) -> Optional[Matrix]:
         '''calculate point on ellipse that is the shortest length 
         to pc(aka projection point)
 
@@ -443,15 +465,17 @@ class GeomAlgo2D():
         Optional[Matrix]
             shortest-dis point to the ellipse, otherwise None
         '''
-        
+
         if np.isclose(a, 0) or np.isclose(b, 0):
             return None
 
         if np.isclose(pc._val[0], 0):
-            return Matrix([0.0, b], 'vec') if pc._val[1] > 0 else Matrix([0.0, -b], 'vec')
+            return Matrix([0.0, b], 'vec') if pc._val[1] > 0 else Matrix(
+                [0.0, -b], 'vec')
 
         if np.isclose(pc._val[1], 0):
-            return Matrix([a, 0.0], 'vec') if pc._val[0] > 0 else Matrix([-a, 0.0], 'vec')
+            return Matrix([a, 0.0], 'vec') if pc._val[0] > 0 else Matrix(
+                [-a, 0.0], 'vec')
 
         x_left: float = 0.0
         x_right: float = 0.0
@@ -491,8 +515,6 @@ class GeomAlgo2D():
                 x_right = tmp_x0
 
         return t0
-
-
 
     @staticmethod
     def triangle_centroid(pa: Matrix, pb: Matrix, pc: Matrix) -> Matrix:
@@ -561,8 +583,8 @@ class GeomAlgo2D():
                 if idx1 == vert_len - 2:
                     break
 
-                tri_area: float = GeomAlgo2D.triangle_area(vertices[0], vertices[idx1],
-                                                    vertices[idx2])
+                tri_area: float = GeomAlgo2D.triangle_area(
+                    vertices[0], vertices[idx1], vertices[idx2])
                 tri_centroid: Matrix = GeomAlgo2D.triangle_centroid(
                     vertices[0], vertices[idx1], vertices[idx2])
 
@@ -575,8 +597,10 @@ class GeomAlgo2D():
         else:
             return Matrix([0.0, 0.0], 'vec')
 
-    @staticmethod #FIXME: need to understand the algorithm
-    def shortest_length_line_segment_ellipse(a: float, b: float, pc: Matrix, pd: Matrix) -> Tuple[Matrix, Matrix]:
+    @staticmethod  #FIXME: need to understand the algorithm
+    def shortest_length_line_segment_ellipse(
+            a: float, b: float, pc: Matrix,
+            pd: Matrix) -> Tuple[Matrix, Matrix]:
         '''calculate two points on line segment and ellipse respectively.
         The length of two points is the shortest distance of line segment and ellipse
 
@@ -596,32 +620,36 @@ class GeomAlgo2D():
         Tuple[Matrix, Matrix]
             the return data
         '''
-        
+
         res_segm: Matrix = Matrix([0.0, 0.0], 'vec')
         res_elli: Matrix = Matrix([0.0, 0.0], 'vec')
 
         #FIXME: can write helper func
         if np.isclose(pc._val[1], pd._val[1]):
-            if not ((pc._val[0] > 0 and pd._val[0] > 0) or (pc._val[0] < 0 and pd._val[0] < 0)):
+            if not ((pc._val[0] > 0 and pd._val[0] > 0) or
+                    (pc._val[0] < 0 and pd._val[0] < 0)):
                 res_elli.set_value([0.0, b if pc._val[1] > 0 else -b])
                 res_segm.set_value([0.0, pc._val[1]])
             else:
                 tmp: float = np.fmin(np.fabs(pc._val[0]), np.fabs(pd._val[0]))
                 res_segm.set_value([tmp, pc._val[1]])
-                res_elli = GeomAlgo2D.shortest_length_point_of_ellipse(a, b, res_segm)
+                res_elli = GeomAlgo2D.shortest_length_point_of_ellipse(
+                    a, b, res_segm)
         elif np.isclose(pc._val[0], pd._val[0]):
-            if not ((pc._val[1] > 0 and pd._val[1] > 0) or (pc._val[1] < 0 and pd._val[1] < 0)):
+            if not ((pc._val[1] > 0 and pd._val[1] > 0) or
+                    (pc._val[1] < 0 and pd._val[1] < 0)):
                 res_elli.set_value([a if pc._val[0] > 0 else -a, 0.0])
                 res_segm.set_value([pc._val[0], 0.0])
             else:
                 tmp: float = np.fmin(np.fabs(pc._val[1]), np.fabs(pd._val[1]))
                 res_segm.set_value([pc._val[0], tmp])
-                res_elli = GeomAlgo2D.shortest_length_point_of_ellipse(a, b, res_segm)
+                res_elli = GeomAlgo2D.shortest_length_point_of_ellipse(
+                    a, b, res_segm)
         else:
             k: float = (pd._val[1] - pc._val[1]) / (pd._val[0] - pc._val[0])
             k2: float = k * k
-            a2:float = a**2
-            b2:float = b**2
+            a2: float = a**2
+            b2: float = b**2
             f_x2: float = (k2 * a2 * a2 / b2) / (1 + a2 * k2 / b2)
             f_y2: float = b2 - b2 * f_x2 / a2
             f_x: float = np.sqrt(f_x2)
@@ -640,9 +668,9 @@ class GeomAlgo2D():
             for i in range(1, 4):
                 tmp_val: float = Matrix.cross_product(pcpd, f_arr[i] - pc)
                 if tmp_val < min_val:
-                    f = f_arr[i] #BUG: the f is not the one define before
+                    f = f_arr[i]  #BUG: the f is not the one define before
                     min_val = tmp_val
-            
+
             pcf: Matrix = f - pc
             pc_fp: Matrix = pcpd * pcpd.dot(pcf)
             f_proj: Matrix = pc + pc_fp
@@ -664,7 +692,8 @@ class GeomAlgo2D():
         return (res_elli, res_segm)
 
     @staticmethod
-    def raycast(pa: Matrix, dir: Matrix, pc: Matrix, pd: Matrix) -> Optional[Matrix]:
+    def raycast(pa: Matrix, dir: Matrix, pc: Matrix,
+                pd: Matrix) -> Optional[Matrix]:
         '''calculate point on line segment pc-pd, if point 'pa' can cast ray in 'dir' 
         direction on line segment pc-pd.
 
@@ -684,22 +713,32 @@ class GeomAlgo2D():
         Optional[Matrix]
             If exist, return raycast point, otherwise None
         '''
-        
-        denominator: float = (pa._val[0] - dir._val[0]) * (pc._val[1] - pd._val[1]) - (pa._val[1] - dir._val[1]) * (pc._val[0] - pd._val[0])
+
+        denominator: float = (pa._val[0] - dir._val[0]) * (
+            pc._val[1] - pd._val[1]) - (pa._val[1] - dir._val[1]) * (
+                pc._val[0] - pd._val[0])
 
         if np.isclose(denominator, 0):
             return None
 
-        t: float = ((pa._val[0] - pc._val[0]) * (pc._val[1] - pd._val[1]) - (pa._val[1] - pc._val[1]) * (pc._val[0] - pd._val[0])) / denominator
-        u: float = ((dir._val[0] - pa._val[0]) * (pa._val[1] - pc._val[1]) - (dir._val[1] - pa._val[1]) * (pa._val[0] - pc._val[0])) / denominator
+        t: float = ((pa._val[0] - pc._val[0]) * (pc._val[1] - pd._val[1]) -
+                    (pa._val[1] - pc._val[1]) *
+                    (pc._val[0] - pd._val[0])) / denominator
+        u: float = ((dir._val[0] - pa._val[0]) * (pa._val[1] - pc._val[1]) -
+                    (dir._val[1] - pa._val[1]) *
+                    (pa._val[0] - pc._val[0])) / denominator
 
         if t >= 0 and 0 <= u <= 1.0:
-            return Matrix([pa._val[0] + t * (dir._val[0] - pa._val[0]), pa._val[1] + t * (dir._val[1] - pa._val[1])], 'vec')
-        
+            return Matrix([
+                pa._val[0] + t * (dir._val[0] - pa._val[0]), pa._val[1] + t *
+                (dir._val[1] - pa._val[1])
+            ], 'vec')
+
         return None
 
     @staticmethod
-    def raycastAABB(pa: Matrix, dir: Matrix, top_left: Matrix, bot_right: Matrix) -> Optional[Tuple[Matrix, Matrix]]:
+    def raycastAABB(pa: Matrix, dir: Matrix, top_left: Matrix,
+                    bot_right: Matrix) -> Optional[Tuple[Matrix, Matrix]]:
         '''calculate point on  AABB, if point 'pa' can cast ray in 'dir' 
         direction on AABB.
 
@@ -725,10 +764,10 @@ class GeomAlgo2D():
         x_max: float = bot_right._val[0]
         y_max: float = top_left._val[1]
         tx_min: float = 0.0
-        ty_min: float= 0.0
+        ty_min: float = 0.0
         tx_max: float = 0.0
         ty_max: float = 0.0
-        tx_enter: float  = 0.0
+        tx_enter: float = 0.0
         tx_exit: float = 0.0
         ty_enter: float = 0.0
         ty_exit: float = 0.0
@@ -756,18 +795,18 @@ class GeomAlgo2D():
             ty_exit = np.fmax(ty_min, ty_max)
             t_enter = np.fmax(tx_enter, ty_enter)
             t_exit = np.fmin(tx_exit, ty_exit)
-    
+
         if t_enter < 0 and t_exit < 0:
             return None
-        
+
         enter: Matrix = pa + t_enter * dir
         exit: Matrix = pa + t_exit * dir
 
         return (enter, exit)
 
-
     @staticmethod
-    def is_point_on_AABB(pa: Matrix, top_left: Matrix, bot_right: Matrix) -> bool:
+    def is_point_on_AABB(pa: Matrix, top_left: Matrix,
+                         bot_right: Matrix) -> bool:
         '''check if the pa is in the AABB
 
         Parameters
@@ -784,8 +823,11 @@ class GeomAlgo2D():
         bool
             True: is in AABB False: is not
         '''
-        
-        return GeomAlgo2D.judge_range(pa._val[0], top_left._val[0], bot_right._val[0]) and GeomAlgo2D.judge_range(pa._val[1], bot_right._val[1], top_left._val[1])
+
+        return GeomAlgo2D.judge_range(
+            pa._val[0], top_left._val[0],
+            bot_right._val[0]) and GeomAlgo2D.judge_range(
+                pa._val[1], bot_right._val[1], top_left._val[1])
 
     @staticmethod
     def rotate(pa: Matrix, center: Matrix, radian: float) -> Matrix:
@@ -805,12 +847,12 @@ class GeomAlgo2D():
         Matrix
             result point
         '''
-        
+
         return Matrix.rotate_mat(radian) * (pa - center) + center
 
-
     @staticmethod
-    def calc_ellipse_project_on_point(a: float, b: float, dir: Matrix) -> Matrix:
+    def calc_ellipse_project_on_point(a: float, b: float,
+                                      dir: Matrix) -> Matrix:
         '''calculate the projection axis of ellipse in user-define direction.
         return the maximum point in ellipse
 
@@ -828,7 +870,7 @@ class GeomAlgo2D():
         Matrix
             maximum point
         '''
-        
+
         res: Matrix = Matrix([0.0, 0.0], 'vec')
 
         if np.isclose(dir._val[0], 0):
@@ -839,7 +881,7 @@ class GeomAlgo2D():
             res.set_value([sgn * a, 0.0])
         else:
             k = dir._val[1] / dir._val[0]
-            # line offset constant 
+            # line offset constant
             a2 = a**2
             b2 = b**2
             k2 = k**2
@@ -854,7 +896,8 @@ class GeomAlgo2D():
         return res
 
     @staticmethod
-    def calc_capsule_project_on_point(width: float, height: float, dir: Matrix) -> Matrix:
+    def calc_capsule_project_on_point(width: float, height: float,
+                                      dir: Matrix) -> Matrix:
         '''calculate the projection axis of capsule in user-define direction.
         return the maximum point in capsule
 
@@ -872,23 +915,26 @@ class GeomAlgo2D():
         Matrix
             maximum point
         '''
-        
+
         res: Matrix = Matrix([0.0, 0.0], 'vec')
         if width > height:
             radius: float = height / 2.0
-            offset: float = width / 2.0 - radius if dir._val[0] >= 0 else radius - width / 2.0
+            offset: float = width / 2.0 - radius if dir._val[
+                0] >= 0 else radius - width / 2.0
             res = dir.normal() * radius
             res._val[0] += offset
         else:
             radius: float = width / 2.0
-            offset: float = height / 2.0 - radius if dir._val[1] >= 0 else radius - height / 2.0
+            offset: float = height / 2.0 - radius if dir._val[
+                1] >= 0 else radius - height / 2.0
             res = dir.normal() * radius
             res._val[1] += offset
 
         return res
 
     @staticmethod
-    def calc_sector_project_on_point(start: float, span: float, radius: float, dir: Matrix) -> Matrix:
+    def calc_sector_project_on_point(start: float, span: float, radius: float,
+                                     dir: Matrix) -> Matrix:
         '''calculate the projection axis of sector in user-define direction.
         return the maximum point in sector
 
@@ -917,9 +963,9 @@ class GeomAlgo2D():
 
             if _res < 0:
                 _res += np.pi * 2
-            
+
             return _res
-        
+
         clamp_start: float = _clamp_radian(start)
         clamp_end: float = _clamp_radian(start + span)
         origin_start: float = _clamp_radian(start - np.pi / 2.0)
@@ -934,24 +980,32 @@ class GeomAlgo2D():
                     theta = origin_theta
 
                 # clamp theta to sector area
-                res = Matrix.rotate_mat(np.clip(theta, clamp_start, clamp_end)) * Matrix([1.0, 0.0], 'vec') * radius
+                res = Matrix.rotate_mat(np.clip(
+                    theta, clamp_start, clamp_end)) * Matrix([1.0, 0.0],
+                                                             'vec') * radius
 
         elif origin_start < origin_end:
             if GeomAlgo2D.judge_range(origin_theta, origin_start, origin_end):
-                res = Matrix.rotate_mat(np.clip(theta, clamp_start, clamp_end)) * Matrix([1.0, 0.0], 'vec') * radius
+                res = Matrix.rotate_mat(np.clip(
+                    theta, clamp_start, clamp_end)) * Matrix([1.0, 0.0],
+                                                             'vec') * radius
 
         if np.isclose(origin_start, origin_end):
             if not np.isclose(theta, origin_start):
                 if theta > origin_start:
                     theta = origin_theta
-                
+
                 if clamp_start > clamp_end:
-                    res = Matrix.rotate_mat(np.clip(theta, clamp_start - np.pi * 2.0, clamp_end)) * Matrix([1.0, 0.0], 'vec') * radius
+                    res = Matrix.rotate_mat(
+                        np.clip(theta, clamp_start - np.pi * 2.0,
+                                clamp_end)) * Matrix([1.0, 0.0],
+                                                     'vec') * radius
                 else:
-                    res = Matrix.rotate_mat(np.clip(theta, clamp_start, clamp_end)) * Matrix([1.0, 0.0], 'vec') * radius
+                    res = Matrix.rotate_mat(
+                        np.clip(theta, clamp_start, clamp_end)) * Matrix(
+                            [1.0, 0.0], 'vec') * radius
 
         return res
-        
 
     @staticmethod
     def is_triangle_contain_origin(pa: Matrix, pb: Matrix, pc: Matrix) -> bool:
@@ -971,14 +1025,16 @@ class GeomAlgo2D():
         bool
             True: origin point is in triangle, otherwise not
         '''
-        
+
         ra: float = (pb - pa).cross(-pa)
         rb: float = (pc - pb).cross(-pb)
         rc: float = (pa - pc).cross(-pc)
-        return (ra >= 0 and rb >= 0 and rc >= 0) or (ra <= 0 and rb <= 0 and rc <= 0)
+        return (ra >= 0 and rb >= 0 and rc >= 0) or (ra <= 0 and rb <= 0
+                                                     and rc <= 0)
 
     @staticmethod
-    def is_point_on_same_side(edgp1: Matrix, edgp2: Matrix, ref: Matrix, target: Matrix) -> bool:
+    def is_point_on_same_side(edgp1: Matrix, edgp2: Matrix, ref: Matrix,
+                              target: Matrix) -> bool:
         '''check if the target and ref point is on edgep1-edgep2 same side
 
         Parameters
