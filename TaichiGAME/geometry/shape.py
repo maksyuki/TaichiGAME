@@ -111,7 +111,7 @@ class Polygon(Shape):
         return True
 
     def center(self) -> Matrix:
-        return GeomAlgo2D.calc_center(self._vertices)
+        return GeomAlgo2D.calc_mass_center(self._vertices)
 
     def update_vertices(self):
         center_point: Matrix = self.center()
