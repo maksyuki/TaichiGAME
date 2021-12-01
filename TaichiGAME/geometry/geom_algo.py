@@ -1,6 +1,6 @@
 import copy
 from functools import cmp_to_key
-from os import fpathconf
+from os import DirEntry, fpathconf, stat
 from typing import Any, List, Tuple, Optional
 
 import numpy as np
@@ -691,40 +691,316 @@ class GeomAlgo2D():
             return None
 
         t: float = ((pa._val[0] - pc._val[0]) * (pc._val[1] - pd._val[1]) - (pa._val[1] - pc._val[1]) * (pc._val[0] - pd._val[0])) / denominator
-        u: float = ((dir.x - pa._val[0]) * (pa._val[1] - pc._val[1]) - (dir.y - pa._val[1]) * (pa._val[0] - pc._val[0])) / denominator
+        u: float = ((dir._val[0] - pa._val[0]) * (pa._val[1] - pc._val[1]) - (dir._val[1] - pa._val[1]) * (pa._val[0] - pc._val[0])) / denominator
 
         if t >= 0 and 0 <= u <= 1.0:
-            return Matrix([pa._val[0] + t * (dir.x - pa._val[0]), pa._val[1] + t * (dir.y - pa._val[1])], 'vec')
+            return Matrix([pa._val[0] + t * (dir._val[0] - pa._val[0]), pa._val[1] + t * (dir._val[1] - pa._val[1])], 'vec')
         
         return None
 
     @staticmethod
-    def raycastAABB(self, pa, dir, pb, pc):
-        pass
+    def raycastAABB(pa: Matrix, dir: Matrix, top_left: Matrix, bot_right: Matrix) -> Optional[Tuple[Matrix, Matrix]]:
+        '''calculate point on  AABB, if point 'pa' can cast ray in 'dir' 
+        direction on AABB.
 
-    def is_point_on_AABB(self, pa, top_left, bottom_right):
-        pass
+        Parameters
+        ----------
+        pa : Matrix
+            ray start point
+        dir : Matrix
+            ray direction
+        top_left : Matrix
+            AABB top left point
+        bot_right : Matrix
+            AABB bot right point
 
-    def rotate(self, pa, center, angle):
-        pass
+        Returns
+        -------
+        Optional[Matrix]
+            If exist, return raycast point, otherwise None
+        '''
 
-    def calc_ellipse_project_on_point(self, va, vb, dir):
-        pass
+        x_min: float = top_left._val[0]
+        y_min: float = bot_right._val[1]
+        x_max: float = bot_right._val[0]
+        y_max: float = top_left._val[1]
+        tx_min: float = 0.0
+        ty_min: float= 0.0
+        tx_max: float = 0.0
+        ty_max: float = 0.0
+        tx_enter: float  = 0.0
+        tx_exit: float = 0.0
+        ty_enter: float = 0.0
+        ty_exit: float = 0.0
+        t_enter: float = 0.0
+        t_exit: float = 0.0
 
-    def calc_capsule_project_on_point(self, width, height, dir):
-        pass
+        if np.isclose(dir._val[0], 0) and not np.isclose(dir._val[1], 0):
+            ty_min = (y_min - pa._val[1]) / dir._val[1]
+            ty_max = (y_max - pa._val[1]) / dir._val[1]
+            t_enter = np.fmin(ty_min, ty_max)
+            t_exit = np.fmax(ty_min, ty_max)
+        elif not np.isclose(dir._val[0], 0) and np.isclose(dir._val[1], 0):
+            tx_min = (x_min - pa._val[0]) / dir._val[0]
+            tx_max = (x_max - pa._val[0]) / dir._val[0]
+            t_enter = np.fmin(tx_min, tx_max)
+            t_exit = np.fmax(tx_min, tx_max)
+        else:
+            tx_min = (x_min - pa._val[0]) / dir._val[0]
+            tx_max = (x_max - pa._val[0]) / dir._val[0]
+            ty_min = (y_min - pa._val[1]) / dir._val[1]
+            ty_max = (y_max - pa._val[1]) / dir._val[1]
+            tx_enter = np.fmin(tx_min, tx_max)
+            tx_exit = np.fmax(tx_min, tx_max)
+            ty_enter = np.fmin(ty_min, ty_max)
+            ty_exit = np.fmax(ty_min, ty_max)
+            t_enter = np.fmax(tx_enter, ty_enter)
+            t_exit = np.fmin(tx_exit, ty_exit)
+    
+        if t_enter < 0 and t_exit < 0:
+            return None
+        
+        enter: Matrix = pa + t_enter * dir
+        exit: Matrix = pa + t_exit * dir
 
-    def calc_sector_project_on_point(self, start_radian, span_radian, dir):
-        pass
+        return (enter, exit)
 
-    def is_triangle_contain_origin(self, pa, pb, pc):
-        pass
 
     @staticmethod
-    def is_point_on_same_side(edge_point1, edge_point2, ref_point, target):
-        u = edge_point1 - edge_point2
-        v = ref_point - edge_point1
-        w = target - edge_point1
+    def is_point_on_AABB(pa: Matrix, top_left: Matrix, bot_right: Matrix) -> bool:
+        '''check if the pa is in the AABB
+
+        Parameters
+        ----------
+        pa : Matrix
+            target point
+        top_left : Matrix
+            AABB top left point
+        bot_right : Matrix
+            AABB bottom right point
+
+        Returns
+        -------
+        bool
+            True: is in AABB False: is not
+        '''
+        
+        return GeomAlgo2D.judge_range(pa._val[0], top_left._val[0], bot_right._val[0]) and GeomAlgo2D.judge_range(pa._val[1], bot_right._val[1], top_left._val[1])
+
+    @staticmethod
+    def rotate(pa: Matrix, center: Matrix, radian: float) -> Matrix:
+        '''rotate point 'pa' around point 'center' by radian
+
+        Parameters
+        ----------
+        pa : Matrix
+            source point
+        center : Matrix
+            center point
+        radian : float
+            rotate radian
+
+        Returns
+        -------
+        Matrix
+            result point
+        '''
+        
+        return Matrix.rotate_mat(radian) * (pa - center) + center
+
+
+    @staticmethod
+    def calc_ellipse_project_on_point(a: float, b: float, dir: Matrix) -> Matrix:
+        '''calculate the projection axis of ellipse in user-define direction.
+        return the maximum point in ellipse
+
+        Parameters
+        ----------
+        a : float
+            semi-major axis len
+        b : float
+            semi-minor axis len
+        dir : Matrix
+            user define direction
+
+        Returns
+        -------
+        Matrix
+            maximum point
+        '''
+        
+        res: Matrix = Matrix([0.0, 0.0], 'vec')
+
+        if np.isclose(dir._val[0], 0):
+            sgn: int = -1 if dir._val[1] < 0 else 1
+            res.set_value([0.0, sgn * b])
+        elif np.isclose(dir._val[1], 0):
+            sgn: int = -1 if dir._val[0] < 0 else 1
+            res.set_value([sgn * a, 0.0])
+        else:
+            k = dir._val[1] / dir._val[0]
+            # line offset constant 
+            a2 = a**2
+            b2 = b**2
+            k2 = k**2
+            d = np.sqrt((a2 + b2 * k2) / k2)
+            if Matrix.dot_product(Matrix([0.0, d], 'vec'), dir) < 0:
+                d = d * -1
+
+            x1 = k * d - (b2 * k2 * k * d) / (a2 + b2 * k2)
+            y1 = (b2 * k2 * d) / (a2 + b2 * k2)
+            res.set(x1, y1)
+
+        return res
+
+    @staticmethod
+    def calc_capsule_project_on_point(width: float, height: float, dir: Matrix) -> Matrix:
+        '''calculate the projection axis of capsule in user-define direction.
+        return the maximum point in capsule
+
+        Parameters
+        ----------
+        width : float
+            capsule width
+        height : float
+            capsule height
+        dir : Matrix
+            user define direction
+
+        Returns
+        -------
+        Matrix
+            maximum point
+        '''
+        
+        res: Matrix = Matrix([0.0, 0.0], 'vec')
+        if width > height:
+            radius: float = height / 2.0
+            offset: float = width / 2.0 - radius if dir._val[0] >= 0 else radius - width / 2.0
+            res = dir.normal() * radius
+            res._val[0] += offset
+        else:
+            radius: float = width / 2.0
+            offset: float = height / 2.0 - radius if dir._val[1] >= 0 else radius - height / 2.0
+            res = dir.normal() * radius
+            res._val[1] += offset
+
+        return res
+
+    @staticmethod
+    def calc_sector_project_on_point(start: float, span: float, radius: float, dir: Matrix) -> Matrix:
+        '''calculate the projection axis of sector in user-define direction.
+        return the maximum point in sector
+
+        Parameters
+        ----------
+        start : float
+            start radian
+        span : float
+            span radian(delta radian)
+        radius : float
+            radius value
+        dir : Matrix
+            user define direction
+
+        Returns
+        -------
+        Matrix
+            maximum point
+        '''
+
+        res: Matrix = Matrix([0.0, 0.0], 'vec')
+
+        def _clamp_radian(radian: float) -> float:
+            _res: float = radian
+            _res -= np.floor(_res / np.pi * 2) * np.pi * 2
+
+            if _res < 0:
+                _res += np.pi * 2
+            
+            return _res
+        
+        clamp_start: float = _clamp_radian(start)
+        clamp_end: float = _clamp_radian(start + span)
+        origin_start: float = _clamp_radian(start - np.pi / 2.0)
+        origin_end: float = _clamp_radian(start + span + np.pi / 2.0)
+        origin_theta: float = dir.theta()
+        theta: float = _clamp_radian(origin_theta)
+
+        if origin_start > origin_end:
+            # does not fall in zero area
+            if not GeomAlgo2D.judge_range(theta, origin_end, origin_start):
+                if theta > origin_start:
+                    theta = origin_theta
+
+                # clamp theta to sector area
+                res = Matrix.rotate_mat(np.clip(theta, clamp_start, clamp_end)) * Matrix([1.0, 0.0], 'vec') * radius
+
+        elif origin_start < origin_end:
+            if GeomAlgo2D.judge_range(origin_theta, origin_start, origin_end):
+                res = Matrix.rotate_mat(np.clip(theta, clamp_start, clamp_end)) * Matrix([1.0, 0.0], 'vec') * radius
+
+        if np.isclose(origin_start, origin_end):
+            if not np.isclose(theta, origin_start):
+                if theta > origin_start:
+                    theta = origin_theta
+                
+                if clamp_start > clamp_end:
+                    res = Matrix.rotate_mat(np.clip(theta, clamp_start - np.pi * 2.0, clamp_end)) * Matrix([1.0, 0.0], 'vec') * radius
+                else:
+                    res = Matrix.rotate_mat(np.clip(theta, clamp_start, clamp_end)) * Matrix([1.0, 0.0], 'vec') * radius
+
+        return res
+        
+
+    @staticmethod
+    def is_triangle_contain_origin(pa: Matrix, pb: Matrix, pc: Matrix) -> bool:
+        '''check if the origin point is in the triangle
+
+        Parameters
+        ----------
+        pa : Matrix
+            point a
+        pb : Matrix
+            point b
+        pc : Matrix
+            point c
+
+        Returns
+        -------
+        bool
+            True: origin point is in triangle, otherwise not
+        '''
+        
+        ra: float = (pb - pa).cross(-pa)
+        rb: float = (pc - pb).cross(-pb)
+        rc: float = (pa - pc).cross(-pc)
+        return (ra >= 0 and rb >= 0 and rc >= 0) or (ra <= 0 and rb <= 0 and rc <= 0)
+
+    @staticmethod
+    def is_point_on_same_side(edgp1: Matrix, edgp2: Matrix, ref: Matrix, target: Matrix) -> bool:
+        '''check if the target and ref point is on edgep1-edgep2 same side
+
+        Parameters
+        ----------
+        edgp1 : Matrix
+            edge point 1
+        edgp2 : Matrix
+            edge point 2
+        ref : Matrix
+            ref point
+        target : Matrix
+            target point
+
+        Returns
+        -------
+        bool
+            True: is on same side, otherwise not
+        '''
+
+        u = edgp1 - edgp2
+        v = ref - edgp1
+        w = target - edgp1
         d1 = u.cross(v)
         d2 = u.cross(w)
         return np.sign(d1) == np.sign(d2)
