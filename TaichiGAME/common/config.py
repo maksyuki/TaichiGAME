@@ -11,14 +11,3 @@ class Config():
     GeometryEpsilon = 0.00001
     MaxVelocity = 1000.0
     MaxAngularVelocity = 1000.0
-
-
-def main():
-    demo = Config()
-    print(demo.SimplexMax)
-    print(demo.Epsilon)
-    print(demo.HalfPi)
-
-
-if __name__ == '__main__':
-    main()
