@@ -1,7 +1,6 @@
 from typing import Any, List, Optional, Union
 
 import numpy as np
-from numpy.lib.arraysetops import isin
 
 
 # now just for the 2x2 mat or 1x2 vec
@@ -153,6 +152,37 @@ class Matrix():
 
         return res
 
+    @property
+    def x(self) -> float:
+        '''extern interface for the 2d vector's x pos
+
+        Returns
+        -------
+        float
+            x pos of the vector
+        '''
+        return self._val[0, 0]
+
+    @x.setter
+    def x(self, val: float):
+        self._val[0, 0] = val
+    
+
+    @property
+    def y(self) -> float:
+        '''extern interface for the 2d vector's y pos
+
+        Returns
+        -------
+        float
+            y pos of the vector
+        '''
+        return self._val[1, 0]
+
+    @y.setter
+    def y(self, val: float):
+        self._val[1, 0] = val
+
     def row1(self) -> Any:
         assert self._val.shape == (2, 2)
         return Matrix(self._val[0], 'vec')
@@ -182,7 +212,7 @@ class Matrix():
 
     def skew_symmetric_mat(self, vec: Any) -> Any:
         assert self._val.shape == (2, 2)
-        return Matrix([0, -vec._val[1], vec._val[0], 0])
+        return Matrix([0, -vec._val[1, 0], vec._val[0, 0], 0])
 
     def identity_mat(self) -> Any:
         assert self._val.shape == (2, 2)
@@ -248,7 +278,7 @@ class Matrix():
 
     def perpendicular(self) -> Any:
         assert self._val.shape == (2, 1)
-        return Matrix([-self._val[1], self._val[0]], self._data_type)
+        return Matrix([-self._val[1, 0], self._val[0, 0]], self._data_type)
 
     @staticmethod
     def dot_product(veca: Any, vecb: Any) -> float:
