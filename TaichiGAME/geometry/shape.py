@@ -45,7 +45,7 @@ class ShapePrimitive():
         self._rotation: float = 0.0
 
     def translate(self, src: Matrix) -> Matrix:
-        assert src._val.shape == (2, 1)
+        assert src.shape == (2, 1)
         return Matrix.rotate_mat(self._rotation) * src + self._transform
 
 
@@ -141,6 +141,10 @@ class Rectangle(Polygon):
         self._height: float = height
         self.calc_vertices()
 
+    @property
+    def vertices(self) -> List[Matrix]:
+        return self._vertices
+
     def set_value(self, width: float, height: float):
         self._width: float = width
         self._height: float = height
@@ -156,9 +160,9 @@ class Rectangle(Polygon):
         return -ref * 0.5 < val < ref * 0.5
 
     def contains(self, point: Matrix) -> bool:
-        return self.contain_helper(point._val[0, 0],
+        return self.contain_helper(point.x,
                                    self._width) and self.contain_helper(
-                                       point._val[1, 0], self._height)
+                                       point.y, self._height)
 
     def calc_vertices(self):
         self._vertices: List[Matrix] = []
@@ -526,8 +530,8 @@ class Sector(Shape):
         self._radius *= factor
 
     def contains(self, point: Matrix) -> bool:
-        if np.isclose(point._val[0], 0):
-            return 0 <= point._val[1] <= self._radius
+        if np.isclose(point.x, 0):
+            return 0 <= point.y <= self._radius
         else:
             theta: float = point.theta()
             return theta >= self._start and theta <= self._start + self._span and point.len_square(
