@@ -60,14 +60,14 @@ class TestMatrix():
         if oper == 'eq' or oper == 'ne':
             assert eq_val == eq_flag
         else:
-            dut_data = mat._val.reshape(mat._val.size, 1)
+            dut_data = mat.reshape(mat.size, 1)
             for dut, ref in zip(dut_data, ref_data):
                 assert np.isclose(dut, ref)
 
     def value_helper(self, data: Matrix, row: int = -1, col: int = -1):
         if row != -1 and col == -1:
-            assert np.isclose(data._val[0], TestMatrix.mat1_arr[row * 2])
-            assert np.isclose(data._val[1], TestMatrix.mat1_arr[row * 2 + 1])
+            assert np.isclose(data.x, TestMatrix.mat1_arr[row * 2])
+            assert np.isclose(data.y, TestMatrix.mat1_arr[row * 2 + 1])
         else:
             assert np.isclose(data, TestMatrix.mat1_arr[row * 2 + col])
 
@@ -94,21 +94,21 @@ class TestMatrix():
             arr_len = np.sqrt(arr_len)
             ref_data: List[float] = [v / arr_len for v in ref_data]
 
-        dut_data = mat._val.reshape(mat._val.size, 1)
+        dut_data = mat.reshape(mat.size, 1)
         for dut, ref in zip(dut_data, ref_data):
             assert np.isclose(dut, ref)
 
     def test_vec_init(self):
         vec: Matrix = Matrix(TestMatrix.vec1_arr, 'vec')
-        assert vec._val.shape == (2, 1)
+        assert vec.shape == (2, 1)
         for dut, ref in zip(vec._val, TestMatrix.vec1_arr):
             assert np.isclose(dut, ref)
 
     def test_mat_init(self):
         mat: Matrix = Matrix(TestMatrix.mat1_arr)
-        assert mat._val.shape == (2, 2)
+        assert mat.shape == (2, 2)
 
-        dut_data = mat._val.reshape(4, 1)
+        dut_data = mat.reshape(4, 1)
         for dut, ref in zip(dut_data, TestMatrix.mat1_arr):
             assert np.isclose(dut, ref)
 
@@ -195,16 +195,16 @@ class TestMatrix():
 
     def test_row1(self):
         mat1: Matrix = Matrix(TestMatrix.mat1_arr)
-        self.value_helper(mat1.row1(), 0)
+        self.value_helper(mat1.row1, 0)
 
     def test_row2(self):
         mat1: Matrix = Matrix(TestMatrix.mat1_arr)
-        self.value_helper(mat1.row2(), 1)
+        self.value_helper(mat1.row2, 1)
 
     def test_value(self):
         mat1: Matrix = Matrix(TestMatrix.mat1_arr)
-        for i in range(mat1._val.shape[0]):
-            for j in range(mat1._val.shape[1]):
+        for i in range(mat1.shape[0]):
+            for j in range(mat1.shape[1]):
                 self.value_helper(mat1.value(i, j), i, j)
 
     def test_determinant(self):
@@ -219,9 +219,9 @@ class TestMatrix():
 
         vec1: Matrix = Matrix(TestMatrix.vec1_arr, 'vec')
         vec1.transpose()
-        assert vec1._val.shape == (1, 2)
-        assert np.isclose(vec1._val[0, 0], TestMatrix.vec1_arr[0])
-        assert np.isclose(vec1._val[0, 1], TestMatrix.vec1_arr[1])
+        assert vec1.shape == (1, 2)
+        assert np.isclose(vec1.x, TestMatrix.vec1_arr[0])
+        assert np.isclose(vec1.y, TestMatrix.vec1_arr[1])
 
     def test_invert(self):
         mat1: Matrix = Matrix(TestMatrix.mat1_arr)

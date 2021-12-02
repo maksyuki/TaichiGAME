@@ -20,8 +20,8 @@ class TestShapePrimitive():
 class TestPoint():
     def test_init(self):
         p1: Point = Point()
-        assert np.isclose(p1._pos._val[0], 0)
-        assert np.isclose(p1._pos._val[1], 0)
+        assert np.isclose(p1.pos.x, 0)
+        assert np.isclose(p1.pos.y, 0)
 
     def test_conains(self):
         p1: Point = Point()
@@ -68,11 +68,11 @@ class TestRectangle():
 
     def test_calc_vertices(self):
         rect1: Rectangle = Rectangle(12.0, 12.0)
-        assert rect1._vertices[0] == Matrix([-6.0, 6.0], 'vec')
-        assert rect1._vertices[1] == Matrix([-6.0, -6.0], 'vec')
-        assert rect1._vertices[2] == Matrix([6.0, -6.0], 'vec')
-        assert rect1._vertices[3] == Matrix([6.0, 6.0], 'vec')
-        assert rect1._vertices[4] == Matrix([-6.0, 6.0], 'vec')
+        assert rect1.vertices[0] == Matrix([-6.0, 6.0], 'vec')
+        assert rect1.vertices[1] == Matrix([-6.0, -6.0], 'vec')
+        assert rect1.vertices[2] == Matrix([6.0, -6.0], 'vec')
+        assert rect1.vertices[3] == Matrix([6.0, 6.0], 'vec')
+        assert rect1.vertices[4] == Matrix([-6.0, 6.0], 'vec')
 
 
 class TestCricle():
