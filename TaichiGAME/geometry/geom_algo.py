@@ -1,11 +1,8 @@
 import copy
 from functools import cmp_to_key
-from os import DirEntry, fpathconf, stat
 from typing import Any, List, Tuple, Optional
 
 import numpy as np
-from numpy.core.fromnumeric import sort
-from numpy.core.function_base import geomspace
 
 from ..math.matrix import Matrix
 
@@ -118,13 +115,13 @@ class GeomAlgo2D():
         bool
             True: in range False: no in range
         '''
-        x_min = np.fmin(pa._val[0], pb._val[0])
-        x_max = np.fmax(pa._val[0], pb._val[0])
-        y_min = np.fmin(pa._val[1], pb._val[1])
-        y_max = np.fmax(pa._val[1], pb._val[1])
-        return GeomAlgo2D.judge_range(target._val[0], x_min,
+        x_min = np.fmin(pa.x, pb.x)
+        x_max = np.fmax(pa.x, pb.x)
+        y_min = np.fmin(pa.y, pb.y)
+        y_max = np.fmax(pa.y, pb.y)
+        return GeomAlgo2D.judge_range(target.x, x_min,
                                       x_max) and GeomAlgo2D.judge_range(
-                                          target._val[1], y_min, y_max)
+                                          target.y, y_min, y_max)
 
     @staticmethod
     def is_point_on_segment(pa: Matrix, pb: Matrix, target: Matrix) -> bool:
@@ -148,14 +145,60 @@ class GeomAlgo2D():
             pa, pb, target) and GeomAlgo2D.is_fuzzy_collinear(pa, pb, target)
 
     @staticmethod
-    def is_fuzzy_point_on_segment(pa: Matrix, pb: Matrix,
-                                  target: Matrix) -> bool:
-        return np.isclose(GeomAlgo2D.point_to_line_segment(pa, pb, target), 0)
-
-    @staticmethod
     def line_segment_intersection(pa: Matrix, pb: Matrix, pc: Matrix,
-                                  pd: Matrix) -> Matrix:
-        pass
+                                  pd: Matrix) -> Optional[Matrix]:
+        '''calculate intersected point between line pa-pb and line pc-pd.
+        Return if there is a actual intersected point.
+        Notices: overlapping is NOT considered as a kind of intersection
+        situation in this function
+
+        Parameters
+        ----------
+        pa : Matrix
+            point a
+        pb : Matrix
+            point b
+        pc : Matrix
+            point c
+        pd : Matrix
+            point d
+
+        Returns
+        -------
+        Optional[Matrix]
+            If exist, return intersected point, otherwise None
+        '''
+
+        ab: Matrix = pb - pa
+        cd: Matrix = pd - pc
+        ac: Matrix = pc - pa
+        ad: Matrix = pd - pa
+        bc: Matrix = pc - pb
+        d1: float = Matrix.cross_product(ab, ac)
+        d2: float = Matrix.cross_product(ab, ad)
+        d3: float = Matrix.cross_product(cd, -ac)
+        d4: float = Matrix.cross_product(cd, -bc)
+
+        # XXX: need to simplify the code by abstract calc
+        # intersection point method with nxt methods
+        def _calc_pos(ab: Matrix, ac: Matrix, cd: Matrix,
+                      pc: Matrix) -> Matrix:
+            t: float = Matrix.cross_product(ab, ac) / Matrix.cross_product(
+                cd, ab)
+            return Matrix([pc.x + t * cd.x, pc.y + t * cd.y], 'vec')
+
+        if d1 * d2 < 0 and d3 * d4 < 0:
+            return _calc_pos(ab, ac, cd, pc)
+        elif np.isclose(d1, 0) and GeomAlgo2D.is_point_on_segment(pa, pb, pc):
+            return _calc_pos(ab, ac, cd, pc)
+        elif np.isclose(d2, 0) and GeomAlgo2D.is_point_on_segment(pa, pb, pd):
+            return _calc_pos(ab, ac, cd, pc)
+        elif np.isclose(d3, 0) and GeomAlgo2D.is_point_on_segment(pc, pd, pa):
+            return _calc_pos(ab, ac, cd, pc)
+        elif np.isclose(d4, 0) and GeomAlgo2D.is_point_on_segment(pc, pd, pb):
+            return _calc_pos(ab, ac, cd, pc)
+        else:
+            return None
 
     @staticmethod
     def line_intersection(pa: Matrix, pb: Matrix, pc: Matrix,
@@ -188,9 +231,7 @@ class GeomAlgo2D():
         u: Matrix = pc - pa
         t: float = Matrix.cross_product(linea, u) / Matrix.cross_product(
             lineb, linea)
-        res: Matrix = Matrix(
-            [pc._val[0] + t * lineb._val[0], pc._val[1] + t * lineb._val[1]],
-            'vec')
+        res: Matrix = Matrix([pc.x + t * lineb.x, pc.y + t * lineb.y], 'vec')
 
         return res
 
@@ -218,10 +259,10 @@ class GeomAlgo2D():
 
         # 2 * (x2 - x1) * x + 2 * (y2 - y1) y = x2 ^ 2 + y2 ^ 2 - x1 ^ 2 - y1 ^ 2
         # 2 * (x3 - x2) * x + 2 * (y3 - y2) y = x3 ^ 2 + y3 ^ 2 - x2 ^ 2 - y2 ^ 2
-        val11: float = 2.0 * (pb._val[0] - pa._val[0])
-        val12: float = 2.0 * (pb._val[1] - pa._val[1])
-        val21: float = 2.0 * (pc._val[0] - pb._val[0])
-        val22: float = 2.0 * (pc._val[1] - pb._val[1])
+        val11: float = 2.0 * (pb.x - pa.x)
+        val12: float = 2.0 * (pb.y - pa.y)
+        val21: float = 2.0 * (pc.x - pb.x)
+        val22: float = 2.0 * (pc.y - pb.y)
         coef_mat: Matrix = Matrix([val11, val12, val21, val22])
         equal_val: Matrix = Matrix([
             pb.len_square() - pa.len_square(),
@@ -255,7 +296,7 @@ class GeomAlgo2D():
         ab_len: float = (pb - pa).len()
         bc_len: float = (pc - pb).len()
         ca_len: float = (pc - pa).len()
-        return (ab_len * pc + bc_len * pa + ca_len * pb) / (ab_len + bc_len +
+        return (pc * ab_len + pa * bc_len + pb * ca_len) / (ab_len + bc_len +
                                                             ca_len)
 
     @staticmethod
@@ -348,25 +389,26 @@ class GeomAlgo2D():
 
     @staticmethod
     def graham_scan_cmp(a: Matrix, b: Matrix) -> int:
-        first_val1: float = np.arctan2(a._val[1], a._val[0])
-        first_val2: float = np.arctan2(b._val[1], b._val[0])
+        first_val1: float = np.arctan2(a.y, a.x)
+        first_val2: float = np.arctan2(b.y, b.x)
         if not np.isclose(first_val1, first_val2):
             if first_val1 < first_val2:
                 return -1
             elif first_val1 > first_val2:
                 return 1
         else:
-            second_val1: float = a._val[0]
-            second_val2: float = b._val[0]
+            second_val1: float = a.x
+            second_val2: float = b.x
             if not np.isclose(second_val1, second_val2):
                 if second_val1 < second_val2:
                     return -1
                 elif second_val1 > second_val2:
                     return 1
+        return 0
 
     @staticmethod
     def graham_scan(vertices: List[Matrix]) -> List[Matrix]:
-        '''Convex hull algorithm: Graham Scan. Given a series of points,
+        '''convex hull algorithm: Graham Scan. Given a series of points,
         find the convex polygon that can contains all of these points.
 
         Parameters
@@ -380,7 +422,7 @@ class GeomAlgo2D():
             convex polygon's point
         '''
         sort_vert: List[Matrix] = copy.deepcopy(vertices)
-        sort_vert.sort(vertices, key=cmp_to_key(GeomAlgo2D.graham_scan_cmp))
+        sort_vert.sort(key=cmp_to_key(GeomAlgo2D.graham_scan_cmp))
 
         stack: List[int] = []
         check_idx: int = 2
@@ -433,17 +475,21 @@ class GeomAlgo2D():
             return None
 
         if GeomAlgo2D.is_collinear(pa, pb, pc):
-            return pc
+            if GeomAlgo2D.is_point_on_segment(pa, pb, pc):
+                return pc
+            else:
+                return pb if (pc - pa).len_square() > (pc -
+                                                       pb).len_square() else pa
 
         ac: Matrix = pc - pa
         ab_normal: Matrix = (pb - pa).normal()
-        ac_proj: Matrix = ab_normal.dot(ac) * ab_normal
+        ac_proj: Matrix = ab_normal * ab_normal.dot(ac)
         op_proj: Matrix = pa + ac_proj
 
         if GeomAlgo2D.is_fuzzy_collinear(pa, pb, op_proj):
             return op_proj
 
-        return pb if (pc - pa).len_square() > (pc - pb).len_squre() else pa
+        return pb if (pc - pa).len_square() > (pc - pb).len_square() else pa
 
     @staticmethod
     def shortest_length_point_of_ellipse(a: float, b: float,
@@ -469,21 +515,21 @@ class GeomAlgo2D():
         if np.isclose(a, 0) or np.isclose(b, 0):
             return None
 
-        if np.isclose(pc._val[0], 0):
-            return Matrix([0.0, b], 'vec') if pc._val[1] > 0 else Matrix(
-                [0.0, -b], 'vec')
+        if np.isclose(pc.x, 0):
+            return Matrix([0.0, b], 'vec') if pc.y > 0 else Matrix([0.0, -b],
+                                                                   'vec')
 
-        if np.isclose(pc._val[1], 0):
-            return Matrix([a, 0.0], 'vec') if pc._val[0] > 0 else Matrix(
-                [-a, 0.0], 'vec')
+        if np.isclose(pc.y, 0):
+            return Matrix([a, 0.0], 'vec') if pc.x > 0 else Matrix([-a, 0.0],
+                                                                   'vec')
 
         x_left: float = 0.0
         x_right: float = 0.0
         t0: Matrix = Matrix([0.0, 0.0], 'vec')
         t1: Matrix = Matrix([0.0, 0.0], 'vec')
-        sgn: int = 1 if pc._val[1] > 0 else -1
+        sgn: int = 1 if pc.y > 0 else -1
 
-        if pc._val[0] < 0:
+        if pc.x < 0:
             x_left = -a
             x_right = 0.0
         else:
@@ -625,28 +671,26 @@ class GeomAlgo2D():
         res_elli: Matrix = Matrix([0.0, 0.0], 'vec')
 
         #FIXME: can write helper func
-        if np.isclose(pc._val[1], pd._val[1]):
-            if not ((pc._val[0] > 0 and pd._val[0] > 0) or
-                    (pc._val[0] < 0 and pd._val[0] < 0)):
-                res_elli.set_value([0.0, b if pc._val[1] > 0 else -b])
-                res_segm.set_value([0.0, pc._val[1]])
+        if np.isclose(pc.y, pd.y):
+            if not ((pc.x > 0 and pd.x > 0) or (pc.x < 0 and pd.x < 0)):
+                res_elli.set_value([0.0, b if pc.y > 0 else -b])
+                res_segm.set_value([0.0, pc.y])
             else:
-                tmp: float = np.fmin(np.fabs(pc._val[0]), np.fabs(pd._val[0]))
-                res_segm.set_value([tmp, pc._val[1]])
+                tmp: float = np.fmin(np.fabs(pc.x), np.fabs(pd.x))
+                res_segm.set_value([tmp, pc.y])
                 res_elli = GeomAlgo2D.shortest_length_point_of_ellipse(
                     a, b, res_segm)
-        elif np.isclose(pc._val[0], pd._val[0]):
-            if not ((pc._val[1] > 0 and pd._val[1] > 0) or
-                    (pc._val[1] < 0 and pd._val[1] < 0)):
-                res_elli.set_value([a if pc._val[0] > 0 else -a, 0.0])
-                res_segm.set_value([pc._val[0], 0.0])
+        elif np.isclose(pc.x, pd.x):
+            if not ((pc.y > 0 and pd.y > 0) or (pc.y < 0 and pd.y < 0)):
+                res_elli.set_value([a if pc.x > 0 else -a, 0.0])
+                res_segm.set_value([pc.x, 0.0])
             else:
-                tmp: float = np.fmin(np.fabs(pc._val[1]), np.fabs(pd._val[1]))
-                res_segm.set_value([pc._val[0], tmp])
+                tmp: float = np.fmin(np.fabs(pc.y), np.fabs(pd.y))
+                res_segm.set_value([pc.x, tmp])
                 res_elli = GeomAlgo2D.shortest_length_point_of_ellipse(
                     a, b, res_segm)
         else:
-            k: float = (pd._val[1] - pc._val[1]) / (pd._val[0] - pc._val[0])
+            k: float = (pd.y - pc.y) / (pd.x - pc.x)
             k2: float = k * k
             a2: float = a**2
             b2: float = b**2
@@ -714,25 +758,20 @@ class GeomAlgo2D():
             If exist, return raycast point, otherwise None
         '''
 
-        denominator: float = (pa._val[0] - dir._val[0]) * (
-            pc._val[1] - pd._val[1]) - (pa._val[1] - dir._val[1]) * (
-                pc._val[0] - pd._val[0])
+        denominator: float = (pa.x - dir.x) * (pc.y - pd.y) - (
+            pa.y - dir.y) * (pc.x - pd.x)
 
         if np.isclose(denominator, 0):
             return None
 
-        t: float = ((pa._val[0] - pc._val[0]) * (pc._val[1] - pd._val[1]) -
-                    (pa._val[1] - pc._val[1]) *
-                    (pc._val[0] - pd._val[0])) / denominator
-        u: float = ((dir._val[0] - pa._val[0]) * (pa._val[1] - pc._val[1]) -
-                    (dir._val[1] - pa._val[1]) *
-                    (pa._val[0] - pc._val[0])) / denominator
+        t: float = ((pa.x - pc.x) * (pc.y - pd.y) - (pa.y - pc.y) *
+                    (pc.x - pd.x)) / denominator
+        u: float = ((dir.x - pa.x) * (pa.y - pc.y) - (dir.y - pa.y) *
+                    (pa.x - pc.x)) / denominator
 
         if t >= 0 and 0 <= u <= 1.0:
-            return Matrix([
-                pa._val[0] + t * (dir._val[0] - pa._val[0]), pa._val[1] + t *
-                (dir._val[1] - pa._val[1])
-            ], 'vec')
+            return Matrix(
+                [pa.x + t * (dir.x - pa.x), pa.y + t * (dir.y - pa.y)], 'vec')
 
         return None
 
@@ -759,10 +798,10 @@ class GeomAlgo2D():
             If exist, return raycast point, otherwise None
         '''
 
-        x_min: float = top_left._val[0]
-        y_min: float = bot_right._val[1]
-        x_max: float = bot_right._val[0]
-        y_max: float = top_left._val[1]
+        x_min: float = top_left.x
+        y_min: float = bot_right.y
+        x_max: float = bot_right.x
+        y_max: float = top_left.y
         tx_min: float = 0.0
         ty_min: float = 0.0
         tx_max: float = 0.0
@@ -774,21 +813,21 @@ class GeomAlgo2D():
         t_enter: float = 0.0
         t_exit: float = 0.0
 
-        if np.isclose(dir._val[0], 0) and not np.isclose(dir._val[1], 0):
-            ty_min = (y_min - pa._val[1]) / dir._val[1]
-            ty_max = (y_max - pa._val[1]) / dir._val[1]
+        if np.isclose(dir.x, 0) and not np.isclose(dir.y, 0):
+            ty_min = (y_min - pa.y) / dir.y
+            ty_max = (y_max - pa.y) / dir.y
             t_enter = np.fmin(ty_min, ty_max)
             t_exit = np.fmax(ty_min, ty_max)
-        elif not np.isclose(dir._val[0], 0) and np.isclose(dir._val[1], 0):
-            tx_min = (x_min - pa._val[0]) / dir._val[0]
-            tx_max = (x_max - pa._val[0]) / dir._val[0]
+        elif not np.isclose(dir.x, 0) and np.isclose(dir.y, 0):
+            tx_min = (x_min - pa.x) / dir.x
+            tx_max = (x_max - pa.x) / dir.x
             t_enter = np.fmin(tx_min, tx_max)
             t_exit = np.fmax(tx_min, tx_max)
         else:
-            tx_min = (x_min - pa._val[0]) / dir._val[0]
-            tx_max = (x_max - pa._val[0]) / dir._val[0]
-            ty_min = (y_min - pa._val[1]) / dir._val[1]
-            ty_max = (y_max - pa._val[1]) / dir._val[1]
+            tx_min = (x_min - pa.x) / dir.x
+            tx_max = (x_max - pa.x) / dir.x
+            ty_min = (y_min - pa.y) / dir.y
+            ty_max = (y_max - pa.y) / dir.y
             tx_enter = np.fmin(tx_min, tx_max)
             tx_exit = np.fmax(tx_min, tx_max)
             ty_enter = np.fmin(ty_min, ty_max)
@@ -824,10 +863,9 @@ class GeomAlgo2D():
             True: is in AABB False: is not
         '''
 
-        return GeomAlgo2D.judge_range(
-            pa._val[0], top_left._val[0],
-            bot_right._val[0]) and GeomAlgo2D.judge_range(
-                pa._val[1], bot_right._val[1], top_left._val[1])
+        return GeomAlgo2D.judge_range(pa.x, top_left.x,
+                                      bot_right.x) and GeomAlgo2D.judge_range(
+                                          pa.y, bot_right.y, top_left.y)
 
     @staticmethod
     def rotate(pa: Matrix, center: Matrix, radian: float) -> Matrix:
@@ -873,14 +911,14 @@ class GeomAlgo2D():
 
         res: Matrix = Matrix([0.0, 0.0], 'vec')
 
-        if np.isclose(dir._val[0], 0):
-            sgn: int = -1 if dir._val[1] < 0 else 1
+        if np.isclose(dir.x, 0):
+            sgn: int = -1 if dir.y < 0 else 1
             res.set_value([0.0, sgn * b])
-        elif np.isclose(dir._val[1], 0):
-            sgn: int = -1 if dir._val[0] < 0 else 1
+        elif np.isclose(dir.y, 0):
+            sgn: int = -1 if dir.x < 0 else 1
             res.set_value([sgn * a, 0.0])
         else:
-            k = dir._val[1] / dir._val[0]
+            k = dir.y / dir.x
             # line offset constant
             a2 = a**2
             b2 = b**2
@@ -919,16 +957,14 @@ class GeomAlgo2D():
         res: Matrix = Matrix([0.0, 0.0], 'vec')
         if width > height:
             radius: float = height / 2.0
-            offset: float = width / 2.0 - radius if dir._val[
-                0] >= 0 else radius - width / 2.0
+            offset: float = width / 2.0 - radius if dir.x >= 0 else radius - width / 2.0
             res = dir.normal() * radius
-            res._val[0] += offset
+            res.x += offset
         else:
             radius: float = width / 2.0
-            offset: float = height / 2.0 - radius if dir._val[
-                1] >= 0 else radius - height / 2.0
+            offset: float = height / 2.0 - radius if dir.y >= 0 else radius - height / 2.0
             res = dir.normal() * radius
-            res._val[1] += offset
+            res.y += offset
 
         return res
 
