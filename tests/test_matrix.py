@@ -220,8 +220,8 @@ class TestMatrix():
         vec1: Matrix = Matrix(TestMatrix.vec1_arr, 'vec')
         vec1.transpose()
         assert vec1._val.shape == (1, 2)
-        assert np.isclose(vec1._val[0, 0], TestMatrix.vec1_arr[0])
-        assert np.isclose(vec1._val[0, 1], TestMatrix.vec1_arr[1])
+        assert np.isclose(vec1.x, TestMatrix.vec1_arr[0])
+        assert np.isclose(vec1.y, TestMatrix.vec1_arr[1])
 
     def test_invert(self):
         mat1: Matrix = Matrix(TestMatrix.mat1_arr)

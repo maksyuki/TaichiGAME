@@ -177,7 +177,10 @@ class Matrix():
         float
             y pos of the vector
         '''
-        return self._val[1, 0]
+        if self._val.shape == (2, 1):
+            return self._val[1, 0]
+        elif self._val.shape == (1, 2):
+            return self._val[0, 1]
 
     @y.setter
     def y(self, val: float):
