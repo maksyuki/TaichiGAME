@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -166,7 +166,6 @@ class Matrix():
     @x.setter
     def x(self, val: float):
         self._val[0, 0] = val
-    
 
     @property
     def y(self) -> float:
@@ -186,13 +185,26 @@ class Matrix():
     def y(self, val: float):
         self._val[1, 0] = val
 
+    @property
+    def shape(self) -> Tuple[int, int]:
+        return self._val.shape
+
+    @property
+    def size(self) -> int:
+        return self._val.size
+
+    @property
     def row1(self) -> Any:
         assert self._val.shape == (2, 2)
         return Matrix(self._val[0], 'vec')
 
+    @property
     def row2(self) -> Any:
         assert self._val.shape == (2, 2)
         return Matrix(self._val[1], 'vec')
+
+    def reshape(self, row: int, col: int) -> Any:
+        return self._val.reshape(row, col)
 
     def value(self, row: int = 0, col: int = 0) -> float:
         assert self._val.shape == (2, 2)
