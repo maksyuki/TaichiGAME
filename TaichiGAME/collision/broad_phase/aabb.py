@@ -8,10 +8,10 @@ from ...dynamics.body import Body
 
 
 class AABB():
-    def __init__(self):
+    def __init__(self, width: float = 0.0, height: float = 0.0):
         self._pos: Matrix = Matrix([0.0, 0.0], 'vec')
-        self._width: float = 0.0
-        self._height: float = 0.0
+        self._width: float = width
+        self._height: float = height
 
     def __eq__(self, other):
         return np.isclose(self._width, other._width) and np.isclose(
