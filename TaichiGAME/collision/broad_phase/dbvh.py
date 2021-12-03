@@ -1,19 +1,24 @@
+from typing import List, Dict, Optional, SupportsRound, TYPE_CHECKING, Tuple
+
 import numpy as np
 
 from ...math.matrix import Matrix
-from ...geometry.gemo_algo import GeomAlgo2D
+from ...geometry.geom_algo import GeomAlgo2D
+from ...dynamics.body import Body
+from ..broad_phase.aabb import AABB
 
 
 class DBVH():
-    def __init__(self):
-        self._root = None
-        self._profile = 0
-        self._leaf_factor = 0.5
-        self._leaves = {}
-
+    '''Dynamic Bounding Volume Hierarchy
+    This is implemented by traditional binary search tree
+    '''
     class Node():
-        def __init__(self):
-            pass
+        def __init__(self, body: Body = None, aabb: AABB = None):
+            self._parent = None
+            self._left = None
+            self._right = None
+            self._body: Optional[Body] = body
+            self._aabb: AABB = aabb
 
         def separate(self, node):
             if node == None:
@@ -25,11 +30,11 @@ class DBVH():
             if node == self._left:
                 self._left = None
                 node._parent = None
-                aabb = self._right._aabb
+                self._aabb = self._right._aabb
             elif node == self._right:
                 self._right = None
                 node._parent = None
-                aabb = self._left._aabb
+                self._aabb = self._left._aabb
 
         def swap(self, src, target):
             if src == self._left:
@@ -42,102 +47,131 @@ class DBVH():
                 target._parent = self
                 self._right = target
 
-        def is_leaf(self):
+        def is_leaf(self) -> bool:
             return self._left == None and self._right == None
 
-        def is_branch(self):
+        def is_branch(self) -> bool:
             return self._left != None and self._right != None and self._parent != None
 
-        def is_root(self):
+        def is_root(self) -> bool:
             return self._parent == None
 
-        def clear(self):
+        def clear(self) -> bool:
             self._body = None
             self._aabb.clear()
 
-    def find(self, body):
+    def __init__(self):
+        self._root: Optional[DBVH.Node] = None
+        self._profile: float = 0.0
+        self._leaf_factor: float = 0.5
+        self._leaves: Dict[Body, DBVH.Node] = {}
+
+    def find(self, body: Body) -> bool:
         for b in self._leaves.keys():
             if b == body:
                 return True
         return False
 
-    def insert(self, body):
+    def insert(self, body: Body):
         if not self.find(body):
             return
 
-        aabb = AABB.from_body(body)
+        aabb: AABB = AABB.from_body(body)
         aabb.expand(self._leaf_factor)
 
         if self._root == None:
-            self._root = Node(body, aabb)
+            self._root = DBVH.Node(body, aabb)
             self._leaves[body] = self._root
+            return
 
         if self._root.is_leaf() and self._root.is_root():
             self._merge(self._root, aabb, body)
             self._update(self._root)
             return
 
-        target = self._get_cost(None, aabb)
+        target = self._get_cost(None, aabb)  #FIXME: is right func?
         self._merge(target, aabb, body)
         self._balance(self._root)
         self._update(target)
         for val in self._leaves.values():
             self._update(val)
 
-    def update(self, body):
+    def update(self, body: Body):
         assert body != None
+
         if not self.find(body):
             return
 
-        thin = AABB.from_body(body)
+        thin: AABB = AABB.from_body(body)
         thin.expand(0.1)
         if not thin.is_subset(self._leaves[body]._aabb):
             node = self.extract(body)
             self._insert(node)
 
-    def extract(self, body):
-        pass
+    def extract(self, body: Body):
+        if not self.find(body):
+            return None
 
-    def erase(self, body):
-        target = self.extract(body)
+        source: DBVH.Node = self._leaves[body]
+        parent: DBVH.Node = source._parent
+        parent.separate(source)
+
+        if source.is_root() and source.is_leaf() and len(self._leaves) < 2:
+            self._root = None
+            return source
+
+        child: DBVH.Node = self._moveup(parent)
+        self._balance(child._parent)
+        self._update(child._parent)
+        return source
+
+    def erase(self, body: Body):
+        target: Optional[DBVH.Node] = self.extract(body)
         if target == None:
             return
 
         target._body = None
         target._aabb.clear()
+        # FIXME:
+        # del target
         del self._leaves[body]
 
-    def clean_up(self, node):
+    def clean_up(self, node: Optional[Node]):
         if node == None:
             return
 
         self.clean_up(node._left)
         self.clean_up(node._right)
 
+        # FIXME:
+        # del node
         node = None
 
-    def root(self):
+    def root(self) -> Optional[Node]:
         return self._root
 
-    def raycast(self, start_point, dir):
-        res = []
-        self._raycast(res, self._root, start_point, dir)
+    def raycast(self, start: Matrix, dir: Matrix) -> List[Body]:
+        res: List[Body] = []
+        self._raycast(res, self._root, start, dir)
         return res
 
-    def generate(self):
-        self._profile = 0
-        res = [Body(), Body()]
+    def generate(self) -> List[Tuple[Body, Body]]:
+        self._profile = 0.0
+        res: List[Tuple[Body, Body]] = []
         self._generate(self._root, res)
         return res
 
-    def leaves(self):
+    def leaves(self) -> Dict[Body, Node]:
         return self._leaves
 
-    def query(self, src, nodes, skip_body=None):
-        return DBVH.query_nodes(self._root, src, nodes, skip_body)
+    def query(self, src: AABB, nodes: List[Node], skip_body: Body = None):
+        DBVH.query_nodes(self._root, src, nodes, skip_body)
 
     @staticmethod
-    def query_nodes(node, aabb, nodes, skip_body=None):
+    def query_nodes(node: Node,
+                    aabb: AABB,
+                    nodes: List[Node],
+                    skip_body: Body = None):
         if node == None or not aabb.collide(node._aabb):
             return
 
@@ -152,16 +186,17 @@ class DBVH():
         if node.is_leaf():
             nodes.append(node)
 
-    def _raycast(self, res, node, start_point, dir):
+    def _raycast(self, res: List[Body], node: Optional[Node], start: Matrix,
+                 dir: Matrix):
         if node == None:
             return
 
-        if node._aabb.raycast(start_point, dir):
+        if node._aabb.raycast(start, dir):
             if node.is_leaf():
                 res.append(node._body)
             else:
-                self._raycast(res, node._left, start_point, dir)
-                self._raycast(res, node._right, start_point, dir)
+                self._raycast(res, node._left, start, dir)
+                self._raycast(res, node._right, start, dir)
 
     def _get_cost(self, target, aabb):
         low_cost_node = None
@@ -182,11 +217,14 @@ class DBVH():
 
         return low_cost_node
 
-    def _insert(self, node):
+    def _moveup(self, branch):
+        pass
+
+    def _insert(self, node: Optional[Node]):
         if node == None:
             return
 
-        aabb = AABB.from_body(node._body)
+        aabb: AABB = AABB.from_body(node._body)
         aabb.expand(self._leaf_factor)
         node._aabb = aabb
 
@@ -200,7 +238,7 @@ class DBVH():
             return
 
         if self._root.is_root():
-            target = self._get_cost(node, aabb)
+            target: Optional[DBVH.Node] = self._get_cost(node, aabb)
             self._merge(target, node)
             self._balance(self._root)
 
@@ -209,9 +247,9 @@ class DBVH():
                     continue
                 self._update(val)
 
-    def _delta_cost(self, node, aabb):
+    def _delta_cost(self, node: Optional[Node], aabb: AABB) -> float:
         if node == None:
-            return 0
+            return 0.0
 
         if node.is_leaf():
             return AABB.unite(node._aabb, aabb).surface_area()
@@ -219,20 +257,23 @@ class DBVH():
         return AABB.unite(node._aabb,
                           aabb).surface_area() - node._aabb.surface_area()
 
-    def _total_cost(self, node, aabb):  # FIXME: need to return the cost
+    def _total_cost(self, node: Optional[Node],
+                    aabb: AABB) -> float:  # FIXME: need to return the cost
         if node == None:
             return None
 
-        cost = 0.0
-        tmp = self._delta_cost(node, aabb)
+        cost: float = 0.0
+        tmp: float = self._delta_cost(node, aabb)
         cost += tmp
         return cost + self._total_cost(node._parent, aabb)
 
-    def _merge(self, node, aabb, body):
+    #FIXME: tow params version is not impl
+    def _merge(self, node: Optional[Node], aabb: AABB, body: Body) -> Node:
         assert node != None
 
-        new_node = Node(body, aabb)
-        copy = Node(node._body, node._aabb)
+        new_node: DBVH.Node = DBVH.Node(body, aabb)
+        copy: DBVH.Node = DBVH.Node(node._body, node._aabb)
+
         self._leaves[new_node._body] = new_node
         if node.is_leaf():
             self._leaves[node._body] = copy
@@ -244,9 +285,9 @@ class DBVH():
         copy._parent = node
         new_node._parent = node
 
-        return node
+        return new_node
 
-    def _update(self, parent):
+    def _update(self, parent: Optional[Node]):
         if parent == None:
             return
 
@@ -317,28 +358,31 @@ class DBVH():
         parent._right = left
         left._parent = parent
 
-    def _balance(self, node):
+    def _balance(self, node: Optional[Node]):
         if node == None:
             return
 
-        left_height = self._height(node._left)
-        right_height = self._height(node._right)
+        left_height: int = self._height(node._left)
+        right_height: int = self._height(node._right)
         if np.fabs(left_height - right_height) <= 1:
             return
 
+        # left unbalance
         if left_height > right_height:
-            ll_height = self._height(node._left._left)
-            lr_height = self._height(node._left._right)
+            ll_height: int = self._height(node._left._left)
+            lr_height: int = self._height(node._left._right)
 
             if ll_height < lr_height:
                 self._RR(node._left._right)
             else:
-                self._LL(node._left._right)
+                self._LL(node._left._left)
 
             self._LL(node._left)
+
+        # right unbalance
         else:
-            rr_height = self._height(node._right._right)
-            rl_height = self._height(node._right._left)
+            rr_height: int = self._height(node._right._right)
+            rl_height: int = self._height(node._right._left)
             if rr_height < rl_height:
                 self._LL(node._right._left)
             else:
@@ -349,10 +393,10 @@ class DBVH():
         self._balance(node._right)
         self._balance(node._parent)
 
-    #FIXME:
+    #FIXME: two overlad impl
     def _generate(self, node, pairs):
         pass
 
-    def _height(self, node):
+    def _height(self, node: Optional[Node]) -> int:
         return 0 if node == None else np.fmax(self._height(node._left),
                                               self._height(node._right)) + 1
