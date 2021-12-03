@@ -918,18 +918,19 @@ class GeomAlgo2D():
             sgn: int = -1 if dir.x < 0 else 1
             res.set_value([sgn * a, 0.0])
         else:
-            k = dir.y / dir.x
+            # y = kx
+            k: float = dir.y / dir.x
             # line offset constant
-            a2 = a**2
-            b2 = b**2
-            k2 = k**2
-            d = np.sqrt((a2 + b2 * k2) / k2)
+            a2: float = a**2
+            b2: float = b**2
+            k2: float = k**2
+            d: float = np.sqrt((a2 + b2 * k2) / k2)
             if Matrix.dot_product(Matrix([0.0, d], 'vec'), dir) < 0:
                 d = d * -1
 
-            x1 = k * d - (b2 * k2 * k * d) / (a2 + b2 * k2)
-            y1 = (b2 * k2 * d) / (a2 + b2 * k2)
-            res.set(x1, y1)
+            x1: float = k * d - (b2 * k2 * k * d) / (a2 + b2 * k2)
+            y1: float = (b2 * k2 * d) / (a2 + b2 * k2)
+            res.set_value([x1, y1])
 
         return res
 
