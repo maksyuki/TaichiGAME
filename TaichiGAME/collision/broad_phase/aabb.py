@@ -19,21 +19,33 @@ class AABB():
         return np.isclose(self._width, other._width) and np.isclose(
             self._height, other._height) and self._pos == other._pos
 
+    @property
+    def pos(self) -> Matrix:
+        return self._pos
+    
+    @pos.setter
+    def pos(self, pos: Matrix):
+        self._pos = pos
+
+    @property
     def top_left(self) -> Matrix:
         return Matrix([
             -self._width / 2.0 + self._pos.x, self._height / 2.0 + self._pos.y
         ], 'vec')
 
+    @property
     def top_right(self) -> Matrix:
         return Matrix([
             self._width / 2.0 + self._pos.x, self._height / 2.0 + self._pos.y
         ], 'vec')
 
+    @property
     def bot_left(self) -> Matrix:
         return Matrix([
             -self._width / 2.0 + self._pos.x, -self._height / 2.0 + self._pos.y
         ], 'vec')
 
+    @property
     def bot_right(self) -> Matrix:
         return Matrix([
             self._width / 2.0 + self._pos.x, -self._height / 2.0 + self._pos.y
@@ -232,10 +244,10 @@ class AABB():
         bool
             True: collide, otherwise not
         '''
-        src_top_left: Matrix = src.top_left()
-        src_bot_right: Matrix = src.bot_right()
-        target_top_left: Matrix = target.top_left()
-        target_bot_right: Matrix = target.bot_right()
+        src_top_left: Matrix = src.top_left
+        src_bot_right: Matrix = src.bot_right
+        target_top_left: Matrix = target.top_left
+        target_bot_right: Matrix = target.bot_right
 
         return not (src_bot_right.x < target_top_left.x
                     or target_bot_right.x < src_top_left.x
@@ -266,10 +278,10 @@ class AABB():
         elif target.is_empty():
             return src
 
-        src_top_left: Matrix = src.top_left()
-        src_bot_right: Matrix = src.bot_right()
-        target_top_left: Matrix = target.top_left()
-        target_bot_right: Matrix = target.bot_right()
+        src_top_left: Matrix = src.top_left
+        src_bot_right: Matrix = src.bot_right
+        target_top_left: Matrix = target.top_left
+        target_bot_right: Matrix = target.bot_right
 
         x_min: float = np.fmin(src_top_left.x, target_top_left.x)
         x_max: float = np.fmax(src_bot_right.x, target_bot_right.x)
@@ -300,10 +312,10 @@ class AABB():
         bool
             True: is subset, otherwise not
         '''
-        src_top_left: Matrix = src.top_left()
-        src_bot_right: Matrix = src.bot_right()
-        target_top_left: Matrix = target.top_left()
-        target_bot_right: Matrix = target.bot_right()
+        src_top_left: Matrix = src.top_left
+        src_bot_right: Matrix = src.bot_right
+        target_top_left: Matrix = target.top_left
+        target_bot_right: Matrix = target.bot_right
 
         return src_bot_right.x >= target_bot_right.x and target_top_left.x >= src_top_left.x and src_top_left.y >= target_top_left.y and target_bot_right.y >= src_bot_right.y
 
@@ -314,13 +326,13 @@ class AABB():
 
     @staticmethod
     def _raycast(aabb, start: Matrix, dir: Matrix) -> bool:
-        res = GeomAlgo2D.raycastAABB(start, dir, aabb.top_left(),
-                                     aabb.bot_right())
+        res = GeomAlgo2D.raycastAABB(start, dir, aabb.top_left,
+                                     aabb.bot_right)
         if res == None:
             return False
 
         p1, p2 = res[0], res[1]
         return GeomAlgo2D.is_point_on_AABB(
-            p1, aabb.top_left(),
-            aabb.bot_right()) and GeomAlgo2D.is_point_on_AABB(
-                p2, aabb.top_left(), aabb.bot_right())
+            p1, aabb.top_left,
+            aabb.bot_right) and GeomAlgo2D.is_point_on_AABB(
+                p2, aabb.top_left, aabb.bot_right)
