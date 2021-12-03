@@ -19,15 +19,15 @@ class Detector():
         shapeb = ShapePrimitive()
 
         shapea._shape = bodya.shape()
-        shapea._rotation = bodya.rotation()
-        shapea._transform = bodya.position()
+        shapea._rot = bodya.rotation()
+        shapea._xform = bodya.position()
 
         shapeb._shape = bodyb.shape()
-        shapeb._rotation = bodyb.rotation()
-        shapeb._transform = bodyb.position()
+        shapeb._rot = bodyb.rotation()
+        shapeb._xform = bodyb.position()
 
         (is_colliding, simplex) = GJK.gjk(shapea, shapeb)
-        if shapea._transform == shapeb._transform and not is_colliding:
+        if shapea._xform == shapeb._xform and not is_colliding:
             is_colliding = simplex.contain_origin(True)
 
         return is_colliding
@@ -54,15 +54,15 @@ class Detector():
         shapeb = ShapePrimitive()
 
         shapea._shape = bodya.shape()
-        shapea._rotation = bodya.rotation()
-        shapea._transform = bodya.position()
+        shapea._rot = bodya.rotation()
+        shapea._xform = bodya.position()
 
         shapeb._shape = bodyb.shape()
-        shapeb._rotation = bodyb.rotation()
-        shapeb._transform = bodyb.position()
+        shapeb._rot = bodyb.rotation()
+        shapeb._xform = bodyb.position()
 
         (is_colliding, simplex) = GJK.gjk(shapea, shapeb)
-        if shapea._transform == shapeb._transform and not is_colliding:
+        if shapea._xform == shapeb._xform and not is_colliding:
             is_colliding = simplex.contain_origin(True)
 
         result._is_colliding = is_colliding
@@ -109,10 +109,10 @@ class Detector():
         shapeb = ShapePrimitive()
 
         shapea._shape = bodya.shape()
-        shapea._rotation = bodya.rotation()
-        shapea._transform = bodya.position()
+        shapea._rot = bodya.rotation()
+        shapea._xform = bodya.position()
 
         shapeb._shape = bodyb.shape()
-        shapeb._rotation = bodyb.rotation()
-        shapeb._transform = bodyb.position()
+        shapeb._rot = bodyb.rotation()
+        shapeb._xform = bodyb.position()
         return GJK.distance(shapea, shapeb)

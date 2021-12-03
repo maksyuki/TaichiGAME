@@ -13,12 +13,12 @@ class MPR():
     def discover(self, shape_a, shape_b):
         simplex = Simplex()
         center_a = Matrix.rotate_mat(
-            shape_a._rotation) * shape_a._shape.center()
+            shape_a._rot) * shape_a._shape.center()
         center_b = Matrix.rotate_mat(
-            shape_b._rotation) * shape_b._shape.center()
-        origin = shape_b._transform - shape_a._transform
-        v0 = Minkowski(center_a + shape_a._transform,
-                       center_b + shape_b._transform)
+            shape_b._rot) * shape_b._shape.center()
+        origin = shape_b._xform - shape_a._xform
+        v0 = Minkowski(center_a + shape_a._xform,
+                       center_b + shape_b._xform)
         direction = center_b - center_a + origin
 
         if np.isclose(direction.val[0], 0) and np.isclose(direction.val[1], 0):

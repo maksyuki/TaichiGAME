@@ -2,7 +2,7 @@ class RotationJointPrimitive():
     def __init__(self):
         self._bodya = Body()
         self._bodyb = Body()
-        self._reference_rotation = 0.0
+        self._reference_rot = 0.0
         self._effective_mass = 0.0
         self._bias = 0.0
 
@@ -11,7 +11,7 @@ class OrientationJointPrimitive():
     def __init__(self):
         self._bodya = Body()
         self._target_point = Matrix([0.0, 0.0], 'vec')
-        self._reference_rotation = 0.0
+        self._reference_rot = 0.0
         self._effective_mass = 0.0
         self._bias = 0.0
 
@@ -36,7 +36,7 @@ class RotationJoint(Joint):
         self._primitive._effective_mass = 1.0 / (ii_a + ii_b)
         c = self._primitive._bodya.rotation(
         ) - self._primitive._bodyb.rotation(
-        ) - self._primitive._reference_rotation
+        ) - self._primitive._reference_rot
         self._primitive._bias = -self._factor * inv_dt * c
 
     def solve_velocity(self, dt):
@@ -72,17 +72,17 @@ class OrientationJoint(Joint):
 
         bodya = self._primitive._bodya
         point = self._primitive._target_point - bodya.position()
-        target_rotation = point.theta()
+        target_rot = point.theta()
 
         ii_a = self._primitive._bodya.inverse_inertia()
         inv_dt = 1.0 / dt
         self._primitive._effective_mass = 1.0 / ii_a
-        c = target_rotation - self._primitive._bodya.rotation(
-        ) - self._primitive._reference_rotation
+        c = target_rot - self._primitive._bodya.rotation(
+        ) - self._primitive._reference_rot
 
         if np.isclose(c, 2.0 * np.pi) or np.isclose(c, -2.0 * np.pi):
             c = 0
-            bodya.rotation() = target_rotation
+            bodya.rotation() = target_rot
 
         self._primitive._bias = self._factor * inv_dt * c
 

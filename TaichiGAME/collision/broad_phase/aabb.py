@@ -1,3 +1,5 @@
+from typing import List, Dict, Optional, Tuple
+
 import numpy as np
 
 from ...common.config import Config
@@ -119,7 +121,7 @@ class AABB():
             x_min: float = Config.Max
             y_min: float = Config.Max
             for v in polygon.vertices():
-                vertex: Matrix = Matrix.rotate_mat(shape._rotation) * v
+                vertex: Matrix = Matrix.rotate_mat(shape._rot) * v
 
                 if x_max < vertex.x:
                     x_max = vertex.x
@@ -145,10 +147,10 @@ class AABB():
             bot_dir: Matrix = Matrix([0.0, -1.0], 'vec')
             right_dir: Matrix = Matrix([1.0, 0.0], 'vec')
 
-            top_dir = Matrix.rotate_mat(-shape._rotation).multiply(top_dir)
-            left_dir = Matrix.rotate_mat(-shape._rotation).multiply(left_dir)
-            bot_dir = Matrix.rotate_mat(-shape._rotation).multiply(bot_dir)
-            right_dir = Matrix.rotate_mat(-shape._rotation).multiply(right_dir)
+            top_dir = Matrix.rotate_mat(-shape._rot) * top_dir
+            left_dir = Matrix.rotate_mat(-shape._rot) * left_dir
+            bot_dir = Matrix.rotate_mat(-shape._rot) * bot_dir
+            right_dir = Matrix.rotate_mat(-shape._rot) * right_dir
 
             top: Matrix = GeomAlgo2D.calc_ellipse_project_on_point(
                 ellipse.A(), ellipse.B(), top_dir)
@@ -159,10 +161,10 @@ class AABB():
             right: Matrix = GeomAlgo2D.calc_ellipse_project_on_point(
                 ellipse.A(), ellipse.B(), right_dir)
 
-            top = Matrix.rotate_mat(shape._rotation).multiply(top)
-            left = Matrix.rotate_mat(shape._rotation).multiply(left)
-            bot = Matrix.rotate_mat(shape._rotation).multiply(bot)
-            right = Matrix.rotate_mat(shape._rotation).multiply(right)
+            top = Matrix.rotate_mat(shape._rot) * top
+            left = Matrix.rotate_mat(shape._rot) * left
+            bot = Matrix.rotate_mat(shape._rot) * bot
+            right = Matrix.rotate_mat(shape._rot) * right
 
             res._height = np.fabs(top.y - bot.y)
             res._width = np.fabs(right.x - left.x)
@@ -173,7 +175,7 @@ class AABB():
             res._height = cir.radius * 2.0
 
         elif shape_type == Shape.Type.Edge:
-            edg: Edge = Shape._shape
+            edg: Edge = shape._shape
             res._width = np.fabs(edg.start.x - edg.end.x)
             res._height = np.fabs(edg.start.y - edg.end.y)
             res._pos.set_value(
@@ -191,7 +193,7 @@ class AABB():
         elif shape_type == Shape.Type.Sector:
             pass
 
-        res._pos += shape._transform
+        res._pos += shape._xform
         res.expand(factor)
         return res
 
@@ -202,8 +204,8 @@ class AABB():
 
         primitive: ShapePrimitive = ShapePrimitive()
         primitive._shape = body.shape()
-        primitive._rotation = body.rotation()
-        primitive._transform = body.transform()
+        primitive._rot = body.rotation()
+        primitive._xform = body.transform()
         return AABB.from_shape(primitive, factor)  #FIXME: the type is right?
 
     @staticmethod
