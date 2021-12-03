@@ -6,7 +6,7 @@ import numpy as np
 from ..common.config import Config
 from ..math.matrix import Matrix
 from ..geometry.shape import Capsule, Ellipse, Polygon, Sector, Shape, ShapePrimitive, Circle
-from ..collision.broad_phase.aabb import AABB
+
 
 class Body():
     @unique
@@ -35,7 +35,7 @@ class Body():
         self._inv_mass: float = 0.0
         self._inertia: float = 0.0
         self._inv_inertia: float = 0.0
-        
+
         self._phy_attr = Body.PhysicsAttribute()
         self._forces: Matrix = Matrix([0.0, 0.0], 'vec')
         self._torques: float = 0.0
@@ -51,25 +51,49 @@ class Body():
     def pos(self) -> Matrix:
         return self._phy_attr._pos
 
+    @pos.setter
+    def pos(self, pos: Matrix):
+        self._phy_attr._pos = pos
+
     @property
     def vel(self) -> Matrix:
         return self._phy_attr._vel
+
+    @vel.setter
+    def vel(self, vel: Matrix):
+        self._phy_attr._vel = vel
 
     @property
     def rot(self) -> float:
         return self._phy_attr._rot
 
+    @rot.setter
+    def rot(self, rot: float):
+        self._phy_attr._rot = rot
+
     @property
     def ang_vel(self) -> float:
         return self._phy_attr._ang_vel
+
+    @ang_vel.setter
+    def ang_vel(self, ang_vel: float):
+        self._phy_attr._ang_vel = ang_vel
 
     @property
     def forces(self) -> Matrix:
         return self._forces
 
+    @forces.setter
+    def forces(self, forces: Matrix):
+        self._forces = forces
+
     @property
     def torques(self) -> float:
         return self._torques
+
+    @torques.setter
+    def torques(self, tor: float):
+        self._torques = tor
 
     def clear_torque(self):
         self._torques = 0.0
@@ -96,9 +120,9 @@ class Body():
         return self._mass
 
     @mass.setter
-    def set_mass(self, mass: float):
+    def mass(self, mass: float):
         self._mass = mass
-        
+
         if np.isclose(mass, Config.Max):
             self._inv_mass = 0.0
         else:
@@ -110,13 +134,14 @@ class Body():
     def inertia(self) -> float:
         return self._inertia
 
-
-    def aabb(self, factor: float=1.0) -> AABB:
-        primitive: ShapePrimitive = ShapePrimitive()
-        primitive._xform = self._phy_attr._pos
-        primitive._rot = self._phy_attr._rot
-        primitive._shape = self._shape
-        return AABB.from_shape(primitive, factor)
+    #FIXME: if import AABB, will trigger loop import err
+    # USE AABB.from_body static method
+    # def aabb(self, factor: float = 1.0) -> AABB:
+    #     primitive: ShapePrimitive = ShapePrimitive()
+    #     primitive._xform = self._phy_attr._pos
+    #     primitive._rot = self._phy_attr._rot
+    #     primitive._shape = self._shape
+    #     return AABB.from_shape(primitive, factor)
 
     @property
     def fric(self) -> float:
@@ -159,10 +184,12 @@ class Body():
         self._phy_attr._ang_vel += self._inv_inertia * r.cross(impulse)
 
     def to_local_point(self, point: Matrix) -> Matrix:
-        return Matrix.rotate_mat(-self._phy_attr._rot) * (point - self._phy_attr._pos)
+        return Matrix.rotate_mat(-self._phy_attr._rot) * (point -
+                                                          self._phy_attr._pos)
 
     def to_world_point(self, point: Matrix) -> Matrix:
-        return Matrix.rotate_mat(self._phy_attr._rot) * point + self._phy_attr._pos
+        return Matrix.rotate_mat(
+            self._phy_attr._rot) * point + self._phy_attr._pos
 
     def to_actual_point(self, point: Matrix) -> Matrix:
         return Matrix.rotate_mat(self._phy_attr._rot) * point
@@ -190,7 +217,6 @@ class Body():
     @restit.setter
     def restit(self, restit: float):
         self._restit = restit
-
 
     def calc_inertia(self):
         shape_type = self._shape.type()
@@ -250,7 +276,9 @@ class Body():
 
         elif shape_type == Shape.Type.Sector:
             sector: Sector = self._shape
-            self._inertia = self._mass * (sector.span - np.sin(sector.span)) * sector.radius * sector.radius / 4.0 * sector.span
+            self._inertia = self._mass * (
+                sector.span - np.sin(sector.span)
+            ) * sector.radius * sector.radius / 4.0 * sector.span
 
         if np.isclose(self._mass, Config.Max):
             self._inv_inertia = 0.0
