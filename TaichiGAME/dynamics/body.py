@@ -1,230 +1,258 @@
+from enum import IntEnum, unique
+from typing import List, Dict, Optional, Tuple
+
+import numpy as np
+
+from ..common.config import Config
+from ..math.matrix import Matrix
+from ..geometry.shape import Capsule, Ellipse, Polygon, Sector, Shape, ShapePrimitive, Circle
+from ..collision.broad_phase.aabb import AABB
+
 class Body():
-    class BodyType():
-        Kinematic = 0
-        Static = 1
-        Dynamic = 2
-        Bullet = 3
+    @unique
+    class Type(IntEnum):
+        Kinematic: int = 0
+        Static: int = 1
+        Dynamic: int = 2
+        Bullet: int = 3
 
     class PhysicsAttribute():
         def __init__(self):
-            self._position = Matrix([0.0, 0.0], 'vec')
-            self._velocity = Matrix([0.0, 0.0], 'vec')
-            self._rotation = 0.0
-            self._angular_velocity = 0.0
+            self._pos: Matrix = Matrix([0.0, 0.0], 'vec')
+            self._vel: Matrix = Matrix([0.0, 0.0], 'vec')
+            self._rot: float = 0.0
+            self._ang_vel: float = 0.0
 
-        def step(dt):
-            self._position += self._velocity * dt
-            self._rotation += self._angular_velocity * dt
+        def step(self, dt: float):
+            self._pos += self._vel * dt
+            self._rot += self._ang_vel * dt
 
     def __init__(self):
-        self._id = 0
-        self._bitmask = 1
-        self._mass = 0.0
-        self._inv_mass = 0.0
-        self._inertia = 0.0
-        self._inv_inertia = 0.0
-        self._position = Matrix([0.0, 0.0], 'vec')
-        self._velocity = Matrix([0.0, 0.0], 'vec')
-        self._rotation = 0.0
-        self._angular_velocity = 0.0
-        self._forces = 0.0
-        self._torques = 0.0
+        self._id: int = 0
+        self._bitmask: int = 1
 
-        self._shape = Shape()
-        self._type = Body.BodyType.Static
+        self._mass: float = 0.0
+        self._inv_mass: float = 0.0
+        self._inertia: float = 0.0
+        self._inv_inertia: float = 0.0
+        
+        self._phy_attr = Body.PhysicsAttribute()
+        self._forces: Matrix = Matrix([0.0, 0.0], 'vec')
+        self._torques: float = 0.0
 
-        self._sleep = False
-        self._friction = 0.2
-        self._restitution = 0.0
+        self._shape: Shape = Shape()
+        self._type = Body.Type.Static
 
-    def position(self):
-        return self._position
+        self._sleep: bool = False
+        self._fric: float = 0.2
+        self._restit: float = 0.0
 
-    def velocity(self):
-        return self._velocity
+    @property
+    def pos(self) -> Matrix:
+        return self._phy_attr._pos
 
-    def rotation(self):
-        return self._rotation
+    @property
+    def vel(self) -> Matrix:
+        return self._phy_attr._vel
 
-    def angular_velocity(self):
-        return self._angular_velocity
+    @property
+    def rot(self) -> float:
+        return self._phy_attr._rot
 
-    def forces(self):
+    @property
+    def ang_vel(self) -> float:
+        return self._phy_attr._ang_vel
+
+    @property
+    def forces(self) -> Matrix:
         return self._forces
+
+    @property
+    def torques(self) -> float:
+        return self._torques
 
     def clear_torque(self):
         self._torques = 0.0
 
-    def torques(self):
-        return self._torques
-
-    def shape(self):
+    @property
+    def shape(self) -> Shape:
         return self._shape
 
-    def set_shape(self, shape):
+    @shape.setter
+    def shape(self, shape: Shape):
         self._shape = shape
         self.calc_inertia()
 
+    @property
     def type(self):
         return self._type
 
-    def set_type(self, type):
+    @type.setter
+    def type(self, type):
         self._type = type
 
-    def mass(self):
+    @property
+    def mass(self) -> float:
         return self._mass
 
-    def set_mass(self, mass):
+    @mass.setter
+    def set_mass(self, mass: float):
         self._mass = mass
-        #FIXME: need to set the right max limit value
-        if mass == 222222:
+        
+        if np.isclose(mass, Config.Max):
             self._inv_mass = 0.0
         else:
             self._inv_mass = 0.0 if np.isclose(mass, 0) else 1.0 / mass
 
         self.calc_inertia()
 
-    def inertia(self):
+    @property
+    def inertia(self) -> float:
         return self._inertia
 
-    def aabb(self, factor=1.0):
-        primitive = ShapePrimitive()
-        primitive._transform = self._position
-        primitive._rotation = self._rotation
+
+    def aabb(self, factor: float=1.0) -> AABB:
+        primitive: ShapePrimitive = ShapePrimitive()
+        primitive._xform = self._phy_attr._pos
+        primitive._rot = self._phy_attr._rot
         primitive._shape = self._shape
         return AABB.from_shape(primitive, factor)
 
-    def friction(self):
-        return self._friction
+    @property
+    def fric(self) -> float:
+        return self._fric
 
-    def set_friction(self, friction):
-        self._friction = friction
+    @fric.setter
+    def fric(self, fric: float):
+        self._fric = fric
 
-    def sleep(self):
+    @property
+    def sleep(self) -> bool:
         return self._sleep
 
-    def set_sleep(self, sleep):
+    @sleep.setter
+    def sleep(self, sleep: bool):
         self._sleep = sleep
 
-    def inverse_mass(self):
+    @property
+    def inv_mass(self) -> float:
         return self._inv_mass
 
-    def inverse_inertia(self):
+    @property
+    def inv_inertia(self) -> float:
         return self._inv_inertia
 
-    def physic_attribute(self):
-        return PhysicsAttribute(self._position, self._velocity,
-                                self._angular_velocity)
+    @property
+    def phy_attr(self) -> PhysicsAttribute:
+        return self._phy_attr
 
-    def set_physics_attribute(self, info):
-        self._position = info._position
-        self._rotation = info._rotation
-        self._velocity = info._velocity
-        self._angular_velocity = info._angular_velocity
+    @phy_attr.setter
+    def phy_attr(self, info: PhysicsAttribute):
+        self._phy_attr = info
 
-    def step_position(self, dt):
-        self._position += self._velocity * dt
-        self._rotation += self._angular_velocity * dt
+    def step_position(self, dt: float):
+        self._phy_attr._pos += self._phy_attr._vel * dt
+        self._phy_attr._rot += self._phy_attr._ang_vel * dt
 
-    def apply_impulse(self, impulse, r):
-        self._velocity += self._inv_mass * impulse
-        self._angular_velocity += self._inv_inertia * r.cross(impulse)
+    def apply_impulse(self, impulse: Matrix, r: Matrix):
+        self._phy_attr._vel += self._inv_mass * impulse
+        self._phy_attr._ang_vel += self._inv_inertia * r.cross(impulse)
 
-    def to_local_point(self, point):
-        return Matrix.rotate_mat(-self._rotation) * (point - self._position)
+    def to_local_point(self, point: Matrix) -> Matrix:
+        return Matrix.rotate_mat(-self._phy_attr._rot) * (point - self._phy_attr._pos)
 
-    def to_world_point(self, point):
-        return Matrix.rotate_mat(self._rotation) * point + self._position
+    def to_world_point(self, point: Matrix) -> Matrix:
+        return Matrix.rotate_mat(self._phy_attr._rot) * point + self._phy_attr._pos
 
-    def to_actual_point(self, point):
-        return Matrix.rotate_mat(self._rotation) * point
+    def to_actual_point(self, point: Matrix) -> Matrix:
+        return Matrix.rotate_mat(self._phy_attr._rot) * point
 
-    def id(self):
+    @property
+    def id(self) -> int:
         return self._id
 
-    def set_id(self, id):
+    @id.setter
+    def id(self, id: int):
         self._id = id
 
-    def bitmask(self):
+    @property
+    def bitmask(self) -> int:
         return self._bitmask
 
-    def set_bitmask(self, bitmask):
+    @bitmask.setter
+    def bitmask(self, bitmask: int):
         self._bitmask = bitmask
 
-    def restitution(self):
-        return self._restitution
+    @property
+    def restit(self) -> float:
+        return self._restit
 
-    def set_restitution(self, restitution):
-        self._restitution = restitution
+    @restit.setter
+    def restit(self, restit: float):
+        self._restit = restit
+
 
     def calc_inertia(self):
         shape_type = self._shape.type()
 
         if shape_type == Shape.Type.Circle:
-            circle = self._shape
-            self._inertia = self._mass * circle.radius() * circle.radius(
-            ) / 2.0
-            break
-        elif shape_type == Shape.Type.Polygon:
-            polygon = self._shape
-            center = polygon.center()
+            cir: Circle = self._shape
+            self._inertia = self._mass * cir.radius * cir.radius / 2.0
 
-            sum1 = 0.0
-            sum2 = 0.0
-            for i in range(len(polygon.vertices()) - 1):
-                n1 = polygon.vertices()[i] - center
-                n2 = polygon.vertices()[i + 1] - center
-                cross = np.fabs(n1.cross(n2))
-                dot = n2.dot(n2) + n2.dot(d1) + n1.dot(n1)
+        elif shape_type == Shape.Type.Polygon:
+            polygon: Polygon = self._shape
+            center: Matrix = polygon.center()
+
+            sum1: float = 0.0
+            sum2: float = 0.0
+            for i in range(len(polygon.vertices) - 1):
+                n1: Matrix = polygon.vertices[i] - center
+                n2: Matrix = polygon.vertices[i + 1] - center
+                cross: float = np.fabs(n1.cross(n2))
+                dot: float = n2.dot(n2) + n2.dot(n1) + n1.dot(n1)
                 sum1 += cross * dot
                 sum2 += cross
 
             self._inertia = self._mass * (1.0 / 6.0) * sum1 / sum2
-            break
 
         elif shape_type == Shape.Type.Ellipse:
-            ellipse = self._shape
-            a = ellipse.A()
-            b = ellipse.B()
+            ellipse: Ellipse = self._shape
+            a: float = ellipse.A()
+            b: float = ellipse.B()
             self._inertia = self._mass * (a * a + b * b) * (1.0 / 5.0)
-            break
 
         elif shape_type == Shape.Type.Capsule:
-            capsule = self._shape
-            r = 0.0
-            h = 0.0
-            mass_s = 0.0
-            inertia_s = 0.0
-            mass_c = 0.0
-            inertia_c = 0.0
-            volume = 0.0
+            capsule: Capsule = self._shape
+            r: float = 0.0
+            h: float = 0.0
+            mass_s: float = 0.0
+            inertia_s: float = 0.0
+            mass_c: float = 0.0
+            inertia_c: float = 0.0
+            volume: float = 0.0
 
-            if capsule.width() >= capsule.height():
-                r = capsule.height() / 2.0
-                h = capsule.width() - capsule.height()
+            if capsule.width >= capsule.height:
+                r = capsule.height / 2.0
+                h = capsule.width - capsule.height
 
             else:
-                r = capsule.width() / 2.0
-                h = capsule.height() - capsule.width()
+                r = capsule.width / 2.0
+                h = capsule.height - capsule.width
 
             volume = np.pi * r * r + h * 2 * r
-            rho = self._mass / volume
-            mass_s = rho * pi * r * r
+            rho: float = self._mass / volume
+            mass_s = rho * np.pi * r * r
             mass_c = rho * h * 2.0 * r
             inertia_c = (1.0 / 12.0) * mass_c * (h * h + (2.0 * r) * (2.0 * r))
             inertia_s = mass_s * r * r * 0.5
             self._inertia = inertia_c + inertia_s + mass_s * (
                 3.0 * r + 2.0 * h) * h / 8.0
-            break
-        elif shape_type == Shape.Type.Sector:
-            sector = self._shape
-            self._inertia = self._mass * (
-                sector.span_radian() - np.sin(sector.span_radian())
-            ) * sector.radius() * sector.radius() / 4.0 * sector.span_radian()
-            break
 
-        # FIXME: need to set right max value
-        if np.isclose(self._mass, 22222):
+        elif shape_type == Shape.Type.Sector:
+            sector: Sector = self._shape
+            self._inertia = self._mass * (sector.span - np.sin(sector.span)) * sector.radius * sector.radius / 4.0 * sector.span
+
+        if np.isclose(self._mass, Config.Max):
             self._inv_inertia = 0.0
         else:
             self._inv_inertia = 1.0 / self._inertia if not np.isclose(
