@@ -1,3 +1,5 @@
+from typing import List, Dict, Optional, Tuple
+
 import numpy as np
 
 from ...common.config import Config
@@ -8,30 +10,42 @@ from ...dynamics.body import Body
 
 
 class AABB():
-    def __init__(self):
+    def __init__(self, width: float = 0.0, height: float = 0.0):
         self._pos: Matrix = Matrix([0.0, 0.0], 'vec')
-        self._width: float = 0.0
-        self._height: float = 0.0
+        self._width: float = width
+        self._height: float = height
 
     def __eq__(self, other):
         return np.isclose(self._width, other._width) and np.isclose(
             self._height, other._height) and self._pos == other._pos
 
+    @property
+    def pos(self) -> Matrix:
+        return self._pos
+    
+    @pos.setter
+    def pos(self, pos: Matrix):
+        self._pos = pos
+
+    @property
     def top_left(self) -> Matrix:
         return Matrix([
             -self._width / 2.0 + self._pos.x, self._height / 2.0 + self._pos.y
         ], 'vec')
 
+    @property
     def top_right(self) -> Matrix:
         return Matrix([
             self._width / 2.0 + self._pos.x, self._height / 2.0 + self._pos.y
         ], 'vec')
 
+    @property
     def bot_left(self) -> Matrix:
         return Matrix([
             -self._width / 2.0 + self._pos.x, -self._height / 2.0 + self._pos.y
         ], 'vec')
 
+    @property
     def bot_right(self) -> Matrix:
         return Matrix([
             self._width / 2.0 + self._pos.x, -self._height / 2.0 + self._pos.y
@@ -119,7 +133,7 @@ class AABB():
             x_min: float = Config.Max
             y_min: float = Config.Max
             for v in polygon.vertices():
-                vertex: Matrix = Matrix.rotate_mat(shape._rotation) * v
+                vertex: Matrix = Matrix.rotate_mat(shape._rot) * v
 
                 if x_max < vertex.x:
                     x_max = vertex.x
@@ -145,10 +159,10 @@ class AABB():
             bot_dir: Matrix = Matrix([0.0, -1.0], 'vec')
             right_dir: Matrix = Matrix([1.0, 0.0], 'vec')
 
-            top_dir = Matrix.rotate_mat(-shape._rotation).multiply(top_dir)
-            left_dir = Matrix.rotate_mat(-shape._rotation).multiply(left_dir)
-            bot_dir = Matrix.rotate_mat(-shape._rotation).multiply(bot_dir)
-            right_dir = Matrix.rotate_mat(-shape._rotation).multiply(right_dir)
+            top_dir = Matrix.rotate_mat(-shape._rot) * top_dir
+            left_dir = Matrix.rotate_mat(-shape._rot) * left_dir
+            bot_dir = Matrix.rotate_mat(-shape._rot) * bot_dir
+            right_dir = Matrix.rotate_mat(-shape._rot) * right_dir
 
             top: Matrix = GeomAlgo2D.calc_ellipse_project_on_point(
                 ellipse.A(), ellipse.B(), top_dir)
@@ -159,10 +173,10 @@ class AABB():
             right: Matrix = GeomAlgo2D.calc_ellipse_project_on_point(
                 ellipse.A(), ellipse.B(), right_dir)
 
-            top = Matrix.rotate_mat(shape._rotation).multiply(top)
-            left = Matrix.rotate_mat(shape._rotation).multiply(left)
-            bot = Matrix.rotate_mat(shape._rotation).multiply(bot)
-            right = Matrix.rotate_mat(shape._rotation).multiply(right)
+            top = Matrix.rotate_mat(shape._rot) * top
+            left = Matrix.rotate_mat(shape._rot) * left
+            bot = Matrix.rotate_mat(shape._rot) * bot
+            right = Matrix.rotate_mat(shape._rot) * right
 
             res._height = np.fabs(top.y - bot.y)
             res._width = np.fabs(right.x - left.x)
@@ -173,7 +187,7 @@ class AABB():
             res._height = cir.radius * 2.0
 
         elif shape_type == Shape.Type.Edge:
-            edg: Edge = Shape._shape
+            edg: Edge = shape._shape
             res._width = np.fabs(edg.start.x - edg.end.x)
             res._height = np.fabs(edg.start.y - edg.end.y)
             res._pos.set_value(
@@ -191,7 +205,7 @@ class AABB():
         elif shape_type == Shape.Type.Sector:
             pass
 
-        res._pos += shape._transform
+        res._pos += shape._xform
         res.expand(factor)
         return res
 
@@ -202,8 +216,8 @@ class AABB():
 
         primitive: ShapePrimitive = ShapePrimitive()
         primitive._shape = body.shape()
-        primitive._rotation = body.rotation()
-        primitive._transform = body.transform()
+        primitive._rot = body.rotation()
+        primitive._xform = body.transform()
         return AABB.from_shape(primitive, factor)  #FIXME: the type is right?
 
     @staticmethod
@@ -230,10 +244,10 @@ class AABB():
         bool
             True: collide, otherwise not
         '''
-        src_top_left: Matrix = src.top_left()
-        src_bot_right: Matrix = src.bot_right()
-        target_top_left: Matrix = target.top_left()
-        target_bot_right: Matrix = target.bot_right()
+        src_top_left: Matrix = src.top_left
+        src_bot_right: Matrix = src.bot_right
+        target_top_left: Matrix = target.top_left
+        target_bot_right: Matrix = target.bot_right
 
         return not (src_bot_right.x < target_top_left.x
                     or target_bot_right.x < src_top_left.x
@@ -264,10 +278,10 @@ class AABB():
         elif target.is_empty():
             return src
 
-        src_top_left: Matrix = src.top_left()
-        src_bot_right: Matrix = src.bot_right()
-        target_top_left: Matrix = target.top_left()
-        target_bot_right: Matrix = target.bot_right()
+        src_top_left: Matrix = src.top_left
+        src_bot_right: Matrix = src.bot_right
+        target_top_left: Matrix = target.top_left
+        target_bot_right: Matrix = target.bot_right
 
         x_min: float = np.fmin(src_top_left.x, target_top_left.x)
         x_max: float = np.fmax(src_bot_right.x, target_bot_right.x)
@@ -298,10 +312,10 @@ class AABB():
         bool
             True: is subset, otherwise not
         '''
-        src_top_left: Matrix = src.top_left()
-        src_bot_right: Matrix = src.bot_right()
-        target_top_left: Matrix = target.top_left()
-        target_bot_right: Matrix = target.bot_right()
+        src_top_left: Matrix = src.top_left
+        src_bot_right: Matrix = src.bot_right
+        target_top_left: Matrix = target.top_left
+        target_bot_right: Matrix = target.bot_right
 
         return src_bot_right.x >= target_bot_right.x and target_top_left.x >= src_top_left.x and src_top_left.y >= target_top_left.y and target_bot_right.y >= src_bot_right.y
 
@@ -312,13 +326,13 @@ class AABB():
 
     @staticmethod
     def _raycast(aabb, start: Matrix, dir: Matrix) -> bool:
-        res = GeomAlgo2D.raycastAABB(start, dir, aabb.top_left(),
-                                     aabb.bot_right())
+        res = GeomAlgo2D.raycastAABB(start, dir, aabb.top_left,
+                                     aabb.bot_right)
         if res == None:
             return False
 
         p1, p2 = res[0], res[1]
         return GeomAlgo2D.is_point_on_AABB(
-            p1, aabb.top_left(),
-            aabb.bot_right()) and GeomAlgo2D.is_point_on_AABB(
-                p2, aabb.top_left(), aabb.bot_right())
+            p1, aabb.top_left,
+            aabb.bot_right) and GeomAlgo2D.is_point_on_AABB(
+                p2, aabb.top_left, aabb.bot_right)

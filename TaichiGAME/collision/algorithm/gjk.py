@@ -88,7 +88,7 @@ class GJK():
     def gjk(shape_a, shape_b, iter_val=20):
         simplex = Simplex()
         is_found = False
-        direction = shape_a._transform - shape_b._transform
+        direction = shape_a._xform - shape_b._xform
 
         if direction == Matrix([0.0, 0.0], 'vec'):
             direction.set_value([1.0, 1.0])
@@ -238,7 +238,7 @@ class GJK():
     def distance(shape_a, shape_b, iter_val=20):
         result = PointPair()
         simplex = Simplex()
-        direction = shape_b._transform - shape_a._transform
+        direction = shape_b._xform - shape_a._xform
 
         m = self.support(shape_a, shape_b, direction)
         simplex._vertices.append(m)

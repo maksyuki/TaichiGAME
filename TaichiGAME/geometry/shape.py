@@ -41,12 +41,12 @@ class ShapePrimitive():
     '''
     def __init__(self):
         self._shape: Shape = Shape()
-        self._transform: Matrix = Matrix([0.0, 0.0], 'vec')
-        self._rotation: float = 0.0
+        self._xform: Matrix = Matrix([0.0, 0.0], 'vec')
+        self._rot: float = 0.0
 
     def translate(self, src: Matrix) -> Matrix:
         assert src.shape == (2, 1)
-        return Matrix.rotate_mat(self._rotation) * src + self._transform
+        return Matrix.rotate_mat(self._rot) * src + self._xform
 
 
 class Point(Shape):

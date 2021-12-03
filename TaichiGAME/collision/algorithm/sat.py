@@ -60,24 +60,24 @@ class SAT():
         circle = shape_a._shape
         edge = shape_b._shape
 
-        actual_start = shape_b._transform + edge.start_point()
-        actual_end = shape_b._transform + edge.end()
+        actual_start = shape_b._xform + edge.start_point()
+        actual_end = shape_b._xform + edge.end()
         normal = (actual_start - actual_end).normal()
 
-        if (actual_start - shape_a._transform).dot(normal) < 0 and (
-                actual_end - shape_b._transform).dot(normal) < 0:
+        if (actual_start - shape_a._xform).dot(normal) < 0 and (
+                actual_end - shape_b._xform).dot(normal) < 0:
             normal.negate()
 
         projected_point = GeomAlgo2D.point_to_line_segment(
-            actual_start, actual_end, shape_a._transform)
-        diff = projected_point - shape_a._transform
+            actual_start, actual_end, shape_a._xform)
+        diff = projected_point - shape_a._xform
         result._normal = diff.normal()
         length = diff.len()
         result._is_colliding = length < circle.radius()
         result._penetration = circle.radius() - length
 
         result._contact_pair[
-            0]._pointa = shape_a._transform + circle.radius() * result._normal
+            0]._pointa = shape_a._xform + circle.radius() * result._normal
         result._contact_pair[0]._pointb = projected_point
         result._contact_pair_count += 1
         return result
@@ -91,7 +91,7 @@ class SAT():
         circle_a = shape_a._shape
         circle_b = shape_b._shape
 
-        ba = shape_a._transform - shape_b._transform
+        ba = shape_a._xform - shape_b._xform
         dp = circle_a.radius() + circle_b.radius()
         length = ba.len()
 
@@ -100,10 +100,10 @@ class SAT():
             result._penetration = dp - length
             result._is_colliding = True
             result._contact_pair[
-                0]._pointa = shape_a._transform - circle_a.radius(
+                0]._pointa = shape_a._xform - circle_a.radius(
                 ) * result._normal
             result._contact_pair[
-                0]._pointb = shape_b._transform - circle_b.radius(
+                0]._pointb = shape_b._xform - circle_b.radius(
                 ) * result._normal
             result._contact_pair_count += 1
 
@@ -124,7 +124,7 @@ class SAT():
 
         for elem in polygon_b.vertices():
             vertex = shape_b.translate(elem)
-            length = (vertex - shape_a._transform).len_square()
+            length = (vertex - shape_a._xform).len_square()
             if len_min > length:
                 len_min = length
                 closest = vertex

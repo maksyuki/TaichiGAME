@@ -7,6 +7,7 @@ from TaichiGAME.geometry.geom_algo import GeomAlgo2D
 
 
 class TestGeomAlgo2D():
+    org: Matrix = Matrix([0.0, 0.0], 'vec')
     pa1: Matrix = Matrix([1.0, 1.0], 'vec')
     pb1: Matrix = Matrix([2.0, 2.0], 'vec')
     pc1: Matrix = Matrix([-3.0, -3.0], 'vec')
@@ -14,6 +15,12 @@ class TestGeomAlgo2D():
     pa2: Matrix = Matrix([-1.0, 2.0], 'vec')
     pb2: Matrix = Matrix([3.0, 1.0], 'vec')
     pc2: Matrix = Matrix([-3.0, 0.0], 'vec')
+
+    dir_0: Matrix = Matrix([1.0, 0.0], 'vec')
+    dir_45: Matrix = Matrix([1.0, 1.0], 'vec')
+    dir_90: Matrix = Matrix([0.0, 1.0], 'vec')
+    dir_135: Matrix = Matrix([-1.0, 1.0], 'vec')
+    dir_180: Matrix = Matrix([-1.0, 0.0], 'vec')
 
     poly1: List[Matrix] = [
         Matrix([-3.0, -3.0], 'vec'),
@@ -198,12 +205,26 @@ class TestGeomAlgo2D():
         assert 1  #FIXME: need to modify
 
     def test_is_point_on_AABB(self):
-        assert 1
+        assert GeomAlgo2D.is_point_on_AABB(TestGeomAlgo2D.pa1,
+                                           TestGeomAlgo2D.pa2,
+                                           TestGeomAlgo2D.pb2)
+
+        assert GeomAlgo2D.is_point_on_AABB(TestGeomAlgo2D.pb1,
+                                           TestGeomAlgo2D.pa2,
+                                           TestGeomAlgo2D.pb2)
+
+        assert not GeomAlgo2D.is_point_on_AABB(
+            TestGeomAlgo2D.pc1, TestGeomAlgo2D.pa2, TestGeomAlgo2D.pb2)
 
     def test_rotate(self):
-        assert 1
+        GeomAlgo2D.rotate(TestGeomAlgo2D.pa1, TestGeomAlgo2D.org, np.pi / 4) == Matrix([0.0, 1.41421], 'vec')
 
     def test_calc_ellipse_project_on_point(self):
+        print (GeomAlgo2D.calc_ellipse_project_on_point(2, 1, TestGeomAlgo2D.dir_0))
+        print (GeomAlgo2D.calc_ellipse_project_on_point(2, 1, TestGeomAlgo2D.dir_45))
+        print (GeomAlgo2D.calc_ellipse_project_on_point(2, 1, TestGeomAlgo2D.dir_90))
+        print (GeomAlgo2D.calc_ellipse_project_on_point(2, 1, TestGeomAlgo2D.dir_135))
+        print (GeomAlgo2D.calc_ellipse_project_on_point(2, 1, TestGeomAlgo2D.dir_180))
         assert 1
 
     def test_calc_capsule_project_on_point(self):
@@ -213,7 +234,19 @@ class TestGeomAlgo2D():
         assert 1
 
     def test_is_triangle_contain_origin(self):
-        assert 1
+        assert not GeomAlgo2D.is_triangle_contain_origin(
+            TestGeomAlgo2D.pa1, TestGeomAlgo2D.pa2, TestGeomAlgo2D.pc2)
+
+        assert GeomAlgo2D.is_triangle_contain_origin(TestGeomAlgo2D.pa2,
+                                                     TestGeomAlgo2D.pb2,
+                                                     TestGeomAlgo2D.pc1)
 
     def test_is_point_on_same_side(self):
-        assert 1
+        assert not GeomAlgo2D.is_point_on_same_side(
+            TestGeomAlgo2D.pa1, TestGeomAlgo2D.pc1, TestGeomAlgo2D.pa2,
+            TestGeomAlgo2D.pb2)
+
+        assert GeomAlgo2D.is_point_on_same_side(TestGeomAlgo2D.pa1,
+                                                TestGeomAlgo2D.pc1,
+                                                TestGeomAlgo2D.pa2,
+                                                TestGeomAlgo2D.pc2)
