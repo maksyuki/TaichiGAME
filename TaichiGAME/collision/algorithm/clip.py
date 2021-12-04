@@ -45,8 +45,8 @@ class ContactGenerator():
     @staticmethod
     def find_clip_edge(vertices: List[Matrix], idx: int,
                        normal: Matrix) -> ClipEdge:
-        edg1: ContactGenerator.ClipEdge = ContactGenerator.ClipEdge()
-        edg2: ContactGenerator.ClipEdge = ContactGenerator.ClipEdge()
+        edg1 = ContactGenerator.ClipEdge()
+        edg2 = ContactGenerator.ClipEdge()
         edg1._p2 = vertices[idx]
         edg2._p1 = vertices[idx]
 
