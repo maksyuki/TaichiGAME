@@ -1,7 +1,6 @@
 from typing import List, Dict, Optional, Tuple
 
 import numpy as np
-from numpy.linalg import norm
 
 from ...math.matrix import Matrix
 from ...common.config import Config
