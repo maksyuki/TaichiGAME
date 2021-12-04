@@ -3,6 +3,7 @@ from typing import Any, List, Optional
 
 import numpy as np
 
+from ..common.config import Config
 from ..math.matrix import Matrix
 from .geom_algo import GeomAlgo2D
 
@@ -350,8 +351,6 @@ class Curve(Shape):
 
 
 class Capsule(Shape):
-    epsilon: float = 1e-6
-
     def __init__(self, width: float = 0.0, height: float = 0.0):
         self._type = self.Type.Capsule
         self.set_value(width, height)
@@ -420,23 +419,23 @@ class Capsule(Shape):
     @staticmethod
     def range_helper_x(p: Matrix, ref1: Matrix, ref2: Matrix,
                        idx: int) -> bool:
-        if p._val[idx] - ref1._val[idx] <= Capsule.epsilon and p._val[
-                idx] - ref2._val[idx] >= Capsule.epsilon:
+        if p._val[idx] - ref1._val[idx] <= Config.Epsilon and p._val[
+                idx] - ref2._val[idx] >= Config.Epsilon:
             return True
 
         return False
 
     @staticmethod
     def range_helper_y(p: Matrix, idx: int, dis: float) -> bool:
-        if p._val[idx] - dis <= Capsule.epsilon and p._val[
-                idx] + dis >= Capsule.epsilon:
+        if p._val[idx] - dis <= Config.Epsilon and p._val[
+                idx] + dis >= Config.Epsilon:
             return True
 
         return False
 
     @staticmethod
     def range_helper_val(p: Matrix, ref: Matrix, dis: float) -> bool:
-        return (p - ref).len_square() - dis * dis <= Capsule.epsilon
+        return (p - ref).len_square() - dis * dis <= Config.Epsilon
 
     def contains(self, point: Matrix) -> bool:
         anchor1: Matrix = Matrix([0.0, 0.0], 'vec')
