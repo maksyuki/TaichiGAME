@@ -1,292 +1,447 @@
-class ProjectPoint():
+from typing import List, Dict, Optional, Tuple
+
+import numpy as np
+
+from ...math.matrix import Matrix
+from ...common.config import Config
+from .gjk import PointPair
+from ...geometry.geom_algo import GeomAlgo2D
+from ...geometry.shape import Circle, Edge, Ellipse, Polygon, Shape, ShapePrimitive
+
+
+class ProjectedPoint():
     def __init__(self):
-        self._vertex = Matrix([0.0, 0.0], 'vec')
-        self._value = 0.0
-        self._index = -1.0
+        self._vertex: Matrix = Matrix([0.0, 0.0], 'vec')
+        self._val: float = 0.0
+        self._idx: int = -1
 
-    def __eq__(self):
-        pass
+    def __eq__(self, other) -> bool:
+        return self._vertex == other._vertex and np.isclose(
+            self._val, other._val)
 
 
-class ProjectEdge():
+class ProjectedEdge():
     def __init__(self):
         self._vertex1 = Matrix([0.0, 0.0], 'vec')
         self._vertex2 = Matrix([0.0, 0.0], 'vec')
 
 
-class ProjectSegment():
+class ProjectedSegment():
     def __init__(self):
-        self._val_min = ProjectPoint()
-        self._val_max = ProjectPoint()
+        self._min = ProjectedPoint()
+        self._max = ProjectedPoint()
 
     @staticmethod
     def intersect(s1, s2):
-        pass
+        diff: float = Config.NegativeMin
+        res = ProjectedSegment()
+
+        if s1._min._val <= s2._min._val and s1._max._val <= s2._max._val:
+            diff = s1._max._val - s2._min._val
+            res._max = s1._max
+            res._min = s2._min
+
+        elif s2._min._val <= s1._min._val and s2._max._val <= s1._max._val:
+            diff = s2._max._val - s1._min._val
+            res._max = s2._max
+            res._min = s1._min
+
+        elif s1._min._val >= s2._min._val and s1._max._val <= s2._max._val:
+
+            if (s1._max._val - s2._min._val) > (s2._max._val - s1._min._val):
+
+                diff = s1._max._val - s2._min._val
+                res._max = s1._max
+                res._min = s2._min
+
+            else:
+
+                diff = s2._max._val - s1._min._val
+                res._max = s2._max
+                res._min = s1._min
+
+        elif s2._min._val >= s1._min._val and s2._max._val <= s1._max._val:
+
+            if (s2._max._val - s1._min._val) > (s1._max._val - s2._min._val):
+
+                diff = s2._max._val - s1._min._val
+                res._max = s2._max
+                res._min = s1._min
+
+            else:
+
+                diff = s1._max._val - s2._min._val
+                res._max = s1._max
+                res._min = s2._min
+
+        return (res, diff)
 
 
 class SATResult():
     def __init__(self):
-        self._contact_pair = []
-        self._contact_pair_count = 0
-        self._normal = Matrix([0.0, 0.0], 'vec')
-        self._penetration = 0.0
-        self._is_colliding = False
+        self._contact_pair: List[PointPair] = []
+        self._contact_pair_count: int = 0
+        self._normal: Matrix = Matrix([0.0, 0.0], 'vec')
+        self._penetration: float = 0.0
+        self._is_colliding: bool = False
 
 
 class SAT():
-    def __init__(self):
-        pass
+    @staticmethod
+    def circle_vs_capsule(prima: ShapePrimitive,
+                          primb: ShapePrimitive) -> SATResult:
+        assert prima._shape.type() == Shape.Type.Circle
+        assert primb._shape.type() == Shape.Type.Capsule
+        res: SATResult = SATResult()
+        return res
 
     @staticmethod
-    def circle_vs_capsule(shape_a, shape_b):
-        assert shape_a._shape.type() == Shape.Type.Circle
-        assert shape_b._shape.type() == Shape.Type.Capsule
-        result = SATResult
-        return result
+    def circle_vs_sector(prima: ShapePrimitive,
+                         primb: ShapePrimitive) -> SATResult:
+        assert prima._shape.type() == Shape.Type.Circle
+        assert primb._shape.type() == Shape.Type.Sector
+        res: SATResult = SATResult()
+        return res
 
     @staticmethod
-    def circle_vs_sector(shape_a, shape_b):
-        assert shape_a._shape.type() == Shape.Type.Circle
-        assert shape_b._shape.type() == Shape.Type.Sector
-        result = SATResult
-        return result
+    def circle_vs_edge(prima: ShapePrimitive,
+                       primb: ShapePrimitive) -> SATResult:
+        assert prima._shape.type() == Shape.Type.Circle
+        assert primb._shape.type() == Shape.Type.Edge
 
-    @staticmethod
-    def circle_vs_edge(shape_a, shape_b):
-        assert shape_a._shape.type() == Shape.Type.Circle
-        assert shape_b._shape.type() == Shape.Type.Edge
+        res: SATResult = SATResult()
+        circle: Circle = prima._shape
+        edg: Edge = primb._shape
 
-        result = SATResult
-        circle = shape_a._shape
-        edge = shape_b._shape
+        actual_start: Matrix = primb._xform + edg.start
+        actual_end: Matrix = primb._xform + edg.end
+        normal: Matrix = (actual_start - actual_end).normal()
 
-        actual_start = shape_b._xform + edge.start_point()
-        actual_end = shape_b._xform + edge.end()
-        normal = (actual_start - actual_end).normal()
-
-        if (actual_start - shape_a._xform).dot(normal) < 0 and (
-                actual_end - shape_b._xform).dot(normal) < 0:
+        if (actual_start - prima._xform).dot(normal) < 0 and (
+                actual_end - primb._xform).dot(normal) < 0:
             normal.negate()
 
-        projected_point = GeomAlgo2D.point_to_line_segment(
-            actual_start, actual_end, shape_a._xform)
-        diff = projected_point - shape_a._xform
-        result._normal = diff.normal()
-        length = diff.len()
-        result._is_colliding = length < circle.radius()
-        result._penetration = circle.radius() - length
+        proj_point: Matrix = GeomAlgo2D.point_to_line_segment(
+            actual_start, actual_end, prima._xform)
+        diff: Matrix = proj_point - prima._xform
 
-        result._contact_pair[
-            0]._pointa = shape_a._xform + circle.radius() * result._normal
-        result._contact_pair[0]._pointb = projected_point
-        result._contact_pair_count += 1
-        return result
+        res._normal = diff.normal()
+        length: float = diff.len()
+
+        res._is_colliding = (length < circle.radius)
+        res._penetration = circle.radius - length
+        res._contact_pair[0]._pa = prima._xform + circle.radius * res._normal
+        res._contact_pair[0]._pb = proj_point
+        res._contact_pair_count += 1
+
+        return res
 
     @staticmethod
-    def circle_vs_circle(shape_a, shape_b):
-        assert shape_a._shape.type() == Shape.Type.Circle
-        assert shape_b._shape.type() == Shape.Type.Circle
+    def circle_vs_circle(prima: ShapePrimitive,
+                         primb: ShapePrimitive) -> SATResult:
+        assert prima._shape.type() == Shape.Type.Circle
+        assert primb._shape.type() == Shape.Type.Circle
 
-        result = SATResult()
-        circle_a = shape_a._shape
-        circle_b = shape_b._shape
+        res: SATResult = SATResult()
+        cira: Circle = prima._shape
+        cirb: Circle = primb._shape
 
-        ba = shape_a._xform - shape_b._xform
-        dp = circle_a.radius() + circle_b.radius()
-        length = ba.len()
+        ba: Matrix = prima._xform - primb._xform
+        dp: float = cira.radius + cirb.radius
+        length: float = ba.len()
 
         if length <= dp:
-            result._normal = ba.normal()
-            result._penetration = dp - length
-            result._is_colliding = True
-            result._contact_pair[
-                0]._pointa = shape_a._xform - circle_a.radius(
-                ) * result._normal
-            result._contact_pair[
-                0]._pointb = shape_b._xform - circle_b.radius(
-                ) * result._normal
-            result._contact_pair_count += 1
+            res._normal = ba.normal()
+            res._penetration = dp - length
+            res._is_colliding = True
+            res._contact_pair[0]._pa = prima._xform - cira.radius * res._normal
+            res._contact_pair[0]._pb = primb._xform + cirb.radius * res._normal
+            res._contact_pair_count += 1
 
-        return result
+        return res
 
     @staticmethod
-    def circle_vs_polygon(shape_a, shape_b):
-        assert shape_a._shape.type() == Shape.Type.Circle
-        assert shape_b._shape.type() == Shape.Type.Polygon
+    def circle_vs_polygon(prima: ShapePrimitive,
+                          primb: ShapePrimitive) -> SATResult:
+        assert prima._shape.type() == Shape.Type.Circle
+        assert primb._shape.type() == Shape.Type.Polygon
 
-        circle_a = shape_a._shape
-        polygon_b = shape_b._shape
-        colliding_axis = 0
-        result = SATResult()
+        cira: Circle = prima._shape
+        polyb: Polygon = primb._shape
+        colliding_axis: int = 0
+        res: SATResult = SATResult()
 
-        len_min = 2222222222  #FIXME:
-        closest = Matrix([0.0, 0.0], 'vec')
+        len_min: float = Config.Max
+        closest: Matrix = Matrix([0.0, 0.0], 'vec')
 
-        for elem in polygon_b.vertices():
-            vertex = shape_b.translate(elem)
-            length = (vertex - shape_a._xform).len_square()
+        for elem in polyb.vertices:
+            vertex: Matrix = primb.translate(elem)
+            length: float = (vertex - prima._xform).len_square()
             if len_min > length:
                 len_min = length
                 closest = vertex
 
-        normal = closest.normal()
-        segment_circle = SAT._axis_projection(shape_a, circle_a, normal)
-        segment_polygon = SAT._axis_projection(shape_b, circle_b, normal)
+        normal: Matrix = closest.normal()
+        seg_cir: ProjectedSegment = SAT._axis_projection(prima, cira, normal)
+        seg_poly: ProjectedSegment = SAT._axis_projection(primb, polyb, normal)
 
-        (final_segment,
-         length) = ProjectSegment.intersect(segment_circle, segment_polygon)
+        (final_seg, length) = ProjectedSegment.intersect(seg_cir, seg_poly)
 
         if length > 0:
             colliding_axis += 1
 
-        if result._penetration > length:
-            result._penetration = length
-            result._normal = normal
+        if res._penetration > length:
+            res._penetration = length
+            res._normal = normal
 
-        circle_point = ProjectPoint()
-        polygon_point = ProjectPoint()
-        circle_point = final_segment._val_max if segment_circle._val_max == final_segment._val_max else final_segment._val_min
-        polygon_point = final_segment._val_max if segment_polygon._val_max == final_segment._val_max else final_segment._val_min
+        cirp: ProjectedPoint = final_seg._max if seg_cir._max == final_seg._max else final_seg._min
 
-        segment = ProjectSegment()
-        on_polygon = False
+        vert_len: int = len(polyb.vertices)
+        for i in range(vert_len - 1):
+            v1: Matrix = primb.translate(polyb.vertices[i])
+            v2: Matrix = primb.translate(polyb.vertices[i + 1])
+            edg: Matrix = v1 - v2
+            normal: Matrix = edg.perpendicular().normal()
 
-        for i in range(len(polygon_b) - 1):
-            v1 = shape_b.translate(polygon_b.vertices()[i])
-            v2 = shape_b.translate(polygon_b.vertices())[i + 1]
-            edge = v1 - v2
-            normal = edge.perpendicular().normal()
-
-            segment_c = SAT._axis_projection(shape_a, circle_a, normal)
-            segment_p = SAT._axis_projection(shape_b, polygon_b, normal)
+            segc = SAT._axis_projection(prima, cira, normal)
+            segp = SAT._axis_projection(primb, polyb, normal)
 
             (tmp_segment,
-             tmp_length) = ProjectSegment.intersect(segment_c, segment_p)
+             tmp_length) = ProjectedSegment.intersect(segc, segp)
             if tmp_length > 0:
                 colliding_axis += 1
 
-            if result._penetration > tmp_length and tmp_length > 0:
-                result._penetration = tmp_length
-                result._normal = normal
-                segment = tmp_segment
-                circle_point = tmp_segment._val_min if segment_c._val_max == tmp_segment._val_max else tmp_segment._val_min
+            if res._penetration > tmp_length and tmp_length > 0:
+                res._penetration = tmp_length
+                res._normal = normal
+                cirp = tmp_segment._max if segc._max == tmp_segment._max else tmp_segment._min
 
-        if colliding_axis == len(polygon_b.vertices()):
-            result._is_colliding = True
+        if colliding_axis == len(polyb.vertices):
+            res._is_colliding = True
 
-        result._contact_pair[0]._pointa = circle_point._vertex
-        result._contact_pair[
-            0]._pointb = circle_point._vertex + -result._normal * result._penetration
-        result._contact_pair_count += 1
+        res._contact_pair[0]._pa = cirp._vertex
+        res._contact_pair[0]._pb = cirp._vertex + -res._normal * res._penetration
+        res._contact_pair_count += 1
 
-        return result
+        return res
 
     @staticmethod
-    def polygon_helper(polygon_a, polygon_b):
-        polya = polygon_a._shape
-        polyb = polygon_b._shape
+    def polygon_vs_polygon(prima: ShapePrimitive,
+                           primb: ShapePrimitive) -> SATResult:
 
-        final_normal = Matrix([0.0, 0.0], 'vec')
-        len_min = 222222222  #FIXME:
-        colliding_axis = 0
-        segment = ProjectSegment()
-        target_a_point = ProjectPoint()
-        target_b_point = ProjectPoint()
+        def _test(prima: ShapePrimitive, primb: ShapePrimitive) -> SATResult:
+            polya: Polygon = prima._shape
+            polyb: Polygon = primb._shape
 
-        for i in range(len(polya.vertices()) - 1):
-            v1 = polygon_a.translate(polya.vertices())[i]
-            v2 = polygon_b.translate(polya.vertices())[i + 1]
-            edge = v1 - v2
-            normal = edge.perpendicular().normal()
+            final_normal: Matrix = Matrix([0.0, 0.0], 'vec')
+            len_min: float = Config.Max
+            colliding_axis: int = 0
 
-            segment_a = SAT._axis_projection(polygon_a, polya, normal)
-            segment_b = SAT._axis_projection(polygon_b, polyb, normal)
+            tgtap: ProjectedPoint = ProjectedPoint()
+            tgtbp: ProjectedPoint = ProjectedPoint()
 
-            (final_segment,
-             length) = ProjectSegment.intersect(segment_a, segment_b)
-            if length > 0:
-                colliding_axis += 1
+            polya_len: int = len(polya.vertices)
+            for i in range(polya_len - 1):
+                v1: Matrix = prima.translate(polya.vertices[i])
+                v2: Matrix = prima.translate(polya.vertices[i + 1])
+                edg: Matrix = v1 - v2
+                normal: Matrix = edg.perpendicular().normal()
 
-            polya_point = ProjectPoint
-            polyb_point = ProjectPoint
-            polya_point = final_segment._val_max if segment_a._val_max == final_segment._val_max else final_segment._val_min
-            polyb_point = final_segment._val_max if segment_b._val_max == final_segment._val_max else final_segment._val_min
+                sega: ProjectedSegment = SAT._axis_projection(prima, polya, normal)
+                segb: ProjectedSegment = SAT._axis_projection(primb, polyb, normal)
 
-            if len_min > length:
-                len_min = length
-                final_normal = normal
-                target_a_point = polya_point
-                target_b_point = polyb_point
+                (final_seg, length) = ProjectedSegment.intersect(sega, segb)
+                if length > 0:
+                    colliding_axis += 1
 
-        return (final_normal, len_min, colliding_axis, target_a_point,
-                target_b_point)
+                polyap:ProjectedPoint = final_seg._max if sega._max == final_seg._max else final_seg._min
+                polybp:ProjectedPoint = final_seg._max if segb._max == final_seg._max else final_seg._min
 
-    @staticmethod
-    def polygon_vs_polygon(shape_a, shape_b):
-        assert shape_a._shape.type() == Shape.Type.Polygon
-        assert shape_b._shape.type() == Shape.Type.Polygon
+                if len_min > length:
+                    len_min = length
+                    final_normal = normal
+                    tgtap = polyap
+                    tgtbp = polybp
 
-        polya = shape_a._shape
-        polyb = shape_b._shape
+            return (final_normal, len_min, colliding_axis, tgtap, tgtbp)
 
-        result = SATResult
-        (normal1, length1, axis1, polya_point1,
-         polyb_point1) = SAT.polygon_helper(shape_a, shape_b)
-        (normal2, length2, axis2, polyb_point2,
-         polya_point2) = SAT.polygon_helper(shape_b, shape_a)
 
-        if axis1 + axis2 == len(polya.vertices()) + len(polyb.vertices()) - 2:
-            result._is_colliding = True
+        assert prima._shape.type() == Shape.Type.Polygon
+        assert primb._shape.type() == Shape.Type.Polygon
+
+        polya: Polygon = prima._shape
+        polyb: Polygon = primb._shape
+
+        res:SATResult = SATResult()
+        (normal1, length1, axis1, polyap1, polybp1) = _test(prima, primb)
+        (normal2, length2, axis2, polybp2, polyap2) = _test(primb, prima)
+
+        if axis1 + axis2 == len(polya.vertices) + len(polyb.vertices) - 2:
+            res._is_colliding = True
 
         if length1 < length2:
-            result._penetration = length1
-            result._normal = normal1
+            res._penetration = length1
+            res._normal = normal1
         else:
-            result._penetration = length2
-            result.normal = normal2
+            res._penetration = length2
+            res.normal = normal2
 
     @staticmethod
-    def polygon_vs_edge(shape_a, shape_b):
-        assert shape_a._shape.type() == Shape.Type.Polygon
-        assert shape_b._shape.type() == Shape.Type.Edge
+    def polygon_vs_edge(prima: ShapePrimitive,
+                        primb: ShapePrimitive) -> SATResult:
+        assert prima._shape.type() == Shape.Type.Polygon
+        assert primb._shape.type() == Shape.Type.Edge
         return SATResult()
 
     @staticmethod
-    def polygon_vs_capsule(shape_a, shape_b):
-        assert shape_a._shape.type() == Shape.Type.Polygon
-        assert shape_b._shape.type() == Shape.Type.Capsule
+    def polygon_vs_capsule(prima: ShapePrimitive,
+                           primb: ShapePrimitive) -> SATResult:
+        assert prima._shape.type() == Shape.Type.Polygon
+        assert primb._shape.type() == Shape.Type.Capsule
         return SATResult()
 
     @staticmethod
-    def polygon_vs_sector(shape_a, shape_b):
-        assert shape_a._shape.type() == Shape.Type.Polygon
-        assert shape_b._shape.type() == Shape.Type.Sector
+    def polygon_vs_sector(prima: ShapePrimitive,
+                          primb: ShapePrimitive) -> SATResult:
+        assert prima._shape.type() == Shape.Type.Polygon
+        assert primb._shape.type() == Shape.Type.Sector
         return SATResult()
 
     @staticmethod
-    def capsule_vs_edge(shape_a, shape_b):
-        assert shape_a._shape.type() == Shape.Type.Capsule
-        assert shape_b._shape.type() == Shape.Type.Edge
+    def capsule_vs_edge(prima: ShapePrimitive,
+                        primb: ShapePrimitive) -> SATResult:
+        assert prima._shape.type() == Shape.Type.Capsule
+        assert primb._shape.type() == Shape.Type.Edge
         return SATResult()
 
     @staticmethod
-    def capsule_vs_capsule(shape_a, shape_b):
-        assert shape_a._shape.type() == Shape.Type.Capsule
-        assert shape_b._shape.type() == Shape.Type.Capsule
+    def capsule_vs_capsule(prima: ShapePrimitive,
+                           primb: ShapePrimitive) -> SATResult:
+        assert prima._shape.type() == Shape.Type.Capsule
+        assert primb._shape.type() == Shape.Type.Capsule
         return SATResult()
 
     @staticmethod
-    def capsule_vs_sector(shape_a, shape_b):
-        assert shape_a._shape.type() == Shape.Type.Capsule
-        assert shape_b._shape.type() == Shape.Type.Sector
+    def capsule_vs_sector(prima: ShapePrimitive,
+                          primb: ShapePrimitive) -> SATResult:
+        assert prima._shape.type() == Shape.Type.Capsule
+        assert primb._shape.type() == Shape.Type.Sector
         return SATResult()
 
     @staticmethod
-    def sector_vs_sector(shape_a, shape_b):
-        assert shape_a._shape.type() == Shape.Type.Sector
-        assert shape_b._shape.type() == Shape.Type.Sector
+    def sector_vs_sector(prima: ShapePrimitive,
+                         primb: ShapePrimitive) -> SATResult:
+        assert prima._shape.type() == Shape.Type.Sector
+        assert primb._shape.type() == Shape.Type.Sector
         return SATResult()
 
     @staticmethod
-    def _axis_projection(shape, fixme, normal):
-        pass
+    def _axis_projection(prim: ShapePrimitive, shape: Shape, normal: Matrix) -> ProjectedSegment:
+        if shape.type() == Shape.Type.Polygon:
+            point_min: ProjectedPoint = ProjectedPoint()
+            point_max: ProjectedPoint = ProjectedPoint()
+
+            point_min._val = Config.Max
+            point_max._val = Config.NegativeMin
+
+            shape_len: int = len(shape.vertices)
+            for i in range(shape_len):
+                vertex: Matrix = prim.translate(shape.vertices[i])
+                value: float = vertex.dot(normal)
+
+                if value < point_min._val:
+                    point_min._vertex = vertex
+                    point_min._val = value
+                    point_min._idx = i
+                
+                if value > point_max._val:
+                    point_max._vertex = vertex
+                    point_max._val = value
+                    point_max._idx = i
+
+
+            segment: ProjectedSegment = ProjectedSegment()
+            segment._max = point_max
+            segment._min = point_min
+
+            return segment
+
+        elif shape.type() == Shape.Type.Circle:
+            cir_min: ProjectedPoint = ProjectedPoint()
+            cir_max: ProjectedPoint = ProjectedPoint()
+
+            cir_min._vertex = prim._xform - normal * shape.radius
+            cir_min._val = prim._xform.dot(normal) - shape.radius
+
+            cir_max._vertex = prim._xform + normal * shape.radius
+            cir_max._val = prim._xform.dot(normal) + shape.radius
+            
+            segment: ProjectedSegment = ProjectedSegment()
+            segment._min = cir_min
+            segment._max = cir_max
+
+            return segment
+
+        elif shape.type() == Shape.Type.Ellipse:
+            elli_min: ProjectedPoint = ProjectedPoint()
+            elli_max: ProjectedPoint = ProjectedPoint()
+
+            rot_dir: Matrix = Matrix.rotate_mat(-prim._rot) * -normal
+            elli_min._vertex = GeomAlgo2D.calc_ellipse_project_on_point(shape.A(), shape.B(), rot_dir)
+            elli_min._vertex = prim.translate( elli_min._vertex)
+            elli_min._val = elli_min._vertex.dot(normal)
+
+            rot_dir= Matrix.rotate_mat(-prim._rot) * normal
+            elli_max._vertex = GeomAlgo2D.calc_ellipse_project_on_point(shape.A(), shape.B(), rot_dir)
+            elli_max._vertex = prim.translate( elli_max._vertex)
+            elli_max._val = elli_max._vertex.dot(normal)
+
+            segment: ProjectedSegment = ProjectedSegment()
+            segment._min = elli_min
+            segment._max = elli_max
+
+            return segment
+
+        elif shape.type() == Shape.Type.Capsule:
+            capsule_min: ProjectedPoint = ProjectedPoint()
+            capsule_max: ProjectedPoint = ProjectedPoint()
+
+            dir: Matrix = Matrix.rotate_mat(-prim._rot) * normal
+            p1: Matrix = GeomAlgo2D.calc_capsule_project_on_point(shape.width, shape.height, dir)
+            p2: Matrix = GeomAlgo2D.calc_capsule_project_on_point(shape.width, shape.height, -dir)
+            p1 = prim.translate(p1)
+            p2 = prim.translate(p2)
+
+            capsule_min._vertex = p2
+            capsule_min._val = capsule_min._vertex.dot(normal)
+
+            capsule_max._vertex = p1
+            capsule_max._val = capsule_max._vertex.dot(normal)
+
+            segment: ProjectedSegment = ProjectedSegment()
+            segment._min = capsule_min
+            segment._max = capsule_max
+
+            return segment
+
+        elif shape.type() == Shape.Type.Sector:
+            sector_min: ProjectedPoint = ProjectedPoint()
+            sector_max: ProjectedPoint = ProjectedPoint()
+
+            dir: Matrix = Matrix.rotate_mat(-prim._rot) * normal
+            p1: Matrix = GeomAlgo2D.calc_sector_project_on_point(shape.start, shape.span, shape.radius, dir)
+            p2: Matrix = GeomAlgo2D.calc_sector_project_on_point(shape.start, shape.span, shape.radius, -dir)
+            p1 = prim.translate(p1)
+            p2 = prim.translate(p2)
+
+            sector_min._vertex = p2
+            sector_min._val = sector_min._vertex.dot(normal)
+
+            sector_max._vertex = p1
+            sector_max._val = sector_max._vertex.dot(normal)
+
+            segment: ProjectedSegment = ProjectedSegment()
+            segment._min = sector_min
+            segment._max = sector_max
+
+            return segment

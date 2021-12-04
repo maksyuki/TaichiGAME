@@ -12,9 +12,9 @@ class TestShape():
 
 class TestShapePrimitive():
     def test_translate(self):
-        primitive: ShapePrimitive = ShapePrimitive()
+        prim: ShapePrimitive = ShapePrimitive()
         vec1 = Matrix([23.0, 234.0], 'vec')
-        assert primitive.translate(vec1) == Matrix([23.0, 234.0], 'vec')
+        assert prim.translate(vec1) == Matrix([23.0, 234.0], 'vec')
 
 
 class TestPoint():

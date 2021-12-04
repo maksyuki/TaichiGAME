@@ -32,8 +32,8 @@ class DistanceJoint(Joint):
         self._primitive = DistanceJointPrimitive()
         self._factor = 0.4
 
-    def set_value(self, primitive):
-        self._primitive = primitive
+    def set_value(self, prim):
+        self._primitive = prim
 
     def prepare(self, dt):
         assert self._primitive._min_distance <= self._primitive._max_distance
@@ -94,7 +94,7 @@ class DistanceJoint(Joint):
         def solve_position(self, dt):
             pass
 
-        def primitive(self):
+        def prim(self):
             return self._primitive
 
 
@@ -172,5 +172,5 @@ class DistanceConstraint(Joint):
         def solve_position(self):
             pass
 
-        def primitive(self):
+        def prim(self):
             return self._primitive

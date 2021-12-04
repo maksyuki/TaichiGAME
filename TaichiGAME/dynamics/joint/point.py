@@ -22,8 +22,8 @@ class PointJoint(Joint):
         self._primitive = PointJointPrimitive()
         self._factor = 0.22
 
-    def set_value(self, primitive):
-        self._primitive = primitive
+    def set_value(self, prim):
+        self._primitive = prim
 
     def prepare(self, dt):
         if self._primitive._bodya == None:
@@ -95,5 +95,5 @@ class PointJoint(Joint):
     def solve_position(self, dt):
         pass
 
-    def primitive(self):
+    def prim(self):
         return self._primitive

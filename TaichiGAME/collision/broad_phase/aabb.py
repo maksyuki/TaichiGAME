@@ -22,7 +22,7 @@ class AABB():
     @property
     def pos(self) -> Matrix:
         return self._pos
-    
+
     @pos.setter
     def pos(self, pos: Matrix):
         self._pos = pos
@@ -122,18 +122,18 @@ class AABB():
         return AABB._raycast(self, start, dir)
 
     @staticmethod
-    def from_shape(shape: Shape, factor: float = 0.0):
+    def from_prim(prim: ShapePrimitive, factor: float = 0.0):
         res = AABB()
-        shape_type = shape._shape.type()
+        shape_type = prim._shape.type()
 
         if shape_type == Shape.Type.Polygon:
-            polygon: Polygon = shape._shape
+            polygon: Polygon = prim._shape
             x_max: float = Config.NegativeMin
             y_max: float = Config.NegativeMin
             x_min: float = Config.Max
             y_min: float = Config.Max
             for v in polygon.vertices():
-                vertex: Matrix = Matrix.rotate_mat(shape._rot) * v
+                vertex: Matrix = Matrix.rotate_mat(prim._rot) * v
 
                 if x_max < vertex.x:
                     x_max = vertex.x
@@ -152,17 +152,17 @@ class AABB():
             res._pos.set_value((x_max + x_min) / 2.0, (y_max + y_min) / 2.0)
 
         elif shape_type == Shape.Type.Ellipse:
-            ellipse: Ellipse = shape._shape
+            ellipse: Ellipse = prim._shape
 
             top_dir: Matrix = Matrix([0.0, 1.0], 'vec')
             left_dir: Matrix = Matrix([-1.0, 0.0], 'vec')
             bot_dir: Matrix = Matrix([0.0, -1.0], 'vec')
             right_dir: Matrix = Matrix([1.0, 0.0], 'vec')
 
-            top_dir = Matrix.rotate_mat(-shape._rot) * top_dir
-            left_dir = Matrix.rotate_mat(-shape._rot) * left_dir
-            bot_dir = Matrix.rotate_mat(-shape._rot) * bot_dir
-            right_dir = Matrix.rotate_mat(-shape._rot) * right_dir
+            top_dir = Matrix.rotate_mat(-prim._rot) * top_dir
+            left_dir = Matrix.rotate_mat(-prim._rot) * left_dir
+            bot_dir = Matrix.rotate_mat(-prim._rot) * bot_dir
+            right_dir = Matrix.rotate_mat(-prim._rot) * right_dir
 
             top: Matrix = GeomAlgo2D.calc_ellipse_project_on_point(
                 ellipse.A(), ellipse.B(), top_dir)
@@ -173,21 +173,21 @@ class AABB():
             right: Matrix = GeomAlgo2D.calc_ellipse_project_on_point(
                 ellipse.A(), ellipse.B(), right_dir)
 
-            top = Matrix.rotate_mat(shape._rot) * top
-            left = Matrix.rotate_mat(shape._rot) * left
-            bot = Matrix.rotate_mat(shape._rot) * bot
-            right = Matrix.rotate_mat(shape._rot) * right
+            top = Matrix.rotate_mat(prim._rot) * top
+            left = Matrix.rotate_mat(prim._rot) * left
+            bot = Matrix.rotate_mat(prim._rot) * bot
+            right = Matrix.rotate_mat(prim._rot) * right
 
             res._height = np.fabs(top.y - bot.y)
             res._width = np.fabs(right.x - left.x)
 
         elif shape_type == Shape.Type.Circle:
-            cir: Circle = shape._shape
+            cir: Circle = prim._shape
             res._width = cir.radius * 2.0
             res._height = cir.radius * 2.0
 
         elif shape_type == Shape.Type.Edge:
-            edg: Edge = shape._shape
+            edg: Edge = prim._shape
             res._width = np.fabs(edg.start.x - edg.end.x)
             res._height = np.fabs(edg.start.y - edg.end.y)
             res._pos.set_value(
@@ -205,20 +205,20 @@ class AABB():
         elif shape_type == Shape.Type.Sector:
             pass
 
-        res._pos += shape._xform
+        res._pos += prim._xform
         res.expand(factor)
         return res
 
     @staticmethod
     def from_body(body: Body, factor: float = 0.0):
         assert body != None
-        assert body.shape() != None
+        assert body.shape != None
 
-        primitive: ShapePrimitive = ShapePrimitive()
-        primitive._shape = body.shape()
-        primitive._rot = body.rotation()
-        primitive._xform = body.transform()
-        return AABB.from_shape(primitive, factor)  #FIXME: the type is right?
+        prim: ShapePrimitive = ShapePrimitive()
+        prim._shape = body.shape
+        prim._rot = body.rot
+        prim._xform = body.pos
+        return AABB.from_prim(prim, factor)  #FIXME: the type is right?
 
     @staticmethod
     def from_box(top_left, bot_right):
@@ -326,13 +326,11 @@ class AABB():
 
     @staticmethod
     def _raycast(aabb, start: Matrix, dir: Matrix) -> bool:
-        res = GeomAlgo2D.raycastAABB(start, dir, aabb.top_left,
-                                     aabb.bot_right)
+        res = GeomAlgo2D.raycastAABB(start, dir, aabb.top_left, aabb.bot_right)
         if res == None:
             return False
 
         p1, p2 = res[0], res[1]
         return GeomAlgo2D.is_point_on_AABB(
-            p1, aabb.top_left,
-            aabb.bot_right) and GeomAlgo2D.is_point_on_AABB(
+            p1, aabb.top_left, aabb.bot_right) and GeomAlgo2D.is_point_on_AABB(
                 p2, aabb.top_left, aabb.bot_right)
