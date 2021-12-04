@@ -2,8 +2,8 @@ class PulleyJointPrimitive():
     def __init__(self):
         self._type = JointType.Pulley
 
-    def set_value(self, primitive):
-        self._primitive = primitive
+    def set_value(self, prim):
+        self._primitive = prim
 
     def prepare(self, dt):
         pass

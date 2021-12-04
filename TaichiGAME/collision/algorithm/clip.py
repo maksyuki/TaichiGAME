@@ -9,9 +9,9 @@ class ContactGenerator():
             return self._p1.is_origin() and self._p2.is_origin()
 
     @staticmethod
-    def dump_vertices(primitive):
+    def dump_vertices(prim):
         vertices = []
-        shape = primitive._shape
+        shape = prim._shape
         shape_type = shape.type()
 
         if shape_type == Shape.Type.Capsule:
@@ -27,7 +27,7 @@ class ContactGenerator():
         elif shape_type == Shape.Type.Sector:
             vertices = shape.vertices()
 
-        vertices = [primitive.translate(v) for v in vertices]
+        vertices = [prim.translate(v) for v in vertices]
         return vertices
 
     @staticmethod

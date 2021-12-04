@@ -137,11 +137,11 @@ class Body():
     #FIXME: if import AABB, will trigger loop import err
     # USE AABB.from_body static method
     # def aabb(self, factor: float = 1.0) -> AABB:
-    #     primitive: ShapePrimitive = ShapePrimitive()
-    #     primitive._xform = self._phy_attr._pos
-    #     primitive._rot = self._phy_attr._rot
-    #     primitive._shape = self._shape
-    #     return AABB.from_shape(primitive, factor)
+    #     prim: ShapePrimitive = ShapePrimitive()
+    #     prim._xform = self._phy_attr._pos
+    #     prim._rot = self._phy_attr._rot
+    #     prim._shape = self._shape
+    #     return AABB.from_prim(prim, factor)
 
     @property
     def fric(self) -> float:

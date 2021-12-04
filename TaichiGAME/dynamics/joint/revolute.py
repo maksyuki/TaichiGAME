@@ -20,8 +20,8 @@ class RevoluteJoint(Joint):
         self._type = JointType.Revolute
         self._primitive = RevoluteJointPrimitive()
 
-    def set_value(self, primitive):
-        self._primitive = primitive
+    def set_value(self, prim):
+        self._primitive = prim
 
     def prepare(self, dt):
         if self._primitive._bodya == None or self._primitive._bodyb == None:
@@ -116,5 +116,5 @@ class RevoluteJoint(Joint):
         if self._primitive._bodya == None or self._primitive._bodby == None:
             return
 
-    def primitive(self):
+    def prim(self):
         return self._primitive
