@@ -57,7 +57,7 @@ class MPR():
                primb: ShapePrimitive,
                src: Simplex,
                center_to_origin: Matrix,
-               iter_val: int = 50) -> Tuple[boo, Simplex]:
+               iter_val: int = 50) -> Tuple[bool, Simplex]:
         '''Refine portal close to origin
 
         Parameters
