@@ -1,53 +1,74 @@
+from typing import List, Dict, Optional, Tuple
+
+import numpy as np
+
+from ...math.matrix import Matrix
+from ...common.config import Config
+from ...geometry.geom_algo import GeomAlgo2D
+from ...geometry.shape import Capsule, Circle, Edge, Ellipse, Point, Polygon, Sector, Shape, ShapePrimitive
+
+
 class Minkowski():
-    def __init__(self, pa, pb):
-        self._pa = pa
-        self._pb = pb
-        self._result = self._pa - self._pb
+    def __init__(self,
+                 pa: Optional[Matrix] = None,
+                 pb: Optional[Matrix] = None):
+        self._pa: Matrix = pa
+        self._pb: Matrix = pb
+        self._res: Matrix = self._pa - self._pb
 
     def __eq__(self, other):
         return self._pa == other._pa and self._pb == other._pb
 
     def __ne__(self, other):
-        return not (self._pa == other._pa
-                    and self._pb == other._pb)
+        return not (self._pa == other._pa and self._pb == other._pb)
 
 
 class Simplex():
-    def __init__(self):
-        self._is_contain_origin = False
-        self._vertices = []
+    '''simplex structure for gjk/epa test.
 
-    def contain_origin(self, strict=False):
-        self._is_contain_origin = Simplex.contain_origin_oper(self, strict)
+    By convention:
+    1 points: p0, construct a single point
+
+    2 points: p0->pa, construct a segment
+    
+    >=4 points: p0->pa->pb->p0, construct a polygon
+    '''
+    def __init__(self):
+        self._is_contain_origin: bool = False
+        self._vertices: List[Minkowski] = []
+
+    def contain_origin(self, strict: bool = False) -> bool:
+        self._is_contain_origin = Simplex._contain_origin(self, strict)
         return self._is_contain_origin
 
-    def insert(self, pos, vertex):
+    def insert(self, pos: int, vertex: Minkowski):
         self._vertices.insert(pos + 1, vertex)
 
-    def contains(self, minkowski):
+    def contains(self, minkowski: Minkowski) -> bool:
         for v in self._vertices:
             if v == minkowski:
                 return True
 
         return False
 
-    def last_vertex(self):
+    def last_vertex(self) -> Matrix:
         vert_len = len(self._vertices)
         if vert_len == 2:
-            return self._vertices[vert_len - 1]._result
+            return self._vertices[vert_len - 1]._res
 
-        return self._vertices[vert_len - 2]._result
+        return self._vertices[vert_len - 2]._res
 
     @staticmethod
-    def contain_origin_oper(simplex, strict=False):
-        num = len(simplex.vertices())
-        if num == 4:
+    def _contain_origin(simplex, strict: bool = False) -> bool:
+        vert_len: int = len(simplex.vertices())
+        if vert_len == 4:
             return GeomAlgo2D.is_triangle_contain_origin(
-                simplex._vertices[0]._result, simplex._vertices[1]._result,
-                simplex._vertices[2]._result)
-        elif num == 2:
-            oa = -simplex._vertices[0]._result
-            ob = -simplex._vertices[1]._result
+                simplex._vertices[0]._res, simplex._vertices[1]._res,
+                simplex._vertices[2]._res)
+
+        elif vert_len == 2:
+            oa: Matrix = -simplex._vertices[0]._res
+            ob: Matrix = -simplex._vertices[1]._res
             return GeomAlgo2D.is_point_on_segment(oa, ob, [0.0, 0.0])
         else:
             return False
@@ -55,245 +76,435 @@ class Simplex():
 
 class PenetrationInfo():
     def __init__(self):
-        self._normal = Matrix([0.0, 0.0], 'vec')
-        self.penetration = 0.0
+        self._normal: Matrix = Matrix([0.0, 0.0], 'vec')
+        self._penetration: float = 0.0
 
 
 class PenetrationSource():
     def __init__(self):
-        self._a1 = Matrix([0.0, 0.0], 'vec')
-        self._a2 = Matrix([0.0, 0.0], 'vec')
-        self._b1 = Matrix([0.0, 0.0], 'vec')
-        self._b2 = Matrix([0.0, 0.0], 'vec')
+        self._a1: Matrix = Matrix([0.0, 0.0], 'vec')
+        self._a2: Matrix = Matrix([0.0, 0.0], 'vec')
+        self._b1: Matrix = Matrix([0.0, 0.0], 'vec')
+        self._b2: Matrix = Matrix([0.0, 0.0], 'vec')
 
 
 class PointPair():
     def __init__(self):
-        self._pa = Matrix([0.0, 0.0], 'vec')
-        self._pb = Matrix([0.0, 0.0], 'vec')
+        self._pa: Matrix = Matrix([0.0, 0.0], 'vec')
+        self._pb: Matrix = Matrix([0.0, 0.0], 'vec')
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return self._pa == other._pa and self._pb == other._pb
 
-    def is_empty(self):
-        return self._pa == Matrix(
-            [0.0, 0.0], 'vec') and self._pb == Matrix([0.0, 0.0], 'vec')
+    def is_empty(self) -> bool:
+        return self._pa == Matrix([0.0, 0.0], 'vec') and self._pb == Matrix(
+            [0.0, 0.0], 'vec')
 
 
 class GJK():
-    def __init__(self):
-        pass
-
     @staticmethod
-    def gjk(shape_a, shape_b, iter_val=20):
-        simplex = Simplex()
-        is_found = False
-        direction = shape_a._xform - shape_b._xform
+    def gjk(prima: ShapePrimitive,
+            primb: ShapePrimitive,
+            iter_val: int = 20) -> Tuple[bool, Simplex]:
+        '''Gilbert-Johnson-Keerthi distance algorithm
 
-        if direction == Matrix([0.0, 0.0], 'vec'):
-            direction.set_value([1.0, 1.0])
+        Parameters
+        ----------
+        prima : ShapePrimitive
+            primitive a
+        primb : ShapePrimitive
+            primitive b
+        iter_val : int, optional
+            iter num, by default 20
 
-        diff = self.support(shape_a, shape_b, direction)
+        Returns
+        -------
+        Tuple[bool, Simplex]
+            return initial simplex and whether collision exist
+        '''
+        simplex: Simplex = Simplex()
+        is_found: bool = False
+        dir: Matrix = primb._xform - prima._xform
+
+        if dir == Matrix([0.0, 0.0], 'vec'):
+            dir.set_value([1.0, 1.0])
+
+        diff: Minkowski = GJK.support(prima, primb, dir)
         simplex._vertices.append(diff)
-        direction.negate()
+        dir.negate()
 
-        removed = []
+        removed: List[Minkowski] = []
         for i in range(iter_val):
-            diff = self.support(shape_a, shape_b, direction)
+            diff = GJK.support(prima, primb, dir)
             simplex._vertices.append(diff)
-            if len(simplex._vertices == 3):
+
+            # build a close polygon
+            if len(simplex._vertices) == 3:
                 simplex._vertices.append(simplex._vertices[0])
 
-            if simplex.last_vertex().dot(direction) <= 0:
+            if simplex.last_vertex().dot(dir) <= 0:
                 break
 
             if simplex.contain_origin(True):
                 is_found = True
                 break
 
-            (index1, index2) = self.find_edge_closest_to_origin(simplex)
-            direction = calc_direction_by_edge(
-                simplex._vertices[index1]._result,
-                simplex._vertices[index2]._result, True)
+            # if not contain origin
+            # find edg closest to origin
+            # reconstruct simplex
+            # find the point that is not belong to the edg closest to origin
+            # if found, there is no more minkowski difference, exit loop
+            # if not, add the point to the list
+            (idx1, idx2) = GJK.find_edge_closest_to_origin(simplex)
+            dir = GJK.calc_direction_by_edge(simplex._vertices[idx1]._res,
+                                             simplex._vertices[idx2]._res,
+                                             True)
 
-            result = self.adjust_simplex(simplex, index1, index2)
+            res = GJK.adjust_simplex(simplex, idx1, idx2)
 
-            if result != None:
+            if res != None:
                 for v in removed:
-                    if v == result:
+                    if v == res:
                         break
-
-                removed.append(result)
+                removed.append(res)
 
         return (is_found, simplex)
 
     @staticmethod
-    def epa(shape_a, shape_b, src, iter_val=20):
-        edge = Simplex()
-        simplex = src
-        normal = Matrix([0.0, 0.0], 'vec')
+    def epa(prima: ShapePrimitive,
+            primb: ShapePrimitive,
+            src: Simplex,
+            iter_val: int = 20) -> Simplex:
+        '''Expanding Polygon Algorithm
+
+        Parameters
+        ----------
+        prima : ShapePrimitive
+            primitive a
+        primb : ShapePrimitive
+            primitive b
+        src : Simplex
+            init simplex
+        iter_val : int, optional
+            iter num, by default 20
+
+        Returns
+        -------
+        Simplex
+            return expanded simplex
+        '''
+
+        edg: Simplex = Simplex()
+        simplex: Simplex = src
+        normal: Matrix = Matrix([0.0, 0.0], 'vec')
         p = Minkowski()
 
-        for i in rnage(iter_val):
-            (index1, index2) = self.find_edge_closest_to_origin(simplex)
-            normal = self.calc_direction_by_edge(
-                simplex._vertices[index1]._result,
-                simplex._vertices[index2]._result, False).normal()
+        for i in range(iter_val):
+            (idx1, idx2) = GJK.find_edge_closest_to_origin(simplex)
+            normal = GJK.calc_direction_by_edge(simplex._vertices[idx1]._res,
+                                                simplex._vertices[idx2]._res,
+                                                False).normal()
 
-            if GeomAlgo2D.is_point_on_segment(
-                    simplex._vertices[index1]._result,
-                    simplex._vertices[index2]._result, [0.0, 0.0]):
+            if GeomAlgo2D.is_point_on_segment(simplex._vertices[idx1]._res,
+                                              simplex._vertices[idx2]._res,
+                                              [0.0, 0.0]):
                 normal.negate()
 
-            p = self.support(shape_a, shape_b, normal)
+            p = GJK.support(prima, primb, normal)
 
             if simplex.contains(p):
                 break
 
-            simplex.insert(index1, p)
+            simplex.insert(idx1, p)
 
         return simplex
 
     @staticmethod
-    def dump_info(src):
-        result = PenetrationInfo()
-        edge1 = src._a1 - src._b1
-        edge2 = src._a2 - src._b2
-        normal = calc_direction_by_edge(edge1, edge2, False).normal()
-        origin_to_edge = np.fabs(normal.dot(edge1))
-        result.normal = normal.negate()
-        result.penetration = origin_to_edge
+    def dump_info(src: PenetrationSource) -> PenetrationInfo:
+        '''Dump collision penetration normal and depth
+
+        Parameters
+        ----------
+        src : PenetrationSource
+            source data
+
+        Returns
+        -------
+        PenetrationInfo
+            collision info
+        '''
+
+        res: PenetrationInfo = PenetrationInfo()
+        edg1: Matrix = src._a1 - src._b1
+        edg2: Matrix = src._a2 - src._b2
+        normal: Matrix = GJK.calc_direction_by_edge(edg1, edg2, False).normal()
+        origin_to_edge: float = np.fabs(normal.dot(edg1))
+        res._normal = normal.negate()
+        res._penetration = origin_to_edge
+
         return res
 
     @staticmethod
-    def support(shape_a, shape_b, dir):
-        return Minkowski(self.find_farthest_point(shape_a, dir),
-                         find_farthest_point(shape_b, -dir))
+    def support(prima: ShapePrimitive, primb: ShapePrimitive,
+                dir: Matrix) -> Minkowski:
+        return Minkowski(GJK.find_farthest_point(prima, dir),
+                         GJK.find_farthest_point(primb, -dir))
 
     @staticmethod
-    def find_edge_closest_to_origin(simplex):
-        index1 = 0
-        index2 = 0
-        min_dist = 2222222222  # FIXME:
+    def find_edge_closest_to_origin(simplex: Simplex) -> Tuple[int, int]:
+        '''Find two points that can form an edge closest to origin of simplex
+
+        Parameters
+        ----------
+        simplex : Simplex
+            simplex
+
+        Returns
+        -------
+        Tuple[int, int]
+            the two idx of the point on the simplex match needed
+        '''
+        idx1: int = 0
+        idx2: int = 0
+        dist_min: float = Config.Max
 
         if len(simplex._vertices) == 2:
             return (0, 1)
 
-        # FIXME: need to improve perf
-        for i in range(len(simplex.vertices) - 1):
-            a = simplex._vertices[i]._result
-            b = simplex._vertices[i + 1]._result
+        vert_len: int = len(simplex._vertices)
+        for i in range(vert_len - 1):
+            a: Matrix = simplex._vertices[i]._res
+            b: Matrix = simplex._vertices[i + 1]._res
+            p: Matrix = GeomAlgo2D.point_to_line_segment(a, b, [0.0, 0.0])
+            proj: float = p.len()
 
-            p = GeomAlgo2D.point_to_line_segment(a, b, [0.0, 0.0])
-            projection = p.len()
+            if dist_min > proj:
+                idx1 = i
+                idx2 = i + 1
+                dist_min = proj
 
-            if min_dist > projection:
-                index1 = i
-                index2 = i + 1
-                min_dist = projection
-            elif np.isclose(min_dist, projection):
-                length1 = a.len_square() + b.len_square()
-                length2 = simplex._vertices[index1]._result.len_square(
-                ) + simplex._vertices[index2]._result.len_square()
+            elif np.isclose(dist_min, proj):
+                length1: float = a.len_square() + b.len_square()
+                length2: float = simplex._vertices[idx1]._res.len_square(
+                ) + simplex._vertices[idx2]._res.len_square()
 
                 if length1 < length2:
-                    index1 = i
-                    index2 = i + 1
+                    idx1 = i
+                    idx2 = i + 1
 
-        return (index1, index2)
-
-    @staticmethod
-    def find_farthest_point(shape, dir):
-        pass
+        return (idx1, idx2)
 
     @staticmethod
-    def adjust_simplex(simplex, closest_1, closest_2):
-        if len(simplex._vertices) == 4:
-            index = -1
-            for i in range(simplex._vertices - 1):
-                if i != closest_1 and i != closest_2:
-                    index = i
+    def find_farthest_point(prim: ShapePrimitive, dir: Matrix) -> Matrix:
+        '''Find farthest projection point in given direction
 
-            target = simplex._vertices[index]
-            del simplex._vertices[index]
-            del simplex._vertices[len(simplex._vertices) - 1]
+        Parameters
+        ----------
+        prim : ShapePrimitive
+            primitive
+        dir : Matrix
+            dir vector
+
+        Returns
+        -------
+        Matrix
+            farthest point
+        '''
+        target: Matrix = Matrix([0.0, 0.0], 'vec')
+        rot: Matrix = Matrix.rotate_mat(-prim._rot)
+        rot_dir: Matrix = rot * dir
+
+        if prim._shape.type() == Shape.Type.Polygon:
+            poly: Polygon = prim._shape
+            (vertex, idx) = GJK.find_farthest_point(poly.vertices, rot_dir)
+            target = vertex
+
+        elif prim._shape.type() == Shape.Type.Circle:
+            cir: Circle = prim._shape
+            return dir.normal() * cir.radius + prim._xform
+
+        elif prim._shape.type() == Shape.Type.Ellipse:
+            elli: Ellipse = prim._shape
+            target = GeomAlgo2D.calc_ellipse_project_on_point(
+                elli.A(), elli.B(), rot_dir)
+
+        elif prim._shape.type() == Shape.Type.Edge:
+            edg: Edge = prim._shape
+            dot1: float = Matrix.dot_product(edg.start, dir)
+            dot2: float = Matrix.dot_product(edg.end, dir)
+            target = edg.start if dot1 > dot2 else edg.end
+
+        elif prim._shape.type() == Shape.Type.Point:
+            return prim._shape.pos
+
+        elif prim._shape.type() == Shape.Type.Capsule:
+            cap: Capsule = prim._shape
+            target = GeomAlgo2D.calc_capsule_project_on_point(
+                cap.width, cap.height, rot_dir)
+
+        elif prim._shape.type() == Shape.Type.Sector:
+            sec: Sector = prim._shape
+            target = GeomAlgo2D.calc_sector_project_on_point(
+                sec.start, sec.span, sec.radius, rot_dir)
+
+        rot.set_value(Matrix.rotate_mat(prim._rot))
+        target = rot * target + prim._xform
+        return target
+
+    @staticmethod
+    def adjust_simplex(simplex: Simplex, closest1: int,
+                       closest2: int) -> Optional[Minkowski]:
+        '''Adjust triangle simplex, remove the point that can not form a 
+        triangle that contains origin
+
+        Parameters
+        ----------
+        simplex : Simplex
+            simplex
+        closest1 : int
+            closest idx1 on simplex
+        closest2 : int
+            closest idx2 on simplex
+
+        Returns
+        -------
+        Optional[Minkowski]
+            target minkowski
+        '''
+
+        vert_len: int = len(simplex._vertices)
+        if vert_len == 4:
+            idx: int = -1
+            for i in range(vert_len - 1):
+                if i != closest1 and i != closest2:
+                    idx = i
+
+            target: Minkowski = simplex._vertices[idx]
+            del simplex._vertices[idx]
+            del simplex._vertices[vert_len - 1]
+
             return target
 
         return None
 
     @staticmethod
-    def calc_direction_by_edge(p1, p2, point_to_origin=True):
-        ao = -1 * p1
-        ab = p2 - p1
-        perpendicular_of_ab = ab.perpendicular()
+    def calc_direction_by_edge(pa: Matrix,
+                               pb: Matrix,
+                               point_to_origin: bool = True) -> Matrix:
+        '''Given two points, calculate the perpendicular vector and 
+        the orientation is user-defined.
 
-        if (Matrix.dot_product(ao, perpendicular_of_ab) < 0 and point_to_origin
-            ) or (Matrix.dot_product(ao, perpendicular_of_ab) > 0
-                  and not point_to_origin):
-            perpendicular_of_ab.negate()
+        Parameters
+        ----------
+        pa : Matrix
+            point a
+        pb : Matrix
+            point b
+        point_to_origin : bool, optional
+            if point the origin, by default True
 
-        return perpendicular_of_ab
+        Returns
+        -------
+        Matrix
+            perpendicular vector
+        '''
+
+        ao: Matrix = -pa
+        ab: Matrix = pb - pa
+        perp_of_ab: Matrix = ab.perpendicular()
+
+        if (Matrix.dot_product(ao, perp_of_ab) < 0
+                and point_to_origin) or (Matrix.dot_product(ao, perp_of_ab) > 0
+                                         and not point_to_origin):
+            perp_of_ab.negate()
+
+        return perp_of_ab
 
     @staticmethod
-    def distance(shape_a, shape_b, iter_val=20):
-        result = PointPair()
-        simplex = Simplex()
-        direction = shape_b._xform - shape_a._xform
+    def distance(prima: ShapePrimitive,
+                 primb: ShapePrimitive,
+                 iter_val: int = 20) -> PointPair:
+        '''Calculate the distance of two shape primitive
 
-        m = self.support(shape_a, shape_b, direction)
+        Parameters
+        ----------
+        prima : ShapePrimitive
+            primitive a
+        primb : ShapePrimitive
+            primitive b
+        iter_val : int, optional
+            iter num, by default 20
+
+        Returns
+        -------
+        PointPair
+            point result
+        '''
+
+        simplex: Simplex = Simplex()
+        dir: Matrix = primb._xform - prima._xform
+
+        # calc two minkowski
+        m: Minkowski = GJK.support(prima, primb, dir)
         simplex._vertices.append(m)
-        direction.negate()
+        dir.negate()
+        m = GJK.support(prima, primb, dir)
+        simplex._vertices.append(m)
+
         for i in range(iter_val):
-            direction = self.calc_direction_by_edge(
-                simplex._vertices[0]._result, simplex._vertices[1]._result,
-                True)
-            m = self.support(shape_a, shape_b, direction)
+            dir = GJK.calc_direction_by_edge(simplex._vertices[0]._res,
+                                             simplex._vertices[1]._res, True)
+            m = GJK.support(prima, primb, dir)
 
             if simplex.contains(m):
                 break
 
             simplex._vertices.append(m)
             simplex._vertices.append(simplex._vertices[0])
-            (index1, index2) = self.find_edge_closest_to_origin(simplex)
-            self.adjust_simplex(simplex, index1, index2)
+            (idx1, idx2) = GJK.find_edge_closest_to_origin(simplex)
+            GJK.adjust_simplex(simplex, idx1, idx2)
 
-        return self.dump_points(self.dump_source(simplex))
-
-    @staticmethod
-    def dump_source(simplex):
-        result = PenetrationSource
-        (index1, index2) = self.find_edge_closest_to_origin(simplex)
-        result._a1 = simplex._vertices[index1]._pa
-        result._a2 = simplex._vertices[index2]._pa
-        result._b1 = simplex._vertices[index1]._pb
-        result._b2 = simplex._vertices[index2]._pb
-        return result
+        return GJK.dump_points(GJK.dump_source(simplex))
 
     @staticmethod
-    def dump_points(src):
-        result = PointPair()
-        a_s1 = src._a1
-        b_s1 = src._a2
-        a_s2 = src._b1
-        b_s2 = src._b2
+    def dump_source(simplex: Simplex) -> PenetrationSource:
+        res: PenetrationSource = PenetrationSource()
 
-        a = src._a1 - src._b1
-        b = src._a2 - src._b2
-        l = b - a
-        ll = l.dot(l)
-        la = l.dot(a)
-        lambda2 = -la / ll
-        lambda1 = 1 - lambda2
+        (idx1, idx2) = GJK.find_edge_closest_to_origin(simplex)
+        res._a1 = simplex._vertices[idx1]._pa
+        res._a2 = simplex._vertices[idx2]._pa
+        res._b1 = simplex._vertices[idx1]._pb
+        res._b2 = simplex._vertices[idx2]._pb
 
-        result._pa.set_value(lambda1 * a_s1 + lambda2 * b_s1)
-        result._pb.set_value(lambda1 * a_s2 + lambda2 * b_s2)
+        return res
+
+    @staticmethod
+    def dump_points(src: PenetrationSource) -> PointPair:
+        res: PointPair = PointPair()
+
+        a_s1: Matrix = src._a1
+        b_s1: Matrix = src._a2
+        a_s2: Matrix = src._b1
+        b_s2: Matrix = src._b2
+
+        a: Matrix = src._a1 - src._b1
+        b: Matrix = src._a2 - src._b2
+        l: Matrix = b - a
+        ll: float = l.dot(l)
+        la: float = l.dot(a)
+        lambda2: float = -la / ll
+        lambda1: float = 1 - lambda2
+
+        # BUG:?
+        res._pa.set_value(lambda1 * a_s1 + lambda2 * b_s1)
+        res._pb.set_value(lambda1 * a_s2 + lambda2 * b_s2)
 
         if l == Matrix([0.0, 0.0], 'vec') or lambda2 < 0:
-            result._pa.set_value(a_s1)
-            result._pb.set_value(a_s2)
+            res._pa.set_value([a_s1.x, a_s1.y])  # HACK:
+            res._pb.set_value([a_s2.x, a_s2.y])
 
         if lambda1 < 0:
-            result._pa.set_value(b_s1)
-            result._pb.set_value(b_s2)
+            res._pa.set_value([b_s1.x, b_s1.y])
+            res._pb.set_value([b_s2.x, b_s2.y])
 
-        return result
+        return res
