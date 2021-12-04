@@ -88,7 +88,7 @@ class Detector():
             val_pass = False
             for elem in pair_list:
                 # FIXME:
-                if (elem._pointa - elem._pointb).len_square(
+                if (elem._pa - elem._pb).len_square(
                 ) == result._penetration * result._penetration:
                     val_pass = True
 

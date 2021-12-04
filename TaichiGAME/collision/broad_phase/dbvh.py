@@ -1,9 +1,9 @@
-from TaichiGAME.common.config import Config
 from typing import List, Dict, Optional, Tuple
 
 import numpy as np
 
 from ...math.matrix import Matrix
+from ...common.config import Config
 from ...geometry.geom_algo import GeomAlgo2D
 from ...dynamics.body import Body
 from ..broad_phase.aabb import AABB

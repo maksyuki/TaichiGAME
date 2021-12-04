@@ -1,15 +1,15 @@
 class Minkowski():
     def __init__(self, pa, pb):
-        self._pointa = pa
-        self._pointb = pb
-        self._result = self._pointa - self._pointb
+        self._pa = pa
+        self._pb = pb
+        self._result = self._pa - self._pb
 
     def __eq__(self, other):
-        return self._pointa == other._pointa and self._pointb == other._pointb
+        return self._pa == other._pa and self._pb == other._pb
 
     def __ne__(self, other):
-        return not (self._pointa == other._pointa
-                    and self._pointb == other._pointb)
+        return not (self._pa == other._pa
+                    and self._pb == other._pb)
 
 
 class Simplex():
@@ -69,15 +69,15 @@ class PenetrationSource():
 
 class PointPair():
     def __init__(self):
-        self._pointa = Matrix([0.0, 0.0], 'vec')
-        self._pointb = Matrix([0.0, 0.0], 'vec')
+        self._pa = Matrix([0.0, 0.0], 'vec')
+        self._pb = Matrix([0.0, 0.0], 'vec')
 
     def __eq__(self, other):
-        return self._pointa == other._pointa and self._pointb == other._pointb
+        return self._pa == other._pa and self._pb == other._pb
 
     def is_empty(self):
-        return self._pointa == Matrix(
-            [0.0, 0.0], 'vec') and self._pointb == Matrix([0.0, 0.0], 'vec')
+        return self._pa == Matrix(
+            [0.0, 0.0], 'vec') and self._pb == Matrix([0.0, 0.0], 'vec')
 
 
 class GJK():
@@ -263,10 +263,10 @@ class GJK():
     def dump_source(simplex):
         result = PenetrationSource
         (index1, index2) = self.find_edge_closest_to_origin(simplex)
-        result._a1 = simplex._vertices[index1]._pointa
-        result._a2 = simplex._vertices[index2]._pointa
-        result._b1 = simplex._vertices[index1]._pointb
-        result._b2 = simplex._vertices[index2]._pointb
+        result._a1 = simplex._vertices[index1]._pa
+        result._a2 = simplex._vertices[index2]._pa
+        result._b1 = simplex._vertices[index1]._pb
+        result._b2 = simplex._vertices[index2]._pb
         return result
 
     @staticmethod
@@ -285,15 +285,15 @@ class GJK():
         lambda2 = -la / ll
         lambda1 = 1 - lambda2
 
-        result._pointa.set_value(lambda1 * a_s1 + lambda2 * b_s1)
-        result._pointb.set_value(lambda1 * a_s2 + lambda2 * b_s2)
+        result._pa.set_value(lambda1 * a_s1 + lambda2 * b_s1)
+        result._pb.set_value(lambda1 * a_s2 + lambda2 * b_s2)
 
         if l == Matrix([0.0, 0.0], 'vec') or lambda2 < 0:
-            result._pointa.set_value(a_s1)
-            result._pointb.set_value(a_s2)
+            result._pa.set_value(a_s1)
+            result._pb.set_value(a_s2)
 
         if lambda1 < 0:
-            result._pointa.set_value(b_s1)
-            result._pointb.set_value(b_s2)
+            result._pa.set_value(b_s1)
+            result._pb.set_value(b_s2)
 
         return result

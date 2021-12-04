@@ -183,15 +183,15 @@ class ContactGenerator():
         pair2 = PointPair()
 
         if not swap:
-            pair1._pointa = pp1
-            pair1._pointb = incident_edge._p1
-            pair2._pointa = pp2
-            pair2._pointb = incident_edge._p2
+            pair1._pa = pp1
+            pair1._pb = incident_edge._p1
+            pair2._pa = pp2
+            pair2._pb = incident_edge._p2
         else:
-            pair1._pointa = incident_edge._p1
-            pair1._pointb = pp1
-            pair2._pointa = incident_edge._p2
-            pair2._pointb = pp2
+            pair1._pa = incident_edge._p1
+            pair1._pb = pp1
+            pair2._pa = incident_edge._p2
+            pair2._pb = pp2
 
         result.append(pair1)
         result.append(pair2)
