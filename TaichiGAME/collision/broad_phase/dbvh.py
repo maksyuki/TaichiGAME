@@ -1,4 +1,5 @@
-from typing import List, Dict, Optional, SupportsRound, TYPE_CHECKING, Tuple
+from TaichiGAME.common.config import Config
+from typing import List, Dict, Optional, Tuple
 
 import numpy as np
 
@@ -14,11 +15,11 @@ class DBVH():
     '''
     class Node():
         def __init__(self, body: Body = None, aabb: AABB = None):
-            self._parent = None
-            self._left = None
-            self._right = None
+            self._parent: Optional[DBVH.Node] = None
+            self._left: Optional[DBVH.Node] = None
+            self._right: Optional[DBVH.Node] = None
             self._body: Optional[Body] = body
-            self._aabb: AABB = aabb
+            self._aabb: Optional[AABB] = aabb
 
         def separate(self, node):
             if node == None:
@@ -66,14 +67,28 @@ class DBVH():
         self._leaf_factor: float = 0.5
         self._leaves: Dict[Body, DBVH.Node] = {}
 
-    def find(self, body: Body) -> bool:
+    def find_helper(self, body: Body) -> bool:
         for b in self._leaves.keys():
             if b == body:
                 return True
         return False
 
     def insert(self, body: Body):
-        if not self.find(body):
+        def _get_cost(aabb: AABB) -> DBVH.Node:
+            low_cost_node: Optional[DBVH.Node] = None
+            cost_value: float = Config.Max
+
+            for val in self._leaves.values():
+                assert val != None
+                cost: float = self._total_cost(val, aabb)
+
+                if cost < cost_value:
+                    cost_value = cost
+                    low_cost_node = val
+
+            return low_cost_node
+
+        if not self.find_helper(body):
             return
 
         aabb: AABB = AABB.from_body(body)
@@ -89,7 +104,7 @@ class DBVH():
             self._update(self._root)
             return
 
-        target = self._get_cost(None, aabb)  #FIXME: is right func?
+        target = _get_cost(aabb)
         self._merge(target, aabb, body)
         self._balance(self._root)
         self._update(target)
@@ -99,17 +114,31 @@ class DBVH():
     def update(self, body: Body):
         assert body != None
 
-        if not self.find(body):
+        if not self.find_helper(body):
             return
 
         thin: AABB = AABB.from_body(body)
         thin.expand(0.1)
         if not thin.is_subset(self._leaves[body]._aabb):
-            node = self.extract(body)
+            node: Optional[DBVH.Node] = self.extract(body)
             self._insert(node)
 
     def extract(self, body: Body):
-        if not self.find(body):
+        def _move_up(branch: DBVH.Node) -> DBVH.Node:
+            parent: DBVH.Node = branch._parent
+            child: DBVH.Node = branch._left if branch._left != None else branch._right
+
+            if branch.is_root():
+                child._parent = None
+                self._root = child
+                return child
+
+            parent.swap(branch, child)
+            branch._parent = None
+            branch._aabb.clear()
+            return child
+
+        if not self.find_helper(body):
             return None
 
         source: DBVH.Node = self._leaves[body]
@@ -120,7 +149,7 @@ class DBVH():
             self._root = None
             return source
 
-        child: DBVH.Node = self._moveup(parent)
+        child: DBVH.Node = _move_up(parent)
         self._balance(child._parent)
         self._update(child._parent)
         return source
@@ -132,8 +161,6 @@ class DBVH():
 
         target._body = None
         target._aabb.clear()
-        # FIXME:
-        # del target
         del self._leaves[body]
 
     def clean_up(self, node: Optional[Node]):
@@ -142,9 +169,6 @@ class DBVH():
 
         self.clean_up(node._left)
         self.clean_up(node._right)
-
-        # FIXME:
-        # del node
         node = None
 
     def root(self) -> Optional[Node]:
@@ -198,29 +222,24 @@ class DBVH():
                 self._raycast(res, node._left, start, dir)
                 self._raycast(res, node._right, start, dir)
 
-    def _get_cost(self, target, aabb):
-        low_cost_node = None
-        cost_value = 0
-        is_first = True
-        for val in self._leaves.values():
-            assert val != None
-            if val == target:
-                continue
-
-            cost = self._total_cost(val, aabb)
-
-            # FIXME: need to simplify the code
-            if is_first or cost < cost_value:
-                is_first = False
-                cost_value = cost
-                low_cost_node = val
-
-        return low_cost_node
-
-    def _moveup(self, branch):
-        pass
-
     def _insert(self, node: Optional[Node]):
+        def _get_cost(target: DBVH.Node, aabb: AABB) -> DBVH.Node:
+            low_cost_node: Optional[DBVH.Node] = None
+            cost_value: float = Config.Max
+
+            for val in self._leaves.values():
+                assert val != None
+                if val == target:
+                    continue
+
+                cost: float = self._total_cost(val, aabb)
+
+                if cost < cost_value:
+                    cost_value = cost
+                    low_cost_node = val
+
+            return low_cost_node
+
         if node == None:
             return
 
@@ -233,13 +252,13 @@ class DBVH():
             return
 
         if self._root.is_leaf() and self._root.is_root():
-            self._merge(self._root, node)
+            self._merge2(self._root, node)
             self._update(self._root)
             return
 
         if self._root.is_root():
-            target: Optional[DBVH.Node] = self._get_cost(node, aabb)
-            self._merge(target, node)
+            target: Optional[DBVH.Node] = _get_cost(node, aabb)
+            self._merge2(target, node)
             self._balance(self._root)
 
             for val in self._leaves.values():
@@ -257,8 +276,7 @@ class DBVH():
         return AABB.unite(node._aabb,
                           aabb).surface_area() - node._aabb.surface_area()
 
-    def _total_cost(self, node: Optional[Node],
-                    aabb: AABB) -> float:  # FIXME: need to return the cost
+    def _total_cost(self, node: Optional[Node], aabb: AABB) -> float:
         if node == None:
             return None
 
@@ -267,7 +285,6 @@ class DBVH():
         cost += tmp
         return cost + self._total_cost(node._parent, aabb)
 
-    #FIXME: tow params version is not impl
     def _merge(self, node: Optional[Node], aabb: AABB, body: Body) -> Node:
         assert node != None
 
@@ -287,6 +304,21 @@ class DBVH():
 
         return new_node
 
+    def _merge2(self, target: Optional[Node], src: Optional[Node]):
+        assert target != None and src != None
+        assert src.is_leaf()
+
+        copy: DBVH.Node = DBVH.Node(target._body, target._aabb)
+        if target.is_leaf():
+            self._leaves[target._body] = copy
+
+        target._body = None
+        target._aabb = AABB.unite(copy._aabb, src._aabb)
+        target._left = copy
+        target._right = src
+        copy._parent = target
+        src._parent = target
+
     def _update(self, parent: Optional[Node]):
         if parent == None:
             return
@@ -296,69 +328,70 @@ class DBVH():
 
         self._update(parent._parent)
 
-    def _LL(self, node):
-        if node == None or node.is_root():
-            return
+    def _balance(self, node: Optional[Node]):
+        def _LL(node: Optional[DBVH.Node]):
+            if node == None or node.is_root():
+                return
 
-        if node._parent == self._root:
+            if node._parent == self._root:
+                parent = node._parent
+                right = node._right
+                parent._left = right
+                node._parent = None
+
+                node._right = parent
+                right._parent = parent
+                parent._parent = node
+                self._root = node
+                return
+
             parent = node._parent
             right = node._right
-            parent._left = right
-            node._parent = None
+            garnd_parent = parent._parent
+            node._parent = garnd_parent
+
+            if parent == garnd_parent._left:
+                garnd_parent._left = node
+            else:
+                garnd_parent._right = node
 
             node._right = parent
-            right._parent = parent
             parent._parent = node
-            self._root = node
+            parent._left = right
+            right._parent = parent
 
-        parent = node._parent
-        right = node._right
-        garnd_parent = parent._parent
-        node._parent = garnd_parent
+        def _RR(node: Optional[DBVH.Node]):
+            if node == None or node.is_root():
+                return
 
-        if parent == garnd_parent._left:
-            garnd_parent._left = node
-        else:
-            garnd_parent._right = node
+            if node._parent == self._root:
+                parent = node._parent
+                left = node._left
+                parent._right = left
+                node._parent = None
 
-        node._right = parent
-        parent._parent = node
-        parent._left = right
-        right._parent = parent
+                node._left = parent
+                left._parent = parent
+                parent._parent = node
+                self._root = node
+                return
 
-    def _RR(self, node):
-        if node == None or node.is_root():
-            return
-
-        if node._parent == self._root:
             parent = node._parent
             left = node._left
-            parent._right = left
-            node._parent = None
+            garnd_parent = parent._parent
+
+            node._parent = garnd_parent
+            if parent == garnd_parent._right:
+                garnd_parent._right = node
+            else:
+                garnd_parent._left = node
 
             node._left = parent
-            left._parent = parent
             parent._parent = node
-            self._root = node
-            return
 
-        parent = node._parent
-        left = node._left
-        garnd_parent = parent._parent
+            parent._right = left
+            left._parent = parent
 
-        node._parent = garnd_parent
-        if parent == garnd_parent._right:
-            garnd_parent._right = node
-        else:
-            garnd_parent._left = node
-
-        node._left = parent
-        parent._parent = node
-
-        parent._right = left
-        left._parent = parent
-
-    def _balance(self, node: Optional[Node]):
         if node == None:
             return
 
@@ -373,29 +406,69 @@ class DBVH():
             lr_height: int = self._height(node._left._right)
 
             if ll_height < lr_height:
-                self._RR(node._left._right)
+                _RR(node._left._right)
             else:
-                self._LL(node._left._left)
+                _LL(node._left._left)
 
-            self._LL(node._left)
+            _LL(node._left)
 
         # right unbalance
         else:
             rr_height: int = self._height(node._right._right)
             rl_height: int = self._height(node._right._left)
             if rr_height < rl_height:
-                self._LL(node._right._left)
+                _LL(node._right._left)
             else:
-                self._RR(node._right._right)
-            self._RR(node._right)
+                _RR(node._right._right)
+            _RR(node._right)
 
         self._balance(node._left)
         self._balance(node._right)
         self._balance(node._parent)
 
-    #FIXME: two overlad impl
-    def _generate(self, node, pairs):
-        pass
+    # check if children collide with each other
+    def _generate(self, node: Optional[Node], pairs: List[Tuple[Body, Body]]):
+        if node == None or node.is_leaf():
+            return
+
+        res: bool = AABB.unite(node._left._aabb, node._right._aabb)
+        self._profile += 1
+
+        if res:
+            self._generate2(node._left, node._right, pairs)
+
+        self._generate(node._left, pairs)
+        self._generate(node._right, pairs)
+
+    def _generate2(self, left: Optional[Node], right: Optional[Node],
+                   pairs: List[Tuple[Body, Body]]):
+        if left == None or right == None:
+            return
+
+        res: bool = left._aabb.collide(right._aabb) or left._aabb.is_subset(
+            right._aabb)
+        self._profile += 1
+
+        if not res:
+            return
+
+        if left.is_leaf() and right.is_leaf():
+            if left._body.bitmask & right._body.bitmask:
+                if AABB.from_body(left._body).collide(
+                        AABB.from_body(right._body)):
+                    pairs.append((left._body, right._body))
+
+        if left.is_leaf() and right.is_branch():
+            self._generate2(left, right._left, pairs)
+            self._generate2(left, right._right, pairs)
+
+        if right.is_leaf() and left.is_branch():
+            self._generate2(right, left._left, pairs)
+            self._generate2(right, left._right, pairs)
+
+        if left.is_branch() and right.is_branch():
+            self._generate2(left._left, right, pairs)
+            self._generate2(left._right, right, pairs)
 
     def _height(self, node: Optional[Node]) -> int:
         return 0 if node == None else np.fmax(self._height(node._left),
