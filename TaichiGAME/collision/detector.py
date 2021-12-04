@@ -1,122 +1,126 @@
+from TaichiGAME.geometry.shape import ShapePrimitive
 from typing import List, Dict, Optional, Tuple
 
 from ..math.matrix import Matrix
+from ..dynamics.body import Body
+from .algorithm.clip import ContactGenerator
+from ..collision.algorithm.gjk import PenetrationSource, PointPair, GJK, Simplex
+
 
 class Collsion():
     def __init__(self):
-        self._is_colliding = False
-        self._bodya = None
-        self._bodyb = None
-        self._contact_list = []
-        self._normal = Matrix([0.0, 0.0], 'vec')
-        self._penetration = 0.0
+        self._is_colliding: bool = False
+        self._bodya: Optional[Body] = None
+        self._bodyb: Optional[Body] = None
+        self._contact_list: List[PointPair] = []
+        self._normal: Matrix = Matrix([0.0, 0.0], 'vec')
+        self._penetration: float = 0.0
 
 
 class Detector():
-    def __init__(self):
-        pass
-
     @staticmethod
-    def collide(bodya, bodyb):
+    def collide(bodya: Body, bodyb: Body) -> bool:
         assert bodya != None and bodyb != None
-        shapea = ShapePrimitive()
-        shapeb = ShapePrimitive()
 
-        shapea._shape = bodya.shape()
-        shapea._rot = bodya.rotation()
-        shapea._xform = bodya.position()
+        prima: ShapePrimitive = ShapePrimitive()
+        primb: ShapePrimitive = ShapePrimitive()
 
-        shapeb._shape = bodyb.shape()
-        shapeb._rot = bodyb.rotation()
-        shapeb._xform = bodyb.position()
+        prima._shape = bodya.shape
+        prima._rot = bodya.rot
+        prima._xform = bodya.pos
 
-        (is_colliding, simplex) = GJK.gjk(shapea, shapeb)
-        if shapea._xform == shapeb._xform and not is_colliding:
+        primb._shape = bodyb.shape
+        primb._rot = bodyb.rot
+        primb._xform = bodyb.pos
+
+        (is_colliding, simplex) = GJK.gjk(prima, primb)
+        if prima._xform == primb._xform and not is_colliding:
             is_colliding = simplex.contain_origin(True)
 
         return is_colliding
 
     @staticmethod
-    def detect(bodya, bodyb):
-        result = Collsion()
+    def detect(bodya: Body, bodyb: Body) -> Collsion:
+        res: Collsion = Collsion()
 
         if bodya == None or bodyb == None:
-            return result
+            return res
 
         if bodya == bodyb:
-            return result
+            return res
 
-        if bodya.id() > bodyb.id():
-            tmp = bodya
-            bodya = bodyb
-            bodyb = tmp
+        if bodya.id > bodyb.id:
+            bodya, bodyb = bodyb, bodya
 
-        result._bodya = bodya
-        result._bodyb = bodyb
+        res._bodya = bodya
+        res._bodyb = bodyb
 
-        shapea = ShapePrimitive()
-        shapeb = ShapePrimitive()
+        prima: ShapePrimitive = ShapePrimitive()
+        primb: ShapePrimitive = ShapePrimitive()
 
-        shapea._shape = bodya.shape()
-        shapea._rot = bodya.rotation()
-        shapea._xform = bodya.position()
+        prima._shape = bodya.shape
+        prima._rot = bodya.rot
+        prima._xform = bodya.pos
 
-        shapeb._shape = bodyb.shape()
-        shapeb._rot = bodyb.rotation()
-        shapeb._xform = bodyb.position()
+        primb._shape = bodyb.shape
+        primb._rot = bodyb.rot
+        primb._xform = bodyb.pos
 
-        (is_colliding, simplex) = GJK.gjk(shapea, shapeb)
-        if shapea._xform == shapeb._xform and not is_colliding:
+        (is_colliding, simplex) = GJK.gjk(prima, primb)
+        if prima._xform == primb._xform and not is_colliding:
             is_colliding = simplex.contain_origin(True)
 
-        result._is_colliding = is_colliding
+        res._is_colliding = is_colliding
+
         if is_colliding:
-            old_simplex = simplex
-            simpelx = GJK.epa(shapea, shapeb, simplex)
-            source = GJK.dump_source()
+            # old_simplex: Simplex = simplex
+            simplex = GJK.epa(prima, primb, simplex)
+            source: PenetrationSource = GJK.dump_source(simplex)
+            info = GJK.dump_info(source)
 
-            info = GJK.dump_info()
-            result._normal = info._normal
-            result._penetration = info._penetration
+            res._normal = info._normal
+            res._penetration = info._penetration
 
-            (clip_edge_a,
-             clip_edge_b) = ContactGenerator.recognize(shapa, shape,
-                                                       info._normal)
-            pair_list = ContactGenerator.clip(clip_edge_a, clip_edge_b,
+            (clip_edga,
+             clip_edgb) = ContactGenerator.recognize(prima, primb,
+                                                     info._normal)
+            #HACK: add type hint
+            pair_list = ContactGenerator.clip(clip_edga, clip_edgb,
                                               info._normal)
 
-            val_pass = False
+            val_pass: bool = False
             for elem in pair_list:
-                # FIXME:
-                if (elem._pointa - elem._pointb).len_square(
-                ) == result._penetration * result._penetration:
+                if (elem._pa - elem._pb
+                    ).len_square() == res._penetration * res._penetration:
                     val_pass = True
 
+                # if fail, there must be a deeper contact point, use it:
                 if val_pass:
-                    result._contact_list = pair_list
+                    res._contact_list = pair_list
                 else:
-                    result._contact_list.append(GJK.dump_points(source))
+                    res._contact_list.append(GJK.dump_points(source))
 
-            assert len(result._contact_list) != 3
-            return result
+            assert len(res._contact_list) != 3
+            return res
 
     @staticmethod
-    def distance(bodya, bodyb):
-        result = PointPair()
+    def distance(bodya: Body, bodyb: Body) -> PointPair:
+        res: PointPair = PointPair()
+
         if bodya == None or bodyb == None:
-            return result
+            return res
 
         if bodya == bodyb:
-            return result
+            return res
 
-        shapea = ShapePrimitive()
-        shapeb = ShapePrimitive()
+        prima: ShapePrimitive = ShapePrimitive()
+        primb: ShapePrimitive = ShapePrimitive()
 
-        shapea._shape = bodya.shape()
-        shapea._rot = bodya.rotation()
-        shapea._xform = bodya.position()
+        prima._shape = bodya.shape
+        prima._rot = bodya.rot
+        prima._xform = bodya.pos
 
-        shapeb._shape = bodyb.shape()
-        shapeb._rot = bodyb.rotation()
-        shapeb._xform = bodyb.position()
-        return GJK.distance(shapea, shapeb)
+        primb._shape = bodyb.shape
+        primb._rot = bodyb.rot
+        primb._xform = bodyb.pos
+        return GJK.distance(prima, primb)

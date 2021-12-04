@@ -22,8 +22,8 @@ class RotationJoint(Joint):
         self._primitive = RotationJointPrimitive
         self._factor = 0.2
 
-    def set_value(self, primitive):
-        self._primitive = primitive
+    def set_value(self, prim):
+        self._primitive = prim
 
     def prepare(self, dt):
         if self._primitive._bodya == None or self._primitive._bodyb == None:
@@ -53,7 +53,7 @@ class RotationJoint(Joint):
     def solve_position(self, dt):
         pass
 
-    def primitive(self):
+    def prim(self):
         return self._primitive
 
 
@@ -63,8 +63,8 @@ class OrientationJoint(Joint):
         self._primitive = OrientationJointPrimitive()
         self._factor = 1.0
 
-    def set_value(self, primitive):
-        self._primitive = primitive
+    def set_value(self, prim):
+        self._primitive = prim
 
     def prepare(self, dt):
         if self._primitive._bodya == None:
@@ -97,5 +97,5 @@ class OrientationJoint(Joint):
         def solve_position(self, dt):
             pass
 
-        def primitive(self):
+        def prim(self):
             return self._primitive

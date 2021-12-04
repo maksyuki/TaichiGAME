@@ -122,8 +122,8 @@ class ContactMaintainer():
 
         for elem in collision._contact_list:
             existed = False
-            locala = bodya.to_local_point(elem._pointa)
-            localb = bodyb.to_local_point(elem._pointb)
+            locala = bodya.to_local_point(elem._pa)
+            localb = bodyb.to_local_point(elem._pb)
             for contact in contact_list:
                 # FIXME:
                 is_pointa = np.isclose(contain._locala, 0.1)
