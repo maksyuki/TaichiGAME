@@ -13,7 +13,7 @@ class JointType(IntEnum):
     Pulley = 4
     Prismatic = 5
     Wheel = 6
-    Revolut = 7
+    Revolute = 7
 
 
 class Joint():
