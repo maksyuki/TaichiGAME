@@ -1,3 +1,4 @@
+from TaichiGAME.common.random import RandomGenerator
 from TaichiGAME.dynamics.joint.rotation import RotationJointPrimitive
 from typing import IO, List, Dict, Optional, Tuple, Union
 
@@ -186,7 +187,7 @@ class PhysicsWorld():
 
     def create_body(self) -> Body:
         body: Body = Body()
-        body.id = 6  # FIXME: need to gen by random module
+        body.id = RandomGenerator.unique()
         self._body_list.append(body)
         return body
 
@@ -210,21 +211,21 @@ class PhysicsWorld():
         elif isinstance(prim, OrientationJointPrimitive):
             joint = OrientationJoint(prim)
 
-        joint.id = 6  # FIXME:
+        joint.id = RandomGenerator.unique()
         self._joint_list.append(joint)
         return joint
 
     def remove_body(self, body: Body):
         for b in self._body_list:
             if body == b:
-                #FIXME:
+                RandomGenerator.pop(body.id)
                 self._body_list.remove(body)
                 break
 
     def remove_joint(self, joint: Joint):
         for j in self._joint_list:
             if joint == j:
-                #FIXME:
+                RandomGenerator.pop(joint.id)
                 self._joint_list.remove(joint)
 
     def clear_all_bodies(self):
