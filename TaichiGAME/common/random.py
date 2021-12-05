@@ -3,6 +3,7 @@ from typing import List
 
 class RandomGenerator():
     # now only use the seq methods(not random) to give unique id
+    # NOTE: need to make a single instance in the project
     empty_list: List[int] = []
     start_id: int = 1000
 
@@ -13,7 +14,7 @@ class RandomGenerator():
             return res
 
         RandomGenerator.start_id += 1
-        return RandomGenerator
+        return RandomGenerator.start_id
 
     @staticmethod
     def pop(id: int):
