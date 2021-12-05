@@ -1,176 +1,184 @@
+from typing import List, Dict, Optional, Tuple
+
+import numpy as np
+
+from ...math.matrix import Matrix
+from ..body import Body
+from .joint import Joint, JointType
+
+
 class DistanceJointPrimitive():
     def __init__(self):
-        self._bodya = None
-        self._local_pointa = Matrix([0.0, 0.0], 'vec')
-        self._target_point = Matrix([0.0, 0.0], 'vec')
-        self._normal = Matrix([0.0, 0.0], 'vec')
-        self._bias_factor = 0.3
-        self._bias = 0.0
-        self._min_distance = 0.0
-        self._max_distance = 0.0
-        self._effective_mass = 0.0
-        self._accumulated_impulse = 0.0
+        self._bodya: Optional[Body] = None
+        self._local_pointa: Matrix = Matrix([0.0, 0.0], 'vec')
+        self._target_point: Matrix = Matrix([0.0, 0.0], 'vec')
+        self._normal: Matrix = Matrix([0.0, 0.0], 'vec')
+        self._bias_factor: float = 0.3
+        self._bias: float = 0.0
+        self._dist_min: float = 0.0
+        self._dist_max: float = 0.0
+        self._eff_mass: float = 0.0
+        self._accum_impulse: float = 0.0
 
 
 class DistanceConstraintPrimitive():
     def __init__(self):
-        self._bodya = None
-        self._bodyb = None
-        self._nearest_pointa = Matrix([0.0, 0.0], 'vec')
-        self._nearest_pointb = Matrix([0.0, 0.0], 'vec')
-        self._ra = Matrix([0.0, 0.0], 'vec')
-        self._rb = Matrix([0.0, 0.0], 'vec')
-        self._bias = Matrix([0.0, 0.0], 'vec')
-        self._effective_mass = Matrix()
-        self._impluse = Matrix([0.0, 0.0], 'vec')
-        self._max_force = 200.0
+        self._bodya: Optional[Body] = None
+        self._bodyb: Optional[Body] = None
+        self._nearest_pa: Matrix = Matrix([0.0, 0.0], 'vec')
+        self._nearest_pb: Matrix = Matrix([0.0, 0.0], 'vec')
+        self._ra: Matrix = Matrix([0.0, 0.0], 'vec')
+        self._rb: Matrix = Matrix([0.0, 0.0], 'vec')
+        self._bias: Matrix = Matrix([0.0, 0.0], 'vec')
+        self._eff_mass: Matrix = Matrix([0.0, 0.0, 0.0, 0.0])
+        self._impluse: Matrix = Matrix([0.0, 0.0], 'vec')
+        self._force_max: float = 200.0
 
 
 class DistanceJoint(Joint):
-    def __init__(self):
-        self._type = JointType.Distance
-        self._primitive = DistanceJointPrimitive()
-        self._factor = 0.4
+    def __init__(self,
+                 prim: DistanceJointPrimitive = DistanceJointPrimitive()):
+        self._type: JointType = JointType.Distance
+        self._prim: DistanceJointPrimitive = prim
+        self._factor: float = 0.4
 
-    def set_value(self, prim):
-        self._primitive = prim
+    def set_value(self, prim: DistanceConstraintPrimitive):
+        self._prim = prim
 
-    def prepare(self, dt):
-        assert self._primitive._min_distance <= self._primitive._max_distance
+    def prepare(self, dt: float):
+        assert self._prim._dist_min <= self._prim._dist_max
 
-        boyda = self._primitive._bodya
-        pa = bodya.to_world_point(self._primitive._local_pointa)
-        ra = pa - bodya.position()
-        pb = self._primitive._target_point
-        im_a = self._primitive._bodya.inverse_mass()
-        ii_a = self._primitive._bodya.inverse_inertia()
-        error = pb - pa
-        val_len = error.len()
-        c = 0
+        bodya: Body = self._prim._bodya
+        pa: Matrix = bodya.to_world_point(self._prim._local_pointa)
+        ra: Matrix = pa - bodya.pos
+        pb: Matrix = self._prim._target_point
+        im_a: float = self._prim._bodya.inv_mass
+        ii_a: float = self._prim._bodya.inv_inertia
+        error: Matrix = pb - pa
+        val_len: float = error.len()
+        c: float = 0.0
 
-        self._primitive._normal = error.normal()
-        if val_len < self._primitive._min_distance:
-            c = self._primitive._min_distance - val_len
-            self._primitive._normal.negate()
-        elif val_len > self._primitive._max_distance:
-            c = val_len - self._primitive._max_distance
+        self._prim._normal = error.normal()
+        if val_len < self._prim._dist_min:
+            c = self._prim._dist_min - val_len
+            self._prim._normal.negate()
+
+        elif val_len > self._prim._dist_max:
+            c = val_len - self._prim._dist_max
+
         else:
-            self._primitive._accumulated_impulse = 0.0
-            self._primitive._normal.clear()
+            self._prim._accum_impulse = 0.0
+            self._prim._normal.clear()
             self._bias = 0.0
             return
 
-        if self._primitive._bodya.velocity().dot(self._primitive._normal) > 0:
-            self._primitive._accumulated_impulse = 0.0
-            self._primitive._normal.clear()
-            self._primitive._bias = 0.0
+        if self._prim._bodya.vel.dot(self._prim._normal) > 0:
+            self._prim._accum_impulse = 0.0
+            self._prim._normal.clear()
+            self._prim._bias = 0.0
             return
 
-        rn_a = self._primitive._normal.dot(ra)
-        self._primitive._effective_mass = 1.0 / (im_a + ii_a * rn_a * rn_a)
-        self._primitive._bias = self._primitive._bias_factor * c / dt
+        rn_a: float = self._prim._normal.dot(ra)
+        self._prim._eff_mass = 1.0 / (im_a + ii_a * rn_a * rn_a)
+        self._prim._bias = self._prim._bias_factor * c / dt
 
-    def solve_velocity(self, dt):
-        if self._primitive._bias == 0:
+    def solve_velocity(self, dt: float):
+        if self._prim._bias == 0:
             return
 
-        ra = self._primitive._bodya.to_world_point(
-            self._primitive._local_pointa) - self._primitive._bodya.position()
-        va = self._primitive._bodya.velocity() + Matrix.cross_product(
-            self._primitive._bodya.angular_velocity(), ra)
-        dv = va
-        jv = self._primitive._normal.dot(dv)
-        jvb = -jv + self._primitive._bias
-        lambda_n = self._primitive._effective_mass * jvb
+        ra: Matrix = self._prim._bodya.to_world_point(
+            self._prim._local_pointa) - self._prim._bodya.pos
+        va: Matrix = self._prim._bodya.vel + Matrix.cross_product(
+            self._prim._bodya.ang_vel, ra)
+        dv: Matrix = va
+        jv: float = self._prim._normal.dot(dv)
+        jvb: float = -jv + self._prim._bias
+        lambda_n: float = self._prim._eff_mass * jvb
 
-        old_impulse = self._primitive._accumulated_impulse
-        self._primitive._accumulated_impulse = np.fmax(old_impulse + lambda_n,
-                                                       0)
-        lambda_n = self._primitive._accumulated_impulse - old_impulse
+        old_impulse: float = self._prim._accum_impulse
+        self._prim._accum_impulse = np.fmax(old_impulse + lambda_n, 0)
+        lambda_n = self._prim._accum_impulse - old_impulse
 
-        impulse = lambda_n * self._primitive._normal
-        self._primitive._bodya.apply_impulse(impulse, ra)
+        impulse: Matrix = lambda_n * self._prim._normal
+        self._prim._bodya.apply_impulse(impulse, ra)
 
-        def solve_position(self, dt):
-            pass
+    def solve_position(self, dt: float):
+        pass
 
-        def prim(self):
-            return self._primitive
+    @property
+    def prim(self) -> DistanceJointPrimitive:
+        return self._prim
 
 
 class DistanceConstraint(Joint):
-    def __init__(self):
-        self._primitive = DistanceConstraintPrimitive()
-        self._factor = 0.1
+    def __init__(
+        self,
+        prim: DistanceConstraintPrimitive = DistanceConstraintPrimitive()):
+        self._prim: DistanceConstraintPrimitive = prim
+        self._factor: float = 0.1
 
-    def prepare(self, dt):
-        if self._primitive._bodya == None or self._primitive._bodyb:
+    def prepare(self, dt: float):
+        if self._prim._bodya == None or self._prim._bodyb == None:
             return
 
-        bodya = self._primitive._bodyb
-        bodyb = self._primitive._bodyb
-        im_a = bodya.inverse_mass()
-        ii_a = bodya.inverse_inertia()
+        bodya: Body = self._prim._bodyb
+        bodyb: Body = self._prim._bodyb
 
-        im_b = bodyb.inverse_mass()
-        ii_b = bodyb.inverse_inertia()
+        im_a: float = bodya.inv_mass
+        ii_a: float = bodya.inv_inertia
+        im_b: float = bodyb.inv_mass
+        ii_b: float = bodyb.inv_inertia
 
-        self._primitive._ra = self._primitive._nearest_pointa - bodya.position(
-        )
-        self._primitive._rb = self._primitive._nearest_pointb - bodyb.position(
-        )
-        ra = self._primitive._ra
-        rb = self._primitive._rb
-        error = self._primitive._nearest_pointa - self._primitive._nearest_pointb
+        self._prim._ra = self._prim._nearest_pa - bodya.pos
+        self._prim._rb = self._prim._nearest_pb - bodyb.pos
+        ra: Matrix = self._prim._ra
+        rb: Matrix = self._prim._rb
+        error: Matrix = self._prim._nearest_pa - self._prim._nearest_pb
 
-        k = Matrix()
-        data_arr = []
-        data_arr.append(im_a + ra.val[1] * ra.val[1] * ii_a + im_b +
-                        rb.val[1] * rb.val[1] * ii_b)
-        data_arr.append(-ra.val[0] * ra.val[1] * ii_a -
-                        rb.val[0] * rb.val[1] * ii_b)
-        data_arr.append(-ra.val[0] * ra.val[1] * ii_a -
-                        rb.val[0] * rb.val[1] * ii_b)
-        data_arr.append(im_a + ra.val[0] * ra.val[0] * ii_a + im_b +
-                        rb.val[0] * rb.val[0] * ii_b)
-
+        k: Matrix = Matrix([0.0, 0.0, 0.0, 0.0])
+        data_arr: float = []
+        data_arr.append(im_a + ra.y * ra.y * ii_a + im_b + rb.y * rb.y * ii_b)
+        data_arr.append(-ra.x * ra.y * ii_a - rb.x * rb.y * ii_b)
+        data_arr.append(data_arr[1])
+        data_arr.append(im_a + ra.x * ra.x * ii_a + im_b + rb.x * rb.x * ii_b)
         k.set_value(data_arr)
-        self._primitive._bias = erro * self._factor
-        self._primitive._effective_mass = k.invert()
 
-    def solve_velocity(self, dt):
-        if self._primitive._bodya == None or self._primitive._bodyb == None:
+        self._prim._bias = error * self._factor
+        self._prim._eff_mass = k.invert()
+
+    def solve_velocity(self, dt: float):
+        if self._prim._bodya == None or self._prim._bodyb == None:
             return
 
-        va = self._primitive._bodya.velocity() + Matrix.cross_product(
-            self._primitive._bodya.angular_velocity(), self._primitive._ra)
-        vb = self._primitive._bodyb.velocity() + Matrix.cross_product(
-            self._primitive._bodyb.angular_velocity(), self._primitive._rb)
+        va: Matrix = self._prim._bodya.vel + Matrix.cross_product(
+            self._prim._bodya.ang_vel, self._prim._ra)
+        vb: Matrix = self._prim._bodyb.vel + Matrix.cross_product(
+            self._prim._bodyb.ang_vel, self._prim._rb)
 
-        jvb = va - vb
-        jvb += self._primitive._bias
+        jvb: Matrix = va - vb
+        jvb += self._prim._bias
         jvb.negate()
 
-        J = self._primitive._effective_mass * jvb
-        old_impulse = self._primitive._impluse
-        self._primitive._impluse += J
+        J: Matrix = self._prim._eff_mass * jvb
+        old_impulse: Matrix = self._prim._impluse
+        self._prim._impluse += J
 
-        max_impulse = dt * self._primitive._max_force
+        max_impulse: float = dt * self._prim._force_max
 
-        if self._primitive._impluse.len_square() > max_impulse * max_impulse:
-            self._primitive.impulse.normalize()
-            self._primitive.impulse *= max_impulse
+        if self._prim._impluse.len_square() > max_impulse * max_impulse:
+            self._prim._impulse.normalize()
+            self._prim._impulse *= max_impulse
 
-        J = self._primitive._impluse - old_impulse
-        self._primitive._bodya.apply_impulse(J, self._primitive._ra)
-        self._primitive._bodyb.apply_impulse(J, self._primitive._rb)
+        J = self._prim._impluse - old_impulse
+        self._prim._bodya.apply_impulse(J, self._prim._ra)
+        self._prim._bodyb.apply_impulse(-J, self._prim._rb)
 
-        def set_value(self, pointa, pointb):
-            self._primitive._nearest_pointa = pointa
-            self._primitive._nearest_pointb = pointb
+    def set_value(self, pa: Matrix, pb: Matrix):
+        self._prim._nearest_pa = pa
+        self._prim._nearest_pb = pb
 
-        def solve_position(self):
-            pass
+    def solve_position(self, dt: float):
+        pass
 
-        def prim(self):
-            return self._primitive
+    def prim(self) -> DistanceConstraintPrimitive:
+        return self._prim
