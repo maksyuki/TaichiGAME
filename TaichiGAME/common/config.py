@@ -11,3 +11,14 @@ class Config():
     GeometryEpsilon = 0.00001
     MaxVelocity = 1000.0
     MaxAngularVelocity = 1000.0
+
+    @staticmethod
+    def clamp(num: float, low: float, high: float) -> float:
+        assert low <= high
+
+        if num < low:
+            return low
+        elif num > high:
+            return high
+        else:
+            return num

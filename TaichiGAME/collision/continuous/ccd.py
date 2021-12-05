@@ -255,7 +255,7 @@ class CCD():
             (traj_elem, aabb_elem) = CCD.build_trajectory_aabb(elem._body, dt)
             (new_ccd_tarj,
              new_aabb) = CCD.build_trajectory_aabb(body, dt,
-                                                   elem._body.position())
+                                                   elem._body.pos)
             res: Optional[CCD.IndexSection] = CCD.find_broad_phase_root(
                 body, new_ccd_tarj, elem._body, traj_elem, dt)
 

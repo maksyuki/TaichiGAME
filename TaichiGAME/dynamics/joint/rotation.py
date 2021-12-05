@@ -1,101 +1,102 @@
+from typing import List, Dict, Optional, Tuple
+
+import numpy as np
+
+from ...math.matrix import Matrix
+from ..body import Body
+from .joint import Joint, JointType
+
+
 class RotationJointPrimitive():
     def __init__(self):
-        self._bodya = Body()
-        self._bodyb = Body()
-        self._reference_rot = 0.0
-        self._effective_mass = 0.0
-        self._bias = 0.0
+        self._bodya: Body = Body()
+        self._bodyb: Body = Body()
+        self._ref_rot: float = 0.0
+        self._eff_mass: float = 0.0
+        self._bias: float = 0.0
 
 
 class OrientationJointPrimitive():
     def __init__(self):
-        self._bodya = Body()
-        self._target_point = Matrix([0.0, 0.0], 'vec')
-        self._reference_rot = 0.0
-        self._effective_mass = 0.0
-        self._bias = 0.0
+        self._bodya: Body = Body()
+        self._target_point: Matrix = Matrix([0.0, 0.0], 'vec')
+        self._ref_rot: float = 0.0
+        self._eff_mass: float = 0.0
+        self._bias: float = 0.0
 
 
 class RotationJoint(Joint):
-    def __init__(self):
-        self._type = JointType.Rotation
-        self._primitive = RotationJointPrimitive
-        self._factor = 0.2
+    def __init__(self,
+                 prim: RotationJointPrimitive = RotationJointPrimitive()):
+        self._type: JointType = JointType.Rotation
+        self._prim: RotationJointPrimitive = prim
+        self._factor: float = 0.2
 
-    def set_value(self, prim):
-        self._primitive = prim
+    def set_value(self, prim: RotationJointPrimitive):
+        self._prim = prim
 
-    def prepare(self, dt):
-        if self._primitive._bodya == None or self._primitive._bodyb == None:
+    def prepare(self, dt: float):
+        if self._prim._bodya == None or self._prim._bodyb == None:
             return
 
-        ii_a = self._primitive._bodya.inverse_inertia()
-        ii_b = self._primitive._bodyb.inverse_inertia()
+        ii_a: float = self._prim._bodya.inv_inertia
+        ii_b: float = self._prim._bodyb.inv_inertia
+        inv_dt: float = 1.0 / dt
 
-        inv_dt = 1.0 / dt
-        self._primitive._effective_mass = 1.0 / (ii_a + ii_b)
-        c = self._primitive._bodya.rotation(
-        ) - self._primitive._bodyb.rotation(
-        ) - self._primitive._reference_rot
-        self._primitive._bias = -self._factor * inv_dt * c
+        self._prim._eff_mass = 1.0 / (ii_a + ii_b)
+        c: float = self._prim._bodya.rot - self._prim._bodyb.rot - self._prim._ref_rot
+        self._prim._bias = -self._factor * inv_dt * c
 
-    def solve_velocity(self, dt):
-        dw = self._primitive._bodya.angular_velocity(
-        ) - self._primitive._bodyb.angular_velocity()
-        impulse = self._primitive._effective_mass * (-dw +
-                                                     self._primitive._bias)
+    def solve_velocity(self, dt: float):
+        dw: float = self._prim._bodya.ang_vel - self._prim._bodyb.ang_vel
+        impulse: float = self._prim._eff_mass * (-dw + self._prim._bias)
 
-        self._primitive._bodya.angular_velocity(
-        ) += self._primitive._bodya.inverse_inertia() * impulse
-        self._primitive._bodyb.angular_velocity(
-        ) -= self._primitive._bodyb.inverse_inertia() * impulse
+        self._prim._bodya.ang_vel += self._prim._bodya.inv_inertia * impulse
+        self._prim._bodyb.ang_vel -= self._prim._bodyb.inv_inertia * impulse
 
-    def solve_position(self, dt):
+    def solve_position(self, dt: float):
         pass
 
-    def prim(self):
-        return self._primitive
+    def prim(self) -> RotationJointPrimitive:
+        return self._prim
 
 
 class OrientationJoint(Joint):
-    def __init__(self):
-        self._type = JointType.Orientation
-        self._primitive = OrientationJointPrimitive()
-        self._factor = 1.0
+    def __init__(
+        self, prim: OrientationJointPrimitive = OrientationJointPrimitive()):
+        self._type: JointType = JointType.Orientation
+        self._prim: OrientationJointPrimitive = prim
+        self._factor: float = 1.0
 
-    def set_value(self, prim):
-        self._primitive = prim
+    def set_value(self, prim: OrientationJointPrimitive):
+        self._prim = prim
 
-    def prepare(self, dt):
-        if self._primitive._bodya == None:
+    def prepare(self, dt: float):
+        if self._prim._bodya == None:
             return
 
-        bodya = self._primitive._bodya
-        point = self._primitive._target_point - bodya.position()
-        target_rot = point.theta()
+        bodya: Body = self._prim._bodya
+        point: Matrix = self._prim._target_point - bodya.pos
+        target_rot: float = point.theta()
 
-        ii_a = self._primitive._bodya.inverse_inertia()
-        inv_dt = 1.0 / dt
-        self._primitive._effective_mass = 1.0 / ii_a
-        c = target_rot - self._primitive._bodya.rotation(
-        ) - self._primitive._reference_rot
+        ii_a: float = self._prim._bodya.inv_inertia
+        inv_dt: float = 1.0 / dt
+        self._prim._eff_mass = 1.0 / ii_a
+        c: float = target_rot - self._prim._bodya.rot - self._prim._ref_rot
 
         if np.isclose(c, 2.0 * np.pi) or np.isclose(c, -2.0 * np.pi):
             c = 0
-            bodya.rotation() = target_rot
+            bodya.rot = target_rot
 
-        self._primitive._bias = self._factor * inv_dt * c
+        self._prim._bias = self._factor * inv_dt * c
 
-        def solve_velocity(self, dt):
-            dw = self._primitive._bodya.angular_velocity()
-            impulse = self._primitive._effective_mass * (-dw *
-                                                         self._primitive._bias)
+    def solve_velocity(self, dt: float):
+        dw: float = self._prim._bodya.ang_vel
+        impulse: float = self._prim._eff_mass * (-dw * self._prim._bias)
+        self._prim._bodya.ang_vel += self._prim._bodya.inv_inertia * impulse
 
-            self._primitive._bodya.angular_velocity(
-            ) += self._primitive._bodya.inverse_inertia() * impulse
+    def solve_position(self, dt: float):
+        pass
 
-        def solve_position(self, dt):
-            pass
-
-        def prim(self):
-            return self._primitive
+    def prim(self) -> OrientationJointPrimitive:
+        return self._prim

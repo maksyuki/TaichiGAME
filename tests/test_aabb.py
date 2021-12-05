@@ -1,10 +1,9 @@
-from TaichiGAME.math.matrix import Matrix
 from typing import AbstractSet, List, Dict, Optional, Tuple
 
 import numpy as np
 
 from TaichiGAME.collision.broad_phase.aabb import AABB
-
+from TaichiGAME.math.matrix import Matrix
 
 class TestAABB():
     def test__init__(self):
