@@ -49,18 +49,18 @@ class RevoluteJoint(Joint):
         ii_b: float = bodyb.inv_inertia
 
         if self._prim._freq > 0.0:
-            nf: float = self.natural_frequency(self._prim._freq)
-            self._prim._stiff = self.spring_stiff(m_a + m_b, nf)
-            self._prim._damping = self.spring_damping_cofficient(
-                m_a + m_b, self._prim._damping_radio)
+            nf: float = Joint.natural_frequency(self._prim._freq)
+            self._prim._stiff = Joint.spring_stiff(m_a + m_b, nf)
+            self._prim._damping = Joint.spring_damping_cofficient(
+                m_a + m_b, nf, self._prim._damping_radio)
 
         else:
             self._prim._stiff = 0.0
             self._prim._damping = 0.0
 
-        self._prim._gamma = self.constraint_impulse_mixing(
+        self._prim._gamma = Joint.constraint_impulse_mixing(
             dt, self._prim._stiff, self._prim._damping)
-        erp: float = self.error_reduction_parameter(dt, self._prim._stiff,
+        erp: float = Joint.error_reduction_parameter(dt, self._prim._stiff,
                                                     self._prim._damping)
 
         pa: Matrix = bodya.to_world_point(self._prim._local_pointa)

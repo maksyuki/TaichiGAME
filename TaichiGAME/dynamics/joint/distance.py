@@ -136,7 +136,7 @@ class DistanceConstraint(Joint):
         error: Matrix = self._prim._nearest_pa - self._prim._nearest_pb
 
         k: Matrix = Matrix([0.0, 0.0, 0.0, 0.0])
-        data_arr: float = []
+        data_arr: List[float] = []
         data_arr.append(im_a + ra.y * ra.y * ii_a + im_b + rb.y * rb.y * ii_b)
         data_arr.append(-ra.x * ra.y * ii_a - rb.x * rb.y * ii_b)
         data_arr.append(data_arr[1])
