@@ -1,120 +1,125 @@
+from typing import List, Dict, Optional, Tuple
+
+import numpy as np
+
+from ...math.matrix import Matrix
+from ..body import Body
+from .joint import Joint, JointType
+
+
 class RevoluteJointPrimitive():
     def __init__(self):
-        self._bodya = None
-        self._bodyb = None
-        self._local_pointa = Matrix([0.0, 0.0], 'vec')
-        self._local_pointb = Matrix([0.0, 0.0], 'vec')
-        self._damping = 0.0
-        self._stiffness = 0.0
-        self._frequency = 8.0
-        self._max_force = 5000.0
-        self._damping_radio = 0.2
-        self._gamma = 0.0
-        self._bias = Matrix([0.0, 0.0], 'vec')
-        self._effective_mass = Matrix()
-        self._impulse = Matrix([0.0, 0.0], 'vec')
+        self._bodya: Optional[Body] = None
+        self._bodyb: Optional[Body] = None
+        self._local_pointa: Matrix = Matrix([0.0, 0.0], 'vec')
+        self._local_pointb: Matrix = Matrix([0.0, 0.0], 'vec')
+        self._damping: float = 0.0
+        self._stiff: float = 0.0
+        self._freq: float = 8.0
+        self._force_max: float = 5000.0
+        self._damping_radio: float = 0.2
+        self._gamma: float = 0.0
+        self._bias: Matrix = Matrix([0.0, 0.0], 'vec')
+        self._eff_mass: Matrix = Matrix([0.0, 0.0, 0.0, 0.0])
+        self._impulse: Matrix = Matrix([0.0, 0.0], 'vec')
 
 
 class RevoluteJoint(Joint):
-    def __init__(self):
-        self._type = JointType.Revolute
-        self._primitive = RevoluteJointPrimitive()
+    def __init__(self,
+                 prim: RevoluteJointPrimitive = RevoluteJointPrimitive()):
+        self._type: JointType = JointType.Revolute
+        self._prim: RevoluteJointPrimitive = prim
 
-    def set_value(self, prim):
-        self._primitive = prim
+    def set_value(self, prim: RevoluteJointPrimitive):
+        self._prim = prim
 
-    def prepare(self, dt):
-        if self._primitive._bodya == None or self._primitive._bodyb == None:
+    def prepare(self, dt: float):
+        if self._prim._bodya == None or self._prim._bodyb == None:
             return
 
-        boyda = self._primitive._bodya
-        bodyb = self._primitive._bodyb
+        bodya: Body = self._prim._bodya
+        bodyb: Body = self._prim._bodyb
 
-        m_a = bodya.mass()
-        im_a = bodya.inverse_mass()
-        ii_a = bodya.inverse_inertia()
+        m_a: float = bodya.mass
+        im_a: float = bodya.inv_mass
+        ii_a: float = bodya.inv_inertia
 
-        m_b = bodyb.mass()
-        im_b = bodyb.inverse_mass()
-        ii_b = bodyb.inverse_inertia()
+        m_b: float = bodyb.mass
+        im_b: float = bodyb.inv_mass
+        ii_b: float = bodyb.inv_inertia
 
-        if self._primitive._frequency > 0.0:
-            nrf = self.natural_frequency(self._primitive._frequency)
-            self._primitive._stiffness = self.spring_stiffness(m_a + m_b, nf)
-            self._primitive._damping = self.spring_damping_cofficient(
-                m_a + m_b, self._primitive._damping_radio)
+        if self._prim._freq > 0.0:
+            nf: float = Joint.natural_frequency(self._prim._freq)
+            self._prim._stiff = Joint.spring_stiff(m_a + m_b, nf)
+            self._prim._damping = Joint.spring_damping_cofficient(
+                m_a + m_b, nf, self._prim._damping_radio)
 
         else:
-            self._primitive._stiffness = 0.0
-            self._primitive._damping = 0.0
+            self._prim._stiff = 0.0
+            self._prim._damping = 0.0
 
-        self._primitive._gamma = self.constraint_impulse_mixing(
-            dt, self._primitive._stiffness, self._primitive._damping)
-        erp = self.error_reduction_parameter(dt, self._primitive._stiffness,
-                                             self._primitive._damping)
+        self._prim._gamma = Joint.constraint_impulse_mixing(
+            dt, self._prim._stiff, self._prim._damping)
+        erp: float = Joint.error_reduction_parameter(dt, self._prim._stiff,
+                                                    self._prim._damping)
 
-        pa = bodya.to_world_point(self._primitive._local_pointa)
-        ra = pa - bodya.position()
-        pb = bodyb.to_world_point(self._primitive._local_pointb)
-        rb = pb - bodyb.position()
+        pa: Matrix = bodya.to_world_point(self._prim._local_pointa)
+        ra: Matrix = pa - bodya.pos
+        pb: Matrix = bodyb.to_world_point(self._prim._local_pointb)
+        rb: Matrix = pb - bodyb.pos
 
-        self._primitive._bias = (pa - pb) * erp
-        k = Matrix()
+        self._prim._bias = (pa - pb) * erp
+        k: Matrix = Matrix([0.0, 0.0, 0.0, 0.0])
 
-        data_arr = []
-
-        data_arr.append(im_a + ra.val[1] * ra.val[1] * ii_a +
-                        rb.val[1] * rb.val[1] * ii_b)
-        data_arr.append(-ra.val[0] * ra.val[1] * ii_a -
-                        rb.val[0] * rb.val[1] * ii_b)
+        data_arr: List[float] = []
+        data_arr.append(im_a + ra.y * ra.y * ii_a + rb.y * rb.y * ii_b)
+        data_arr.append(-ra.x * ra.y * ii_a - rb.x * rb.y * ii_b)
         data_arr.append(data_arr[1])
-        data_arr.append(im_a + ra.val[0] * ra.val[0] * ii_a + im_b +
-                        rb.val[0] * rb.val[0] * ii_b)
+        data_arr.append(im_a + ra.x * ra.x * ii_a + im_b + rb.x * rb.x * ii_b)
 
-        data_arr[0] += self._primitive._gamma
-        data_arr[3] += self._primitive._gamma
+        data_arr[0] += self._prim._gamma
+        data_arr[3] += self._prim._gamma
 
         k.set_value(data_arr)
 
-        self._primitive._effective_mass = k.invert()
-        self._primitive._bodya.apply_impulse(self._primitive._impulse, ra)
-        self._primitive._bodyb.apply_impulse(self._primitive._impulse, rb)
+        self._prim._eff_mass = k.invert()
+        self._prim._bodya.apply_impulse(self._prim._impulse, ra)
+        self._prim._bodyb.apply_impulse(-self._prim._impulse, rb)
 
-    def solve_velocity(self, dt):
-        if self._primitive._bodya == None or self._primitive._bodyb:
+    def solve_velocity(self, dt: float):
+        if self._prim._bodya == None or self._prim._bodyb == None:
             return
 
-        ra = self._primitive._bodya.to_world_point(
-            self._primitive._local_pointa) - self._primitive._bodya.position()
-        va = self._primitive._bodya.velocity() + Matrix.cross_product(
-            self._primitive._bodya.angular_velocity(), ra)
-        rb = self._primitive._bodyb.to_world_point(
-            self._primitive._local_pointb) - self._primitive._bodyb.position()
-        vb = self._primitive._bodyb.velocity() + Matrix.cross_product(
-            self._primitive._bodyb.angular_velocity(), rb)
+        ra: Matrix = self._prim._bodya.to_world_point(
+            self._prim._local_pointa) - self._prim._bodya.pos
+        va: Matrix = self._prim._bodya.vel + Matrix.cross_product(
+            self._prim._bodya.ang_vel, ra)
+        rb: Matrix = self._prim._bodyb.to_world_point(
+            self._prim._local_pointb) - self._prim._bodyb.pos
+        vb: Matrix = self._prim._bodyb.vel + Matrix.cross_product(
+            self._prim._bodyb.ang_vel, rb)
 
-        jvb = va - vb
-        jvb += self._primitive._bias
-        jvb += self._primitive._impulse * self._primitive._gamma
+        jvb: Matrix = va - vb
+        jvb += self._prim._bias
+        jvb += self._prim._impulse * self._prim._gamma
         jvb.negate()
 
-        J = self._primitive._effective_mass * jvb
-        old_impulse = self._primitive._impulse
-        self._primitive._impulse += J
+        J: Matrix = self._prim._eff_mass * jvb
+        old_impulse: Matrix = self._prim._impulse
+        self._prim._impulse += J
 
-        max_impulse = dt * self._primitive._max_force
+        max_impulse: float = dt * self._prim._force_max
+        if self._prim._impulse.len_square() > max_impulse * max_impulse:
+            self._prim._impulse.normalize()
+            self._prim._impulse *= max_impulse
 
-        if self._primitive._impulse.len_square() > max_impulse * max_impulse:
-            self._primitive._impulse.normalize()
-            self._primitive._impulse *= max_impulse
+        J = self._prim._impulse - old_impulse
+        self._prim._bodya.apply_impulse(J, ra)
+        self._prim._bodyb.apply_impulse(-J, rb)
 
-        J = self._primitive._impulse - old_impulse
-        self._primitive._bodya.apply_impulse(J, ra)
-        self._primitive._bodyb.apply_impulse(-J, rb)
-
-    def solve_position(self, dt):
-        if self._primitive._bodya == None or self._primitive._bodby == None:
+    def solve_position(self, dt: float):
+        if self._prim._bodya == None or self._prim._bodby == None:
             return
 
-    def prim(self):
-        return self._primitive
+    def prim(self) -> RevoluteJointPrimitive:
+        return self._prim

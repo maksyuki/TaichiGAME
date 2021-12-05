@@ -1,9 +1,9 @@
-from TaichiGAME.geometry.shape import ShapePrimitive
 from typing import List, Dict, Optional, Tuple
 
 from ..math.matrix import Matrix
 from ..dynamics.body import Body
 from .algorithm.clip import ContactGenerator
+from ..geometry.shape import ShapePrimitive
 from ..collision.algorithm.gjk import PenetrationSource, PointPair, GJK, Simplex
 
 
