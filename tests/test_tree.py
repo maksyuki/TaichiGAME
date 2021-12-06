@@ -94,7 +94,7 @@ class TestTree():
     def test_generate(self):
         assert 1
 
-    def test_inert(self):
+    def test_insert(self):
         assert 1
 
     def test_remove(self):
@@ -149,7 +149,13 @@ class TestTree():
         assert 1
 
     def test__remove(self):
-        assert 1
+        dut: Tree = Tree()
+        assert dut._allocate_node() == 0
+        assert dut._allocate_node() == 1
+        assert dut._allocate_node() == 2
+        dut._remove(0)
+        assert dut._allocate_node() == 0
+        assert dut._allocate_node() == 3
 
     def test__elevate(self):
         assert 1
@@ -167,7 +173,13 @@ class TestTree():
         assert 1
 
     def test__allocate_node(self):
-        assert 1
+        dut: Tree = Tree()
+        assert dut._allocate_node() == 0
+        assert dut._allocate_node() == 1
+        assert dut._allocate_node() == 2
+        dut._remove(0)
+        assert dut._allocate_node() == 0
+        assert dut._allocate_node() == 3
 
     def test__height(self):
         assert 1
