@@ -1,4 +1,7 @@
+from TaichiGAME.common.config import Config
 from typing import List, Tuple
+
+import numpy as np
 
 from taichi.misc.gui import GUI
 
@@ -53,22 +56,62 @@ class Render():
         assert gui != None and cam != None
 
         if prim._shape.type() == Shape.Type.Polygon:
+            #[trick] draw polygon by draw multi triangle
             poly: Polygon = prim._shape
             assert len(poly.vertices) >= 3
 
-            if len(poly.vertices) == 3:
-                pass  # triangle
-            elif len(poly.vertices) == 4:
-                for p in poly.vertices:
-                    wordp: Matrix = Matrix.rotate_mat(
-                        prim._rot) * p + prim._xform
-                    scrnp: Matrix = cam.world_to_screen(wordp)
+            outer_line_st: np.ndarray = None
+            outer_line_ed: np.ndarray = None
+            fill_tri_pa: np.ndarray = None
+            fill_tri_pb: np.ndarray = None
+            fill_tri_pc: np.ndarray = None
 
-            else:
-                pass  #[trick] draw polygon by draw multi triangle
+            is_first: bool = True
+
+            # NOTE: the vertices can form a close shape,
+            # so the first vertex and last vertex are same
+            vert_len: int = len(poly.vertices)
+            for i in range(vert_len - 1):
+                wordpa: Matrix = Matrix.rotate_mat(
+                    prim._rot) * poly.vertices[i] + prim._xform
+                scrnpa: Matrix = cam.world_to_screen(wordpa)
+                scrnpa.x /= cam.viewport.width
+                scrnpa.y /= cam.viewport.height
+
+                wordpb: Matrix = Matrix.rotate_mat(
+                    prim._rot) * poly.vertices[i + 1] + prim._xform
+                scrnpb: Matrix = cam.world_to_screen(wordpb)
+                scrnpb.x /= cam.viewport.width
+                scrnpb.y /= cam.viewport.height
+
+                if is_first:
+                    is_first = False
+                    outer_line_st = np.array([[scrnpa.x, scrnpa.y]])
+                    outer_line_st = np.array([[scrnpb.x, scrnpb.y]])
+                else:
+                    tmpa = np.array([[scrnpa.x, scrnpa.y]])
+                    tmpb = np.array([[scrnpb.x, scrnpb.y]])
+                    np.concatenate((outer_line_st, tmpa))
+                    np.concatenate((outer_line_ed, tmpb))
+
+            fill_tri_pa = np.repeat(np.array([outer_line_st[0]]),
+                                    vert_len - 3,
+                                    axis=0)
+            fill_tri_pb = outer_line_st[1:-1]
+            fill_tri_pc = outer_line_st[2:]
+
+            gui.lines(outer_line_st,
+                      outer_line_ed,
+                      radius=2,
+                      color=Config.OuterLineColor)
+            gui.triangles(fill_tri_pa,
+                          fill_tri_pb,
+                          fill_tri_pc,
+                          color=Config.FillColor)
 
         elif prim._shape.type() == Shape.Type.Ellipse:
             pass
+
         elif prim._shape.type() == Shape.Type.Circle:
             cir: Circle = prim._shape
             scrnp: Matrix = cam.world_to_screen(prim._xform)
