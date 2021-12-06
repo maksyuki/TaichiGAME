@@ -14,7 +14,8 @@ class TestRandom():
         RandomGenerator.pop(dut2)
         dut3: int = RandomGenerator.unique()
         dut4: int = RandomGenerator.unique()
-        assert dut1 == 1001
-        assert dut2 == 1002
-        assert dut3 == 1002
-        assert dut4 == 1003
+        print(dut1)
+        assert dut1 == 1003
+        assert dut2 == 1004
+        assert dut3 == 1004
+        assert dut4 == 1005

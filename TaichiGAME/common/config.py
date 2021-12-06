@@ -1,16 +1,19 @@
 class Config():
-    SimplexMax = 8
-    Epsilon = 1e-5
-    Max = 1e37
-    PositiveMin = 1e-37
-    NegativeMin = -Max
-    Pi = 3.14159265
-    HalfPi = Pi / 2.0
-    DoublePi = Pi * 2.0
-    ReciprocalOfPi = 0.3183098861
-    GeometryEpsilon = 0.00001
-    MaxVelocity = 1000.0
-    MaxAngularVelocity = 1000.0
+    SimplexMax: int = 8
+    Epsilon: float = 1e-5
+    Max: float = 1e37
+    PositiveMin: float = 1e-37
+    NegativeMin: float = -Max
+    Pi: float = 3.14159265
+    HalfPi: float = Pi / 2.0
+    DoublePi: float = Pi * 2.0
+    ReciprocalOfPi: float = 0.3183098861
+    GeometryEpsilon: float = 0.00001
+    MaxVelocity: float = 1000.0
+    MaxAngularVelocity: float = 1000.0
+    # render
+    OuterLineColor: int = 0x00FF00
+    FillColor: int = 0x008000
 
     @staticmethod
     def clamp(num: float, low: float, high: float) -> float:
