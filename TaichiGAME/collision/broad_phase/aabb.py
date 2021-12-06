@@ -116,7 +116,7 @@ class AABB():
 
     def is_empty(self) -> bool:
         return np.isclose(self._width, 0.0) and np.isclose(
-            self._height, 0.0) and np.isclose(self._pos, [0.0, 0.0]).all()
+            self._height, 0.0) and self._pos == Matrix([0.0, 0.0], 'vec')
 
     def raycast(self, start: Matrix, dir: Matrix) -> bool:
         return AABB._raycast(self, start, dir)
