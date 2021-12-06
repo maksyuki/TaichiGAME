@@ -4,7 +4,6 @@ import numpy as np
 
 from ...math.matrix import Matrix
 from ...common.config import Config
-from ...geometry.geom_algo import GeomAlgo2D
 from ...dynamics.body import Body
 from ..broad_phase.aabb import AABB
 
@@ -14,7 +13,7 @@ class DBVH():
     This is implemented by traditional binary search tree
     '''
     class Node():
-        def __init__(self, body: Body = None, aabb: AABB = None):
+        def __init__(self, body: Optional[Body] = None, aabb: Optional[AABB] = None):
             self._parent: Optional[DBVH.Node] = None
             self._left: Optional[DBVH.Node] = None
             self._right: Optional[DBVH.Node] = None
@@ -22,6 +21,14 @@ class DBVH():
             self._aabb: Optional[AABB] = aabb
 
         def separate(self, node):
+            '''check if the node is the child of self,
+            if true, separate the parent-child
+
+            Parameters
+            ----------
+            node : Node
+                other node
+            '''
             if node == None:
                 return
 
@@ -31,13 +38,24 @@ class DBVH():
             if node == self._left:
                 self._left = None
                 node._parent = None
-                self._aabb = self._right._aabb
+                if self._right != None:
+                    self._aabb = self._right._aabb
             elif node == self._right:
                 self._right = None
                 node._parent = None
-                self._aabb = self._left._aabb
+                if self._left != None:
+                    self._aabb = self._left._aabb
 
         def swap(self, src, target):
+            '''swap the self's child src node with target node
+
+            Parameters
+            ----------
+            src : Node
+                self's child node
+            target : Node
+                swap node
+            '''
             if src == self._left:
                 self.separate(self._left)
                 target._parent = self
@@ -59,7 +77,8 @@ class DBVH():
 
         def clear(self) -> bool:
             self._body = None
-            self._aabb.clear()
+            if self._aabb != None:
+                self._aabb.clear()
 
     def __init__(self):
         self._root: Optional[DBVH.Node] = None
