@@ -10,8 +10,8 @@ from ...geometry.shape import Capsule, Circle, Edge, Ellipse, Point, Polygon, Se
 
 class Minkowski():
     def __init__(self,
-                 pa: Optional[Matrix] = None,
-                 pb: Optional[Matrix] = None):
+                 pa: Matrix = Matrix([0.0, 0.0], 'vec'),
+                 pb: Matrix = Matrix([0.0, 0.0], 'vec')):
         self._pa: Matrix = pa
         self._pb: Matrix = pb
         self._res: Matrix = self._pa - self._pb
@@ -60,7 +60,7 @@ class Simplex():
 
     @staticmethod
     def _contain_origin(simplex, strict: bool = False) -> bool:
-        vert_len: int = len(simplex.vertices())
+        vert_len: int = len(simplex._vertices)
         if vert_len == 4:
             return GeomAlgo2D.is_triangle_contain_origin(
                 simplex._vertices[0]._res, simplex._vertices[1]._res,
@@ -69,7 +69,8 @@ class Simplex():
         elif vert_len == 2:
             oa: Matrix = -simplex._vertices[0]._res
             ob: Matrix = -simplex._vertices[1]._res
-            return GeomAlgo2D.is_point_on_segment(oa, ob, [0.0, 0.0])
+            return GeomAlgo2D.is_point_on_segment(oa, ob, Matrix([0.0, 0.0], 'vec'))
+
         else:
             return False
 
