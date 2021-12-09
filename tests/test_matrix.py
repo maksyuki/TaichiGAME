@@ -256,6 +256,10 @@ class TestMatrix():
         mat1.set_value(TestMatrix.mat2_arr)
         self.mat_trans_helper(mat1, 'set_value')
 
+        mat2: Matrix = Matrix(TestMatrix.mat2_arr)
+        mat1.set_value(mat2)
+        assert mat1 == mat2
+
     def test_clear(self):
         mat1: Matrix = Matrix(TestMatrix.mat1_arr)
         self.mat_trans_helper(mat1.clear(), 'clear')

@@ -248,8 +248,11 @@ class Matrix():
         assert not np.isclose(self._val[0, 0], 0)
         return np.arctan2(self._val[1, 0], self._val[0, 0])
 
-    def set_value(self, arr: List[float]) -> Matrix:
-        self._val = np.array(arr).reshape(self._val.shape)
+    def set_value(self, val: Union[List[float], Matrix]) -> Matrix:
+        if isinstance(val, list):
+            self._val = np.array(val).reshape(self._val.shape)
+        elif isinstance(val, Matrix):
+            self._val = val._val
         return self
 
     def clear(self) -> Matrix:

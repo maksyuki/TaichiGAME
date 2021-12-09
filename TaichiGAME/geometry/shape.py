@@ -1,7 +1,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from enum import IntEnum, unique
-from typing import List, Optional, Type, TypeVar
+from typing import List, Optional, Union
 
 import numpy as np
 
@@ -52,8 +52,8 @@ class ShapePrimitive():
        Including vertices/position/angle of shape
     '''
     def __init__(self):
-        U = TypeVar('U', bound=Shape)
-        self._shape: Optional[Type[U]] = None
+        self._shape: Optional[Union[Point, Polygon, Rectangle, Circle, Ellipse,
+                                    Edge, Curve, Capsule, Sector]] = None
         self._xform: Matrix = Matrix([0.0, 0.0], 'vec')
         self._rot: float = 0.0
 
