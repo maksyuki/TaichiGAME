@@ -1,4 +1,4 @@
-from typing import Union, List
+from typing import Optional, Union, List
 
 from ..math.matrix import Matrix
 from ..dynamics.body import Body
@@ -30,12 +30,12 @@ class PhysicsWorld():
         self._body_list: List[Body] = []
         self._joint_list: List[Joint] = []
 
-    def prepare_velocity_constraint(self, dt: float):
+    def prepare_velocity_constraint(self, dt: float) -> None:
         for joint in self._joint_list:
             if joint.active:
                 joint.prepare(dt)
 
-    def step_velocity(self, dt: float):
+    def step_velocity(self, dt: float) -> None:
         g: Matrix = self._gravity if self._grav_ena else Matrix([0.0, 0.0],
                                                                 'vec')
         lvd: float = 1.0
@@ -51,15 +51,17 @@ class PhysicsWorld():
                 body.ang_vel = 0.0
 
             elif body.type == Body.Type.Dynamic:
-                body.forces += body.mass * g
-                body.vel += body.inv_mass * body.forces * dt
+                body.forces += g * body.mass
+                # NOTE: meet the operator overload seq
+                body.vel += body.forces * dt * body.inv_mass
                 body.ang_vel += body.inv_inertia * body.torques * dt
 
                 body.vel *= lvd
                 body.ang_vel *= avd
 
             elif body.type == Body.Type.Kinematic:
-                body.vel += body.inv_mass * body.forces * dt
+                # NOTE: meet the operator overload seq
+                body.vel += body.forces * dt * body.inv_mass
                 body.ang_vel += body.inv_inertia * body.torques * dt
 
                 body.vel *= lvd
@@ -68,12 +70,12 @@ class PhysicsWorld():
             elif body.type == Body.Type.Bullet:
                 pass
 
-    def solve_velocity_constraint(self, dt: float):
+    def solve_velocity_constraint(self, dt: float) -> None:
         for joint in self._joint_list:
             if joint.active:
                 joint.solve_velocity(dt)
 
-    def stepPosition(self, dt: float):
+    def stepPosition(self, dt: float) -> None:
         for body in self._body_list:
             if body.type == Body.Type.Static:
                 pass
@@ -92,7 +94,7 @@ class PhysicsWorld():
             elif body.type == Body.Type.Bullet:
                 pass
 
-    def solve_position_constraint(self, dt: float):
+    def solve_position_constraint(self, dt: float) -> None:
         for joint in self._joint_list:
             if joint.active:
                 joint.solve_position(dt)
@@ -102,7 +104,7 @@ class PhysicsWorld():
         return self._gravity
 
     @grav.setter
-    def grav(self, grav: Matrix):
+    def grav(self, grav: Matrix) -> None:
         self._gravity = grav
 
     @property
@@ -110,7 +112,7 @@ class PhysicsWorld():
         return self._linear_vel_damping
 
     @lin_vel_damping.setter
-    def lin_vel_damping(self, lin_vel_damping: float):
+    def lin_vel_damping(self, lin_vel_damping: float) -> None:
         self._linear_vel_damping = lin_vel_damping
 
     @property
@@ -118,7 +120,7 @@ class PhysicsWorld():
         return self._ang_vel_damping
 
     @ang_vel_damping.setter
-    def ang_vel_damping(self, ang_vel_damping: float):
+    def ang_vel_damping(self, ang_vel_damping: float) -> None:
         self._ang_vel_damping = ang_vel_damping
 
     @property
@@ -126,7 +128,7 @@ class PhysicsWorld():
         return self._linear_vel_threshold
 
     @lin_vel_thold.setter
-    def lin_vel_thold(self, lin_vel_thold: float):
+    def lin_vel_thold(self, lin_vel_thold: float) -> None:
         self._linear_vel_threshold = lin_vel_thold
 
     @property
@@ -134,7 +136,7 @@ class PhysicsWorld():
         return self._ang_vel_threshold
 
     @ang_vel_thold.setter
-    def ang_vel_thold(self, ang_vel_thold: float):
+    def ang_vel_thold(self, ang_vel_thold: float) -> None:
         self._ang_vel_threshold = ang_vel_thold
 
     @property
@@ -142,7 +144,7 @@ class PhysicsWorld():
         return self._air_fric_coeff
 
     @air_fric_coeff.setter
-    def air_fric_coeff(self, air_fric_coeff: float):
+    def air_fric_coeff(self, air_fric_coeff: float) -> None:
         self._air_fric_coeff = air_fric_coeff
 
     @property
@@ -150,7 +152,7 @@ class PhysicsWorld():
         return self._bias
 
     @bias.setter
-    def bias(self, bias: float):
+    def bias(self, bias: float) -> None:
         self._bias = bias
 
     @property
@@ -158,7 +160,7 @@ class PhysicsWorld():
         return self._vel_iter
 
     @vel_iter.setter
-    def vel_iter(self, vel_iter: int):
+    def vel_iter(self, vel_iter: int) -> None:
         self._vel_iter = vel_iter
 
     @property
@@ -166,7 +168,7 @@ class PhysicsWorld():
         return self._pos_iter
 
     @pos_iter.setter
-    def pos_iter(self, pos_iter: int):
+    def pos_iter(self, pos_iter: int) -> None:
         self._pos_iter = pos_iter
 
     @property
@@ -174,7 +176,7 @@ class PhysicsWorld():
         return self._grav_ena
 
     @grav_ena.setter
-    def grav_ena(self, grav_ena: bool):
+    def grav_ena(self, grav_ena: bool) -> None:
         self._grav_ena = grav_ena
 
     @property
@@ -182,7 +184,7 @@ class PhysicsWorld():
         return self._damping_ena
 
     @damping_ena.setter
-    def damping_ena(self, damping_ena: bool):
+    def damping_ena(self, damping_ena: bool) -> None:
         self._damping_ena = damping_ena
 
     def create_body(self) -> Body:
@@ -197,7 +199,10 @@ class PhysicsWorld():
                           RevoluteJointPrimitive, OrientationJointPrimitive]
     ) -> Joint:
 
-        joint: Joint = None
+        joint: Optional[Union[RotationJoint, PointJoint, DistanceJoint,
+                              PulleyJoint, RevoluteJoint,
+                              OrientationJoint]] = None
+
         if isinstance(prim, RotationJointPrimitive):
             joint = RotationJoint(prim)
         elif isinstance(prim, PointJointPrimitive):
@@ -215,21 +220,21 @@ class PhysicsWorld():
         self._joint_list.append(joint)
         return joint
 
-    def remove_body(self, body: Body):
+    def remove_body(self, body: Body) -> None:
         for b in self._body_list:
             if body == b:
                 RandomGenerator.pop(body.id)
                 self._body_list.remove(body)
                 break
 
-    def remove_joint(self, joint: Joint):
+    def remove_joint(self, joint: Joint) -> None:
         for j in self._joint_list:
             if joint == j:
                 RandomGenerator.pop(joint.id)
                 self._joint_list.remove(joint)
 
-    def clear_all_bodies(self):
+    def clear_all_bodies(self) -> None:
         self._body_list.clear()
 
-    def clear_all_joints(self):
+    def clear_all_joints(self) -> None:
         self._joint_list.clear()
