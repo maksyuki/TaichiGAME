@@ -15,7 +15,7 @@ class TestShape():
 class TestShapePrimitive():
     def test_translate(self):
         prim: ShapePrimitive = ShapePrimitive()
-        vec1 = Matrix([23.0, 234.0], 'vec')
+        vec1: Matrix = Matrix([23.0, 234.0], 'vec')
         assert prim.translate(vec1) == Matrix([23.0, 234.0], 'vec')
 
 

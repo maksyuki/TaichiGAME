@@ -63,8 +63,9 @@ class TestGeomAlgo2D():
 
     def test_sutherland_hodgment_polygon_clipping(self):
         # NOTE: need to test more, the seq is important
-        res = GeomAlgo2D.Clipper.sutherland_hodgment_polygon_clipping(
-            TestGeomAlgo2D.poly2, TestGeomAlgo2D.poly1)
+        res: List[
+            Matrix] = GeomAlgo2D.Clipper.sutherland_hodgment_polygon_clipping(
+                TestGeomAlgo2D.poly2, TestGeomAlgo2D.poly1)
 
         for dut, ref in zip(res, TestGeomAlgo2D.poly3):
             assert dut == ref
@@ -122,7 +123,7 @@ class TestGeomAlgo2D():
 
         assert GeomAlgo2D.line_intersection(
             TestGeomAlgo2D.pa1, TestGeomAlgo2D.pb1, TestGeomAlgo2D.pa2,
-            TestGeomAlgo2D.pc2) is None
+            TestGeomAlgo2D.pc2) == Matrix([0.0, 0.0], 'vec')
 
     def test_calc_circum_center(self):
         assert GeomAlgo2D.calc_circum_center(

@@ -1,6 +1,5 @@
-from typing import List, Dict, Optional, Tuple
-
 import numpy as np
+from TaichiGAME.geometry.shape import Circle
 
 from TaichiGAME.math.matrix import Matrix
 from TaichiGAME.dynamics.body import Body
@@ -14,14 +13,14 @@ class TestBody():
         assert Body.Type.Bullet.value == 3
 
     def test_PhysicsAttribute__init__(self):
-        dut = Body.PhysicsAttribute()
+        dut: Body.PhysicsAttribute = Body.PhysicsAttribute()
         assert dut._pos == Matrix([0.0, 0.0], 'vec')
         assert dut._vel == Matrix([0.0, 0.0], 'vec')
         assert np.isclose(dut._rot, 0)
         assert np.isclose(dut._ang_vel, 0)
 
     def test_PhysicsAttribute_step(self):
-        dut = Body.PhysicsAttribute()
+        dut: Body.PhysicsAttribute = Body.PhysicsAttribute()
         dut._vel.x = 1.0
         dut._vel.y = 2.0
         dut._ang_vel = 1.0
@@ -66,6 +65,7 @@ class TestBody():
     def test_mass(self):
         dut: Body = Body()
         assert np.isclose(dut.mass, 0)
+        dut.shape = Circle()
         dut.mass = 23.4
         assert np.isclose(dut.mass, 23.4)
         assert np.isclose(dut._inv_mass, 1 / 23.4)
