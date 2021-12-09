@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional, Tuple
+from typing import List, Optional
 
 import numpy as np
 
@@ -31,22 +31,24 @@ class DistanceConstraintPrimitive():
         self._rb: Matrix = Matrix([0.0, 0.0], 'vec')
         self._bias: Matrix = Matrix([0.0, 0.0], 'vec')
         self._eff_mass: Matrix = Matrix([0.0, 0.0, 0.0, 0.0])
-        self._impluse: Matrix = Matrix([0.0, 0.0], 'vec')
+        self._impulse: Matrix = Matrix([0.0, 0.0], 'vec')
         self._force_max: float = 200.0
 
 
 class DistanceJoint(Joint):
     def __init__(self,
                  prim: DistanceJointPrimitive = DistanceJointPrimitive()):
+        super().__init__()
         self._type: JointType = JointType.Distance
         self._prim: DistanceJointPrimitive = prim
         self._factor: float = 0.4
 
-    def set_value(self, prim: DistanceConstraintPrimitive):
+    def set_value(self, prim: DistanceJointPrimitive) -> None:
         self._prim = prim
 
-    def prepare(self, dt: float):
+    def prepare(self, dt: float) -> None:
         assert self._prim._dist_min <= self._prim._dist_max
+        assert self._prim._bodya is not None
 
         bodya: Body = self._prim._bodya
         pa: Matrix = bodya.to_world_point(self._prim._local_pointa)
@@ -69,7 +71,7 @@ class DistanceJoint(Joint):
         else:
             self._prim._accum_impulse = 0.0
             self._prim._normal.clear()
-            self._bias = 0.0
+            self._prim._bias = 0.0
             return
 
         if self._prim._bodya.vel.dot(self._prim._normal) > 0:
@@ -82,14 +84,16 @@ class DistanceJoint(Joint):
         self._prim._eff_mass = 1.0 / (im_a + ii_a * rn_a * rn_a)
         self._prim._bias = self._prim._bias_factor * c / dt
 
-    def solve_velocity(self, dt: float):
+    def solve_velocity(self, dt: float) -> None:
         if self._prim._bias == 0:
             return
+
+        assert self._prim._bodya is not None
 
         ra: Matrix = self._prim._bodya.to_world_point(
             self._prim._local_pointa) - self._prim._bodya.pos
         va: Matrix = self._prim._bodya.vel + Matrix.cross_product(
-            self._prim._bodya.ang_vel, ra)
+            Matrix([self._prim._bodya.ang_vel, 0.0], 'vec'), ra)
         dv: Matrix = va
         jv: float = self._prim._normal.dot(dv)
         jvb: float = -jv + self._prim._bias
@@ -99,11 +103,12 @@ class DistanceJoint(Joint):
         self._prim._accum_impulse = np.fmax(old_impulse + lambda_n, 0)
         lambda_n = self._prim._accum_impulse - old_impulse
 
-        impulse: Matrix = lambda_n * self._prim._normal
+        impulse: Matrix = self._prim._normal * lambda_n
         self._prim._bodya.apply_impulse(impulse, ra)
 
-    def solve_position(self, dt: float):
-        pass
+    def solve_position(self, dt: float) -> None:
+        raise NotImplementedError(
+            'distance joint have not solve_position impl')
 
     @property
     def prim(self) -> DistanceJointPrimitive:
@@ -114,11 +119,12 @@ class DistanceConstraint(Joint):
     def __init__(
         self,
         prim: DistanceConstraintPrimitive = DistanceConstraintPrimitive()):
+        super().__init__()
         self._prim: DistanceConstraintPrimitive = prim
         self._factor: float = 0.1
 
-    def prepare(self, dt: float):
-        if self._prim._bodya == None or self._prim._bodyb == None:
+    def prepare(self, dt: float) -> None:
+        if self._prim._bodya is None or self._prim._bodyb is None:
             return
 
         bodya: Body = self._prim._bodyb
@@ -146,39 +152,40 @@ class DistanceConstraint(Joint):
         self._prim._bias = error * self._factor
         self._prim._eff_mass = k.invert()
 
-    def solve_velocity(self, dt: float):
-        if self._prim._bodya == None or self._prim._bodyb == None:
+    def solve_velocity(self, dt: float) -> None:
+        if self._prim._bodya is None or self._prim._bodyb is None:
             return
 
         va: Matrix = self._prim._bodya.vel + Matrix.cross_product(
-            self._prim._bodya.ang_vel, self._prim._ra)
+            Matrix([self._prim._bodya.ang_vel, 0.0], 'vec'), self._prim._ra)
         vb: Matrix = self._prim._bodyb.vel + Matrix.cross_product(
-            self._prim._bodyb.ang_vel, self._prim._rb)
+            Matrix([self._prim._bodyb.ang_vel, 0.0], 'vec'), self._prim._rb)
 
         jvb: Matrix = va - vb
         jvb += self._prim._bias
         jvb.negate()
 
         J: Matrix = self._prim._eff_mass * jvb
-        old_impulse: Matrix = self._prim._impluse
-        self._prim._impluse += J
+        old_impulse: Matrix = self._prim._impulse
+        self._prim._impulse += J
 
         max_impulse: float = dt * self._prim._force_max
 
-        if self._prim._impluse.len_square() > max_impulse * max_impulse:
+        if self._prim._impulse.len_square() > max_impulse * max_impulse:
             self._prim._impulse.normalize()
             self._prim._impulse *= max_impulse
 
-        J = self._prim._impluse - old_impulse
+        J = self._prim._impulse - old_impulse
         self._prim._bodya.apply_impulse(J, self._prim._ra)
         self._prim._bodyb.apply_impulse(-J, self._prim._rb)
 
-    def set_value(self, pa: Matrix, pb: Matrix):
+    def set_value(self, pa: Matrix, pb: Matrix) -> None:
         self._prim._nearest_pa = pa
         self._prim._nearest_pb = pb
 
-    def solve_position(self, dt: float):
-        pass
+    def solve_position(self, dt: float) -> None:
+        raise NotImplementedError(
+            'distance constrain have not solve_position impl')
 
     def prim(self) -> DistanceConstraintPrimitive:
         return self._prim
