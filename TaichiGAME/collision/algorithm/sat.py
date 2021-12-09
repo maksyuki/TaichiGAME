@@ -206,8 +206,7 @@ class SAT():
             segc = SAT._axis_projection(prima, cira, normal)
             segp = SAT._axis_projection(primb, polyb, normal)
 
-            (tmp_segment,
-             tmp_length) = ProjectedSegment.intersect(segc, segp)
+            (tmp_segment, tmp_length) = ProjectedSegment.intersect(segc, segp)
             if tmp_length > 0:
                 colliding_axis += 1
 
@@ -220,7 +219,8 @@ class SAT():
             res._is_colliding = True
 
         res._contact_pair[0]._pa = cirp._vertex
-        res._contact_pair[0]._pb = cirp._vertex + -res._normal * res._penetration
+        res._contact_pair[
+            0]._pb = cirp._vertex + -res._normal * res._penetration
         res._contact_pair_count += 1
 
         return res
@@ -228,7 +228,6 @@ class SAT():
     @staticmethod
     def polygon_vs_polygon(prima: ShapePrimitive,
                            primb: ShapePrimitive) -> SATResult:
-
         def _test(prima: ShapePrimitive, primb: ShapePrimitive) -> SATResult:
             polya: Polygon = prima._shape
             polyb: Polygon = primb._shape
@@ -247,15 +246,17 @@ class SAT():
                 edg: Matrix = v1 - v2
                 normal: Matrix = edg.perpendicular().normal()
 
-                sega: ProjectedSegment = SAT._axis_projection(prima, polya, normal)
-                segb: ProjectedSegment = SAT._axis_projection(primb, polyb, normal)
+                sega: ProjectedSegment = SAT._axis_projection(
+                    prima, polya, normal)
+                segb: ProjectedSegment = SAT._axis_projection(
+                    primb, polyb, normal)
 
                 (final_seg, length) = ProjectedSegment.intersect(sega, segb)
                 if length > 0:
                     colliding_axis += 1
 
-                polyap:ProjectedPoint = final_seg._max if sega._max == final_seg._max else final_seg._min
-                polybp:ProjectedPoint = final_seg._max if segb._max == final_seg._max else final_seg._min
+                polyap: ProjectedPoint = final_seg._max if sega._max == final_seg._max else final_seg._min
+                polybp: ProjectedPoint = final_seg._max if segb._max == final_seg._max else final_seg._min
 
                 if len_min > length:
                     len_min = length
@@ -265,14 +266,13 @@ class SAT():
 
             return (final_normal, len_min, colliding_axis, tgtap, tgtbp)
 
-
         assert prima._shape.type() == Shape.Type.Polygon
         assert primb._shape.type() == Shape.Type.Polygon
 
         polya: Polygon = prima._shape
         polyb: Polygon = primb._shape
 
-        res:SATResult = SATResult()
+        res: SATResult = SATResult()
         (normal1, length1, axis1, polyap1, polybp1) = _test(prima, primb)
         (normal2, length2, axis2, polybp2, polyap2) = _test(primb, prima)
 
@@ -336,7 +336,8 @@ class SAT():
         return SATResult()
 
     @staticmethod
-    def _axis_projection(prim: ShapePrimitive, shape: Shape, normal: Matrix) -> ProjectedSegment:
+    def _axis_projection(prim: ShapePrimitive, shape: Shape,
+                         normal: Matrix) -> ProjectedSegment:
         if shape.type() == Shape.Type.Polygon:
             point_min: ProjectedPoint = ProjectedPoint()
             point_max: ProjectedPoint = ProjectedPoint()
@@ -353,12 +354,11 @@ class SAT():
                     point_min._vertex = vertex
                     point_min._val = value
                     point_min._idx = i
-                
+
                 if value > point_max._val:
                     point_max._vertex = vertex
                     point_max._val = value
                     point_max._idx = i
-
 
             segment: ProjectedSegment = ProjectedSegment()
             segment._max = point_max
@@ -375,7 +375,7 @@ class SAT():
 
             cir_max._vertex = prim._xform + normal * shape.radius
             cir_max._val = prim._xform.dot(normal) + shape.radius
-            
+
             segment: ProjectedSegment = ProjectedSegment()
             segment._min = cir_min
             segment._max = cir_max
@@ -387,13 +387,15 @@ class SAT():
             elli_max: ProjectedPoint = ProjectedPoint()
 
             rot_dir: Matrix = Matrix.rotate_mat(-prim._rot) * -normal
-            elli_min._vertex = GeomAlgo2D.calc_ellipse_project_on_point(shape.A(), shape.B(), rot_dir)
-            elli_min._vertex = prim.translate( elli_min._vertex)
+            elli_min._vertex = GeomAlgo2D.calc_ellipse_project_on_point(
+                shape.A(), shape.B(), rot_dir)
+            elli_min._vertex = prim.translate(elli_min._vertex)
             elli_min._val = elli_min._vertex.dot(normal)
 
-            rot_dir= Matrix.rotate_mat(-prim._rot) * normal
-            elli_max._vertex = GeomAlgo2D.calc_ellipse_project_on_point(shape.A(), shape.B(), rot_dir)
-            elli_max._vertex = prim.translate( elli_max._vertex)
+            rot_dir = Matrix.rotate_mat(-prim._rot) * normal
+            elli_max._vertex = GeomAlgo2D.calc_ellipse_project_on_point(
+                shape.A(), shape.B(), rot_dir)
+            elli_max._vertex = prim.translate(elli_max._vertex)
             elli_max._val = elli_max._vertex.dot(normal)
 
             segment: ProjectedSegment = ProjectedSegment()
@@ -406,9 +408,11 @@ class SAT():
             capsule_min: ProjectedPoint = ProjectedPoint()
             capsule_max: ProjectedPoint = ProjectedPoint()
 
-            dir: Matrix = Matrix.rotate_mat(-prim._rot) * normal
-            p1: Matrix = GeomAlgo2D.calc_capsule_project_on_point(shape.width, shape.height, dir)
-            p2: Matrix = GeomAlgo2D.calc_capsule_project_on_point(shape.width, shape.height, -dir)
+            dirn: Matrix = Matrix.rotate_mat(-prim._rot) * normal
+            p1: Matrix = GeomAlgo2D.calc_capsule_project_on_point(
+                shape.width, shape.height, dirn)
+            p2: Matrix = GeomAlgo2D.calc_capsule_project_on_point(
+                shape.width, shape.height, -dirn)
             p1 = prim.translate(p1)
             p2 = prim.translate(p2)
 
@@ -428,9 +432,11 @@ class SAT():
             sector_min: ProjectedPoint = ProjectedPoint()
             sector_max: ProjectedPoint = ProjectedPoint()
 
-            dir: Matrix = Matrix.rotate_mat(-prim._rot) * normal
-            p1: Matrix = GeomAlgo2D.calc_sector_project_on_point(shape.start, shape.span, shape.radius, dir)
-            p2: Matrix = GeomAlgo2D.calc_sector_project_on_point(shape.start, shape.span, shape.radius, -dir)
+            dirn: Matrix = Matrix.rotate_mat(-prim._rot) * normal
+            p1: Matrix = GeomAlgo2D.calc_sector_project_on_point(
+                shape.start, shape.span, shape.radius, dirn)
+            p2: Matrix = GeomAlgo2D.calc_sector_project_on_point(
+                shape.start, shape.span, shape.radius, -dirn)
             p1 = prim.translate(p1)
             p2 = prim.translate(p2)
 

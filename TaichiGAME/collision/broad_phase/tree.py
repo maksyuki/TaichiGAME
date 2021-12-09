@@ -42,7 +42,7 @@ class Tree():
     def __init__(self):
         self._fat_expansion_factor: float = 0.5
         self._root_idx: int = -1
-        self._tree = [] # List[Tree.Node]
+        self._tree = []  # List[Tree.Node]
         self._empty_list: List[int] = []
         self._body_table: Dict[Body, int] = {}
 
@@ -58,9 +58,9 @@ class Tree():
         self._query_nodes(self._root_idx, aabb, res)
         return res
 
-    def raycast(self, start: Matrix, dir: Matrix) -> List[Body]:
+    def raycast(self, start: Matrix, dirn: Matrix) -> List[Body]:
         res: List[Body] = []
-        self._raycast(res, self._root_idx, start, dir)
+        self._raycast(res, self._root_idx, start, dirn)
         return res
 
     def generate(self) -> List[Tuple[Body, Body]]:

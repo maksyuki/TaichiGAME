@@ -118,8 +118,8 @@ class AABB():
         return np.isclose(self._width, 0.0) and np.isclose(
             self._height, 0.0) and self._pos == Matrix([0.0, 0.0], 'vec')
 
-    def raycast(self, start: Matrix, dir: Matrix) -> bool:
-        return AABB._raycast(self, start, dir)
+    def raycast(self, start: Matrix, dirn: Matrix) -> bool:
+        return AABB._raycast(self, start, dirn)
 
     @staticmethod
     def from_prim(prim: ShapePrimitive, factor: float = 0.0):
@@ -325,8 +325,9 @@ class AABB():
         aabb._height += factor
 
     @staticmethod
-    def _raycast(aabb, start: Matrix, dir: Matrix) -> bool:
-        res = GeomAlgo2D.raycastAABB(start, dir, aabb.top_left, aabb.bot_right)
+    def _raycast(aabb, start: Matrix, dirn: Matrix) -> bool:
+        res = GeomAlgo2D.raycastAABB(start, dirn, aabb.top_left,
+                                     aabb.bot_right)
         if res == None:
             return False
 

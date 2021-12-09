@@ -1,9 +1,9 @@
-from typing import List, Dict, Optional, Tuple
-
 import numpy as np
 
 from TaichiGAME.math.matrix import Matrix
-from TaichiGAME.collision.algorithm.gjk import Minkowski, PenetrationInfo, PenetrationSource, PointPair, Simplex
+from TaichiGAME.collision.algorithm.gjk import Simplex
+from TaichiGAME.collision.algorithm.gjk import Minkowski, PenetrationInfo
+from TaichiGAME.collision.algorithm.gjk import PenetrationSource, PointPair
 
 
 class TestMinkowski():
@@ -24,7 +24,7 @@ class TestMinkowski():
         dut3: Minkowski = Minkowski(Matrix([1.2, 3.4], 'vec'),
                                     Matrix([5.6, 7.8], 'vec'))
         assert dut1 == dut2
-        assert not dut1 == dut3
+        assert dut1 != dut3
 
     def test__neq__(self):
         dut1: Minkowski = Minkowski()
@@ -32,7 +32,7 @@ class TestMinkowski():
         dut3: Minkowski = Minkowski(Matrix([1.2, 3.4], 'vec'),
                                     Matrix([5.6, 7.8], 'vec'))
         assert dut1 == dut2
-        assert not dut1 == dut3
+        assert dut1 != dut3
 
 
 class TestSimplex():
@@ -139,7 +139,7 @@ class TestPointPair():
         dut3._pa = Matrix([2.3, 4.5], 'vec')
 
         assert dut1 == dut2
-        assert not dut1 == dut3
+        assert dut1 != dut3
 
     def test_is_empty(self):
         dut1: PointPair = PointPair()

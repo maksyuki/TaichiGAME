@@ -1,6 +1,4 @@
-from typing import List, Dict, Optional, Tuple
-
-import numpy as np
+from typing import List
 
 from ...math.matrix import Matrix
 from ..body import Body
@@ -27,15 +25,16 @@ class PointJointPrimitive():
 
 class PointJoint(Joint):
     def __init__(self, prim: PointJointPrimitive = PointJointPrimitive()):
+        super().__init__()
         self._type: JointType = JointType.Point
         self._prim: PointJointPrimitive = prim
         self._factor: float = 0.22
 
-    def set_value(self, prim: PointJointPrimitive):
+    def set_value(self, prim: PointJointPrimitive) -> None:
         self._prim = prim
 
-    def prepare(self, dt: float):
-        if self._prim._bodya == None:
+    def prepare(self, dt: float) -> None:
+        if self._prim._bodya is None:
             return
 
         bodya: Body = self._prim._bodya
@@ -55,7 +54,7 @@ class PointJoint(Joint):
         self._prim._gamma = Joint.constraint_impulse_mixing(
             dt, self._prim._stiff, self._prim._damping)
         erp: float = Joint.error_reduction_parameter(dt, self._prim._stiff,
-                                                    self._prim._damping)
+                                                     self._prim._damping)
 
         pa: Matrix = bodya.to_world_point(self._prim._local_pointa)
         ra: Matrix = pa - bodya.pos
@@ -74,24 +73,24 @@ class PointJoint(Joint):
 
         k.set_value(data_arr)
         self._prim._eff_mass = k.invert()
-        bodya.apply_impulse(self._prim._impluse, ra)
+        bodya.apply_impulse(self._prim._impulse, ra)
 
-    def solve_velocity(self, dt: float):
-        if self._prim._bodya == None:
+    def solve_velocity(self, dt: float) -> None:
+        if self._prim._bodya is None:
             return
 
         ra: Matrix = self._prim._bodya.to_world_point(
             self._prim._local_pointa) - self._prim._bodya.pos
         va: Matrix = self._prim._bodya.vel + Matrix.cross_product(
-            self._prim._bodya.ang_vel, ra)
+            Matrix([self._prim._bodya.ang_vel, 0.0], 'vec'), ra)
 
         jvb: Matrix = va
         jvb += self._prim._bias
-        jvb += self._prim._impluse * self._prim._gamma
+        jvb += self._prim._impulse * self._prim._gamma
         jvb.negate()
 
         J: Matrix = self._prim._eff_mass * jvb
-        old_impulse: Matrix = self._prim._impluse
+        old_impulse: Matrix = self._prim._impulse
         self._prim._impulse += J
 
         max_impulse: float = dt * self._prim._force_max
@@ -102,8 +101,9 @@ class PointJoint(Joint):
         J = self._prim._impulse - old_impulse
         self._prim._bodya.apply_impulse(J, ra)
 
-    def solve_position(self, dt: float):
-        pass
+    def solve_position(self, dt: float) -> None:
+        raise NotImplementedError(
+            'point joint have not solve_position impl')
 
     def prim(self) -> PointJointPrimitive:
         return self._prim

@@ -1,5 +1,7 @@
+from __future__ import annotations
+from abc import ABC, abstractmethod
 from enum import IntEnum, unique
-from typing import Any, List, Optional
+from typing import List, Optional, Union
 
 import numpy as np
 
@@ -8,9 +10,10 @@ from ..math.matrix import Matrix
 from .geom_algo import GeomAlgo2D
 
 
-class Shape():
+class Shape(ABC):
     @unique
     class Type(IntEnum):
+        BASE: int = -1
         Point: int = 0
         Polygon: int = 1
         Circle: int = 2
@@ -21,19 +24,27 @@ class Shape():
         Sector: int = 7
 
     def __init__(self):
-        self._type: Optional[Any] = None
+        self._type: Shape.Type = Shape.Type.BASE
 
-    def type(self) -> int:
+    @property
+    def type(self) -> Shape.Type:
         return self._type
 
-    def scale(self, factor: float) -> Any:
-        pass
+    @type.setter
+    def type(self, val: Shape.Type) -> None:
+        self._type = val
 
+    @abstractmethod
+    def scale(self, factor: float) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
     def contains(self, point: Matrix) -> bool:
-        pass
+        raise NotImplementedError
 
-    def center(self) -> Any:
-        pass
+    @abstractmethod
+    def center(self) -> Matrix:
+        raise NotImplementedError
 
 
 class ShapePrimitive():
@@ -41,7 +52,8 @@ class ShapePrimitive():
        Including vertices/position/angle of shape
     '''
     def __init__(self):
-        self._shape: Shape = Shape()
+        self._shape: Optional[Union[Point, Polygon, Rectangle, Circle, Ellipse,
+                                    Edge, Curve, Capsule, Sector]] = None
         self._xform: Matrix = Matrix([0.0, 0.0], 'vec')
         self._rot: float = 0.0
 
@@ -52,7 +64,8 @@ class ShapePrimitive():
 
 class Point(Shape):
     def __init__(self):
-        self._type = self.Type.Point
+        super().__init__()
+        self.type = self.Type.Point
         self._pos: Matrix = Matrix([0.0, 0.0], 'vec')
 
     @property
@@ -60,10 +73,10 @@ class Point(Shape):
         return self._pos
 
     @pos.setter
-    def pos(self, pos: Matrix):
+    def pos(self, pos: Matrix) -> None:
         self._pos = pos
 
-    def scale(self, factor: float):
+    def scale(self, factor: float) -> None:
         self._pos *= factor
 
     def contains(self, point: Matrix) -> bool:
@@ -77,35 +90,38 @@ class Polygon(Shape):
     '''Convex polygon, not concve
     '''
     def __init__(self):
-        self._type = self.Type.Polygon
-        self._vertices: List[Matrix] = []
+        super().__init__()
+        self.type = self.Type.Polygon
+        self.vertices: List[Matrix] = []
 
     @property
     def vertices(self) -> List[Matrix]:
         return self._vertices
 
     @vertices.setter
-    def vertices(self, vertices: List[Matrix]):
+    def vertices(self, vertices: List[Matrix]) -> None:
         self._vertices = vertices
         self.update_vertices()
 
-    def append(self, vertice: Matrix):
+    def append(self, vertice: Matrix) -> None:
         self._vertices.append(vertice)
         self.update_vertices()
 
-    def scale(self, factor: float):
+    def scale(self, factor: float) -> None:
         assert len(self._vertices)
         self._vertices = [v * factor for v in self._vertices]
 
     def contains(self, point: Matrix) -> bool:
         assert len(self._vertices) > 2
-        num: int = len(self._vertices)
-        for i in range(num - 1):
+
+        vert_len: int = len(self._vertices)
+        for i in range(vert_len - 1):
             p1: Matrix = self._vertices[i]
             p2: Matrix = self._vertices[i + 1]
             ref: Matrix = self._vertices[
-                1] if i + 2 == num else self._vertices[i + 2]
-            # NOTE: why [1]? according to the vertices list type, shape need to be closed
+                1] if i + 2 == vert_len else self._vertices[i + 2]
+            # NOTE: why [1]? according to the vertices list type,
+            # shape need to be closed
             if not GeomAlgo2D.is_point_on_same_side(p1, p2, ref, point):
                 return False
 
@@ -114,7 +130,7 @@ class Polygon(Shape):
     def center(self) -> Matrix:
         return GeomAlgo2D.calc_mass_center(self._vertices)
 
-    def update_vertices(self):
+    def update_vertices(self) -> None:
         center_point: Matrix = self.center()
         self._vertices = [v - center_point for v in self._vertices]
 
@@ -129,7 +145,7 @@ class Rectangle(Polygon):
         return self._width
 
     @width.setter
-    def width(self, width: float):
+    def width(self, width: float) -> None:
         self._width: float = width
         self.calc_vertices()
 
@@ -138,7 +154,7 @@ class Rectangle(Polygon):
         return self._height
 
     @height.setter
-    def height(self, height: float):
+    def height(self, height: float) -> None:
         self._height: float = height
         self.calc_vertices()
 
@@ -146,12 +162,18 @@ class Rectangle(Polygon):
     def vertices(self) -> List[Matrix]:
         return self._vertices
 
-    def set_value(self, width: float, height: float):
-        self._width: float = width
-        self._height: float = height
+    @vertices.setter
+    def vertices(self, vert: List[Matrix]) -> None:
+        self._vertices = vert
+
+    # NOTE: use _var to set val, because property 'width'
+    # and 'height' call 'calc_vertices' will use _var in init
+    def set_value(self, width: float, height: float) -> None:
+        self._width = width
+        self._height = height
         self.calc_vertices()
 
-    def scale(self, factor: float):
+    def scale(self, factor: float) -> None:
         self._width *= factor
         self._height *= factor
         self.calc_vertices()
@@ -165,7 +187,7 @@ class Rectangle(Polygon):
                                    self._width) and self.contain_helper(
                                        point.y, self._height)
 
-    def calc_vertices(self):
+    def calc_vertices(self) -> None:
         self._vertices: List[Matrix] = []
         self._vertices.append(
             Matrix([-self._width * 0.5, self._height * 0.5], 'vec'))
@@ -181,18 +203,19 @@ class Rectangle(Polygon):
 
 class Circle(Shape):
     def __init__(self, radius: float = 0.0):
-        self._type = self.Type.Circle
-        self._radius: float = radius
+        super().__init__()
+        self.type = self.Type.Circle
+        self.radius = radius
 
     @property
     def radius(self) -> float:
         return self._radius
 
     @radius.setter
-    def radius(self, radius: float):
+    def radius(self, radius: float) -> None:
         self._radius: float = radius
 
-    def scale(self, factor: float):
+    def scale(self, factor: float) -> None:
         self._radius *= factor
 
     def contains(self, point: Matrix) -> bool:
@@ -204,7 +227,8 @@ class Circle(Shape):
 
 class Ellipse(Shape):
     def __init__(self, width: float = 0.0, height: float = 0.0):
-        self._type = self.Type.Ellipse
+        super().__init__()
+        self.type = self.Type.Ellipse
         self.set_value(width, height)
 
     @property
@@ -212,7 +236,7 @@ class Ellipse(Shape):
         return self._width
 
     @width.setter
-    def width(self, width: float):
+    def width(self, width: float) -> None:
         self._width: float = width
 
     @property
@@ -220,14 +244,14 @@ class Ellipse(Shape):
         return self._height
 
     @height.setter
-    def height(self, height: float):
+    def height(self, height: float) -> None:
         self._height: float = height
 
-    def set_value(self, width: float, height: float):
-        self._width: float = width
-        self._height: float = height
+    def set_value(self, width: float, height: float) -> None:
+        self.width = width
+        self.height = height
 
-    def scale(self, factor: float):
+    def scale(self, factor: float) -> None:
         self._width *= factor
         self._height *= factor
 
@@ -251,6 +275,7 @@ class Ellipse(Shape):
 
 class Edge(Shape):
     def __init__(self):
+        super().__init__()
         self._type = self.Type.Edge
 
     @property
@@ -258,7 +283,7 @@ class Edge(Shape):
         return self._start
 
     @start.setter
-    def start(self, point: Matrix):
+    def start(self, point: Matrix) -> None:
         self._start: Matrix = point
 
     @property
@@ -266,20 +291,20 @@ class Edge(Shape):
         return self._end
 
     @end.setter
-    def end(self, point: Matrix):
+    def end(self, point: Matrix) -> None:
         self._end: Matrix = point
 
-    def set_value(self, start: Matrix, end: Matrix):
-        self._start: Matrix = start
-        self._end: Matrix = end
-        self._normal: Matrix = (self._end -
-                                self._start).perpendicular().normal().negate()
+    def set_value(self, start: Matrix, end: Matrix) -> None:
+        self.start = start
+        self.end = end
+        self.normal: Matrix = (self.end -
+                               self.start).perpendicular().normal().negate()
 
-    def scale(self, factor: float):
+    def scale(self, factor: float) -> None:
         self._start *= factor
         self._end *= factor
 
-    def contains(self, point: float) -> bool:
+    def contains(self, point: Matrix) -> bool:
         return GeomAlgo2D.is_point_on_segment(self._start, self._end, point)
 
     def center(self) -> Matrix:
@@ -290,20 +315,21 @@ class Edge(Shape):
         return self._normal
 
     @normal.setter
-    def normal(self, normal: Matrix):
+    def normal(self, normal: Matrix) -> None:
         self._normal: Matrix = normal
 
 
 class Curve(Shape):
     def __init__(self):
-        self._type = self.Type.Curve
+        super().__init__()
+        self.type = self.Type.Curve
 
     @property
     def start(self) -> Matrix:
         return self._start
 
     @start.setter
-    def start(self, point: Matrix):
+    def start(self, point: Matrix) -> None:
         self._start: Matrix = point
 
     @property
@@ -311,7 +337,7 @@ class Curve(Shape):
         return self._ctrl1
 
     @ctrl1.setter
-    def ctrl1(self, point: Matrix):
+    def ctrl1(self, point: Matrix) -> None:
         self._ctrl1: Matrix = point
 
     @property
@@ -319,7 +345,7 @@ class Curve(Shape):
         return self._ctrl2
 
     @ctrl2.setter
-    def ctrl2(self, point: Matrix):
+    def ctrl2(self, point: Matrix) -> None:
         self._ctrl2: Matrix = point
 
     @property
@@ -327,23 +353,23 @@ class Curve(Shape):
         return self._end
 
     @end.setter
-    def end(self, point: Matrix):
+    def end(self, point: Matrix) -> None:
         self._end: Matrix = point
 
     def set_value(self, start: Matrix, ctrl1: Matrix, ctrl2: Matrix,
-                  end: Matrix):
-        self._start: Matrix = start
-        self._ctrl1: Matrix = ctrl1
-        self._ctrl2: Matrix = ctrl2
-        self._end: Matrix = end
+                  end: Matrix) -> None:
+        self.start = start
+        self.ctrl1 = ctrl1
+        self.ctrl2 = ctrl2
+        self.end = end
 
-    def scale(self, factor: float):
+    def scale(self, factor: float) -> None:
         self._start *= factor
         self._ctrl1 *= factor
         self._ctrl2 *= factor
         self._end *= factor
 
-    def contains(self, Point: Matrix) -> bool:
+    def contains(self, point: Matrix) -> bool:
         return False
 
     def center(self) -> Matrix:
@@ -352,6 +378,7 @@ class Curve(Shape):
 
 class Capsule(Shape):
     def __init__(self, width: float = 0.0, height: float = 0.0):
+        super().__init__()
         self._type = self.Type.Capsule
         self.set_value(width, height)
 
@@ -360,7 +387,7 @@ class Capsule(Shape):
         return self._width
 
     @width.setter
-    def width(self, width: float):
+    def width(self, width: float) -> None:
         self._width: float = width
 
     @property
@@ -368,21 +395,22 @@ class Capsule(Shape):
         return self._height
 
     @height.setter
-    def height(self, height: float):
+    def height(self, height: float) -> None:
         self._height: float = height
 
-    def set_value(self, width: float, height: float):
-        self._width: float = width
-        self._height: float = height
+    def set_value(self, width: float, height: float) -> None:
+        self.width = width
+        self.height = height
 
     def calc_pos(self, sign: int = 1) -> List[float]:
         res: List[float] = []
+        tmp: float = 0.0
         if self._width > self._height:
-            tmp: float = self._height / 2.0
+            tmp = self._height / 2.0
             res.append(-self._width / 2.0 + tmp)
             res.append(sign * tmp)
         else:
-            tmp: float = self._width / 2.0
+            tmp = self._width / 2.0
             res.append(-tmp)
             res.append(sign * (self._height / 2.0 - tmp))
 
@@ -412,7 +440,7 @@ class Capsule(Shape):
         vertices.append(self.top_left())
         return vertices
 
-    def scale(self, factor: float):
+    def scale(self, factor: float) -> None:
         self._width *= factor
         self._height *= factor
 
@@ -476,6 +504,7 @@ class Capsule(Shape):
 
 class Sector(Shape):
     def __init__(self):
+        super().__init__()
         self._type = self.Type.Sector
         self.set_value()
 
@@ -495,7 +524,7 @@ class Sector(Shape):
         return self._start
 
     @start.setter
-    def start(self, radian: float):
+    def start(self, radian: float) -> None:
         self._start: float = radian
 
     @property
@@ -503,7 +532,7 @@ class Sector(Shape):
         return self._span
 
     @span.setter
-    def span(self, radian: float):
+    def span(self, radian: float) -> None:
         self._span: float = radian
 
     @property
@@ -511,21 +540,21 @@ class Sector(Shape):
         return self._radius
 
     @radius.setter
-    def radius(self, radius: float):
+    def radius(self, radius: float) -> None:
         self._radius: float = radius
 
     def set_value(self,
                   start: float = 0.0,
                   span: float = 0.0,
-                  radius: float = 0.0):
-        self._start: float = start
-        self._span: float = span
-        self._radius: float = radius
+                  radius: float = 0.0) -> None:
+        self.start = start
+        self.span = span
+        self.radius = radius
 
     def area(self) -> float:
         return self._span * self._radius * self._radius / 2.0
 
-    def scale(self, factor: float):
+    def scale(self, factor: float) -> None:
         self._radius *= factor
 
     def contains(self, point: Matrix) -> bool:
@@ -533,8 +562,10 @@ class Sector(Shape):
             return 0 <= point.y <= self._radius
         else:
             theta: float = point.theta()
-            return theta >= self._start and theta <= self._start + self._span and point.len_square(
-            ) <= self._radius * self._radius
+            ang_check1: bool = theta >= self._start
+            ang_check2: bool = theta <= self._start + self._span
+            len_check: bool = point.len_square() <= self._radius * self._radius
+            return ang_check1 and ang_check2 and len_check
 
     def center(self) -> Matrix:
         vertices: List[Matrix] = self.vertices()

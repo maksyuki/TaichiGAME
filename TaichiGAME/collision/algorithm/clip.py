@@ -1,9 +1,10 @@
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional, Tuple, cast
 
 import numpy as np
 
 from ...math.matrix import Matrix
-from ...geometry.shape import Capsule, Edge, Polygon, Sector, Shape, ShapePrimitive
+from ...geometry.shape import Capsule, Edge, Polygon, Sector, Shape
+from ...geometry.shape import ShapePrimitive
 from ...geometry.geom_algo import GeomAlgo2D
 from .gjk import GJK, PointPair
 
@@ -22,21 +23,22 @@ class ContactGenerator():
     def dump_vertices(prim: ShapePrimitive) -> List[Matrix]:
         vertices: List[Matrix] = []
 
-        if prim._shap.type() == Shape.Type.Capsule:
-            cap: Capsule = prim._shape
+        assert prim._shape is not None
+        if prim._shape.type == Shape.Type.Capsule:
+            cap: Capsule = cast(Capsule, prim._shape)
             vertices = cap.box_vertices()
 
-        elif prim._shap.type() == Shape.Type.Polygon:
-            poly: Polygon = prim._shape
+        elif prim._shape.type == Shape.Type.Polygon:
+            poly: Polygon = cast(Polygon, prim._shape)
             vertices = poly.vertices
 
-        elif prim._shap.type() == Shape.Type.Edge:
-            edg: Edge = prim._shape
+        elif prim._shape.type == Shape.Type.Edge:
+            edg: Edge = cast(Edge, prim._shape)
             vertices.append(edg.start)
             vertices.append(edg.end)
 
-        elif prim._shap.type() == Shape.Type.Sector:
-            sec: Sector = prim._shape
+        elif prim._shape.type == Shape.Type.Sector:
+            sec: Sector = cast(Sector, prim._shape)
             vertices = sec.vertices()
 
         vertices = [prim.translate(v) for v in vertices]
@@ -64,10 +66,12 @@ class ContactGenerator():
 
         # compare which is closest to normal
         final_edg: ContactGenerator.ClipEdge = ContactGenerator.ClipEdge()
+        p: Matrix = Matrix([0.0, 0.0], 'vec')
+
         if np.fabs((edg1._p2 - edg1._p1).dot(normal)) >= np.fabs(
             (edg2._p2 - edg2._p1).dot(normal)):
             final_edg = edg2
-            p: Matrix = (edg2._p2 - edg2._p1).normal().perpendicular()
+            p = (edg2._p2 - edg2._p1).normal().perpendicular()
             if GeomAlgo2D.is_point_on_same_side(edg2._p1, edg2._p2, edg1._p1,
                                                 edg2._p1 + p):
                 final_edg._normal = p
@@ -75,7 +79,7 @@ class ContactGenerator():
                 final_edg._normal = -p
         else:
             final_edg = edg1
-            p: Matrix = (edg1._p2 - edg1._p1).normal().perpendicular()
+            p = (edg1._p2 - edg1._p1).normal().perpendicular()
             if GeomAlgo2D.is_point_on_same_side(edg1._p1, edg1._p2, edg2._p2,
                                                 edg1._p1 + p):
                 final_edg._normal = p
@@ -93,11 +97,12 @@ class ContactGenerator():
             edg._p1 = vertices[0]
             edg._p2 = vertices[1]
 
-            if prim._shape.type() == Shape.Type.Edge:
-                edg._normal = prim.normal()
+            assert prim._shape is not None
+            if prim._shape.type == Shape.Type.Edge:
+                edg._normal = cast(Edge, prim._shape).normal
 
         else:
-            support, idx = GJK.find_farthest_point(vertices, normal)
+            support, idx = GJK.find_farthest_point2(vertices, normal)
             edg = ContactGenerator.find_clip_edge(vertices, idx, normal)
 
         return edg
@@ -105,8 +110,10 @@ class ContactGenerator():
     @staticmethod
     def recognize(prima: ShapePrimitive, primb: ShapePrimitive,
                   normal: Matrix) -> Tuple[ClipEdge, ClipEdge]:
-        typea = prima._shape.type()
-        typeb = primb._shape.type()
+        assert prima._shape is not None
+        assert primb._shape is not None
+        typea = prima._shape.type
+        typeb = primb._shape.type
 
         if typea == Shape.Type.Point or typea == Shape.Type.Circle or typea == Shape.Type.Ellipse or typeb == Shape.Type.Point or typeb == Shape.Type.Circle or typeb == Shape.Type.Ellipse:
             return (ContactGenerator.ClipEdge(), ContactGenerator.ClipEdge())
@@ -126,8 +133,12 @@ class ContactGenerator():
         if clip_edga.is_empty() or clip_edgb.is_empty():
             return res
 
-        d1: float = Matrix(clip_edga._p1 - clip_edga._p2).dot(normal)
-        d2: float = Matrix(clip_edgb._p1 - clip_edgb._p2).dot(normal)
+        tmp1: Matrix = Matrix([0.0, 0.0], 'vec')
+        tmp2: Matrix = Matrix([0.0, 0.0], 'vec')
+        tmp1.set_value(clip_edga._p1 - clip_edga._p2)
+        tmp2.set_value(clip_edgb._p1 - clip_edgb._p2)
+        d1: float = tmp1.dot(normal)
+        d2: float = tmp2.dot(normal)
         ref_edg: ContactGenerator.ClipEdge = clip_edga
         incident_edge: ContactGenerator.ClipEdge = clip_edgb
         swap: bool = False
@@ -187,13 +198,13 @@ class ContactGenerator():
 
         # p1 and p2 are inside, clip nothing, just go to project
         # 4. project to reference edge
-        pp1: Matrix = GeomAlgo2D.point_to_line_segment(ref_edg._p1,
-                                                       ref_edg._p2,
-                                                       incident_edge._p1)
-        pp2: Matrix = GeomAlgo2D.point_to_line_segment(ref_edg._p1,
-                                                       ref_edg._p2,
-                                                       incident_edge._p2)
+        pp1: Optional[Matrix] = GeomAlgo2D.point_to_line_segment(
+            ref_edg._p1, ref_edg._p2, incident_edge._p1)
+        pp2: Optional[Matrix] = GeomAlgo2D.point_to_line_segment(
+            ref_edg._p1, ref_edg._p2, incident_edge._p2)
 
+        assert pp1 is not None
+        assert pp2 is not None
         pair1: PointPair = PointPair()
         pair2: PointPair = PointPair()
 
