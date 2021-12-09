@@ -13,7 +13,9 @@ class DBVH():
     This is implemented by traditional binary search tree
     '''
     class Node():
-        def __init__(self, body: Optional[Body] = None, aabb: Optional[AABB] = None):
+        def __init__(self,
+                     body: Optional[Body] = None,
+                     aabb: Optional[AABB] = None):
             self._parent: Optional[DBVH.Node] = None
             self._left: Optional[DBVH.Node] = None
             self._right: Optional[DBVH.Node] = None
@@ -193,9 +195,9 @@ class DBVH():
     def root(self) -> Optional[Node]:
         return self._root
 
-    def raycast(self, start: Matrix, dir: Matrix) -> List[Body]:
+    def raycast(self, start: Matrix, dirn: Matrix) -> List[Body]:
         res: List[Body] = []
-        self._raycast(res, self._root, start, dir)
+        self._raycast(res, self._root, start, dirn)
         return res
 
     def generate(self) -> List[Tuple[Body, Body]]:
@@ -230,16 +232,16 @@ class DBVH():
             nodes.append(node)
 
     def _raycast(self, res: List[Body], node: Optional[Node], start: Matrix,
-                 dir: Matrix):
+                 dirn: Matrix):
         if node == None:
             return
 
-        if node._aabb.raycast(start, dir):
+        if node._aabb.raycast(start, dirn):
             if node.is_leaf():
                 res.append(node._body)
             else:
-                self._raycast(res, node._left, start, dir)
-                self._raycast(res, node._right, start, dir)
+                self._raycast(res, node._left, start, dirn)
+                self._raycast(res, node._right, start, dirn)
 
     def _insert(self, node: Optional[Node]):
         def _get_cost(target: DBVH.Node, aabb: AABB) -> DBVH.Node:

@@ -69,7 +69,8 @@ class Simplex():
         elif vert_len == 2:
             oa: Matrix = -simplex._vertices[0]._res
             ob: Matrix = -simplex._vertices[1]._res
-            return GeomAlgo2D.is_point_on_segment(oa, ob, Matrix([0.0, 0.0], 'vec'))
+            return GeomAlgo2D.is_point_on_segment(oa, ob,
+                                                  Matrix([0.0, 0.0], 'vec'))
 
         else:
             return False
@@ -125,25 +126,25 @@ class GJK():
         '''
         simplex: Simplex = Simplex()
         is_found: bool = False
-        dir: Matrix = primb._xform - prima._xform
+        dirn: Matrix = primb._xform - prima._xform
 
-        if dir == Matrix([0.0, 0.0], 'vec'):
-            dir.set_value([1.0, 1.0])
+        if dirn == Matrix([0.0, 0.0], 'vec'):
+            dirn.set_value([1.0, 1.0])
 
-        diff: Minkowski = GJK.support(prima, primb, dir)
+        diff: Minkowski = GJK.support(prima, primb, dirn)
         simplex._vertices.append(diff)
-        dir.negate()
+        dirn.negate()
 
         removed: List[Minkowski] = []
         for i in range(iter_val):
-            diff = GJK.support(prima, primb, dir)
+            diff = GJK.support(prima, primb, dirn)
             simplex._vertices.append(diff)
 
             # build a close polygon
             if len(simplex._vertices) == 3:
                 simplex._vertices.append(simplex._vertices[0])
 
-            if simplex.last_vertex().dot(dir) <= 0:
+            if simplex.last_vertex().dot(dirn) <= 0:
                 break
 
             if simplex.contain_origin(True):
@@ -157,9 +158,9 @@ class GJK():
             # if found, there is no more minkowski difference, exit loop
             # if not, add the point to the list
             (idx1, idx2) = GJK.find_edge_closest_to_origin(simplex)
-            dir = GJK.calc_direction_by_edge(simplex._vertices[idx1]._res,
-                                             simplex._vertices[idx2]._res,
-                                             True)
+            dirn = GJK.calc_direction_by_edge(simplex._vertices[idx1]._res,
+                                              simplex._vertices[idx2]._res,
+                                              True)
 
             res = GJK.adjust_simplex(simplex, idx1, idx2)
 
@@ -247,9 +248,9 @@ class GJK():
 
     @staticmethod
     def support(prima: ShapePrimitive, primb: ShapePrimitive,
-                dir: Matrix) -> Minkowski:
-        return Minkowski(GJK.find_farthest_point(prima, dir),
-                         GJK.find_farthest_point(primb, -dir))
+                dirn: Matrix) -> Minkowski:
+        return Minkowski(GJK.find_farthest_point(prima, dirn),
+                         GJK.find_farthest_point(primb, -dirn))
 
     @staticmethod
     def find_edge_closest_to_origin(simplex: Simplex) -> Tuple[int, int]:
@@ -296,15 +297,15 @@ class GJK():
         return (idx1, idx2)
 
     @staticmethod
-    def find_farthest_point(prim: ShapePrimitive, dir: Matrix) -> Matrix:
+    def find_farthest_point(prim: ShapePrimitive, dirn: Matrix) -> Matrix:
         '''Find farthest projection point in given direction
 
         Parameters
         ----------
         prim : ShapePrimitive
             primitive
-        dir : Matrix
-            dir vector
+        dirn : Matrix
+            dirn vector
 
         Returns
         -------
@@ -313,7 +314,7 @@ class GJK():
         '''
         target: Matrix = Matrix([0.0, 0.0], 'vec')
         rot: Matrix = Matrix.rotate_mat(-prim._rot)
-        rot_dir: Matrix = rot * dir
+        rot_dir: Matrix = rot * dirn
 
         if prim._shape.type() == Shape.Type.Polygon:
             poly: Polygon = prim._shape
@@ -322,7 +323,7 @@ class GJK():
 
         elif prim._shape.type() == Shape.Type.Circle:
             cir: Circle = prim._shape
-            return dir.normal() * cir.radius + prim._xform
+            return dirn.normal() * cir.radius + prim._xform
 
         elif prim._shape.type() == Shape.Type.Ellipse:
             elli: Ellipse = prim._shape
@@ -331,8 +332,8 @@ class GJK():
 
         elif prim._shape.type() == Shape.Type.Edge:
             edg: Edge = prim._shape
-            dot1: float = Matrix.dot_product(edg.start, dir)
-            dot2: float = Matrix.dot_product(edg.end, dir)
+            dot1: float = Matrix.dot_product(edg.start, dirn)
+            dot2: float = Matrix.dot_product(edg.end, dirn)
             target = edg.start if dot1 > dot2 else edg.end
 
         elif prim._shape.type() == Shape.Type.Point:
@@ -443,19 +444,19 @@ class GJK():
         '''
 
         simplex: Simplex = Simplex()
-        dir: Matrix = primb._xform - prima._xform
+        dirn: Matrix = primb._xform - prima._xform
 
         # calc two minkowski
-        m: Minkowski = GJK.support(prima, primb, dir)
+        m: Minkowski = GJK.support(prima, primb, dirn)
         simplex._vertices.append(m)
-        dir.negate()
-        m = GJK.support(prima, primb, dir)
+        dirn.negate()
+        m = GJK.support(prima, primb, dirn)
         simplex._vertices.append(m)
 
         for i in range(iter_val):
-            dir = GJK.calc_direction_by_edge(simplex._vertices[0]._res,
-                                             simplex._vertices[1]._res, True)
-            m = GJK.support(prima, primb, dir)
+            dirn = GJK.calc_direction_by_edge(simplex._vertices[0]._res,
+                                              simplex._vertices[1]._res, True)
+            m = GJK.support(prima, primb, dirn)
 
             if simplex.contains(m):
                 break

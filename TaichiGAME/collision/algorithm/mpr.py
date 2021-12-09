@@ -37,14 +37,14 @@ class MPR():
         ctrb: Matrix = Matrix.rotate_mat(primb._rot) * primb._shape.center()
         origin: Matrix = primb._xform - prima._xform
         v0: Minkowski = Minkowski(ctra + prima._xform, ctrb + primb._xform)
-        dir: Matrix = ctrb - ctra + origin
+        dirn: Matrix = ctrb - ctra + origin
 
-        if dir == Matrix([0.0, 0.0], 'vec'):
-            dir.set_value([1.0, 1.0])
+        if dirn == Matrix([0.0, 0.0], 'vec'):
+            dirn.set_value([1.0, 1.0])
 
-        v1: Minkowski = GJK.support(prima, primb, dir)
-        dir = GJK.calc_direction_by_edge(v0._res, v1._res, True)
-        v2: Minkowski = GJK.support(prima, primb, dir)
+        v1: Minkowski = GJK.support(prima, primb, dirn)
+        dirn = GJK.calc_direction_by_edge(v0._res, v1._res, True)
+        v2: Minkowski = GJK.support(prima, primb, dirn)
 
         simplex._vertices.append(v0)
         simplex._vertices.append(v1)
@@ -83,18 +83,18 @@ class MPR():
         is_colliding: bool = False
         v1: Matrix = Matrix([0.0, 0.0], 'vec')
         v2: Matrix = Matrix([0.0, 0.0], 'vec')
-        dir: Matrix = Matrix([0.0, 0.0], 'vec')
+        dirn: Matrix = Matrix([0.0, 0.0], 'vec')
 
         for i in range(iter_val):
             v1 = simplex._vertices[1]._res
             v2 = simplex._vertices[2]._res
-            dir = GJK.calc_direction_by_edge(v1, v2, True)
+            dirn = GJK.calc_direction_by_edge(v1, v2, True)
 
-            if (dir.dot(center_to_origin) < 0):
-                dir.negate()
+            if (dirn.dot(center_to_origin) < 0):
+                dirn.negate()
                 is_colliding = True
 
-            new_vertex: Minkowski = GJK.support(prima, primb, dir)
+            new_vertex: Minkowski = GJK.support(prima, primb, dirn)
 
             if v1 == new_vertex._res or v2 == new_vertex._res:
                 break
