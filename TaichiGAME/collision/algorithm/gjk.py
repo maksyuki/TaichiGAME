@@ -1,11 +1,13 @@
-from typing import List, Dict, Optional, Tuple
+from __future__ import annotations
+from typing import List, Optional, Tuple, cast
 
 import numpy as np
 
 from ...math.matrix import Matrix
 from ...common.config import Config
 from ...geometry.geom_algo import GeomAlgo2D
-from ...geometry.shape import Capsule, Circle, Edge, Ellipse, Point, Polygon, Sector, Shape, ShapePrimitive
+from ...geometry.shape import Capsule, Circle, Edge, Ellipse, Point
+from ...geometry.shape import Polygon, Sector, Shape, ShapePrimitive
 
 
 class Minkowski():
@@ -16,10 +18,10 @@ class Minkowski():
         self._pb: Matrix = pb
         self._res: Matrix = self._pa - self._pb
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return self._pa == other._pa and self._pb == other._pb
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         return not (self._pa == other._pa and self._pb == other._pb)
 
 
@@ -27,10 +29,8 @@ class Simplex():
     '''simplex structure for gjk/epa test.
 
     By convention:
-    1 points: p0, construct a single point
-
-    2 points: p0->pa, construct a segment
-    
+    1 points:   p0, construct a single point
+    2 points:   p0->pa, construct a segment
     >=4 points: p0->pa->pb->p0, construct a polygon
     '''
     def __init__(self):
@@ -41,7 +41,7 @@ class Simplex():
         self._is_contain_origin = Simplex._contain_origin(self, strict)
         return self._is_contain_origin
 
-    def insert(self, pos: int, vertex: Minkowski):
+    def insert(self, pos: int, vertex: Minkowski) -> None:
         self._vertices.insert(pos + 1, vertex)
 
     def contains(self, minkowski: Minkowski) -> bool:
@@ -52,7 +52,7 @@ class Simplex():
         return False
 
     def last_vertex(self) -> Matrix:
-        vert_len = len(self._vertices)
+        vert_len: int = len(self._vertices)
         if vert_len == 2:
             return self._vertices[vert_len - 1]._res
 
@@ -97,6 +97,9 @@ class PointPair():
 
     def __eq__(self, other) -> bool:
         return self._pa == other._pa and self._pb == other._pb
+
+    def __ne__(self, other) -> bool:
+        return not (self._pa == other._pa and self._pb == other._pb)
 
     def is_empty(self) -> bool:
         return self._pa == Matrix([0.0, 0.0], 'vec') and self._pb == Matrix(
@@ -162,9 +165,9 @@ class GJK():
                                               simplex._vertices[idx2]._res,
                                               True)
 
-            res = GJK.adjust_simplex(simplex, idx1, idx2)
+            res: Optional[Minkowski] = GJK.adjust_simplex(simplex, idx1, idx2)
 
-            if res != None:
+            if res is not None:
                 for v in removed:
                     if v == res:
                         break
@@ -196,10 +199,10 @@ class GJK():
             return expanded simplex
         '''
 
-        edg: Simplex = Simplex()
+        # edg: Simplex = Simplex()
         simplex: Simplex = src
         normal: Matrix = Matrix([0.0, 0.0], 'vec')
-        p = Minkowski()
+        p: Minkowski = Minkowski()
 
         for i in range(iter_val):
             (idx1, idx2) = GJK.find_edge_closest_to_origin(simplex)
@@ -209,7 +212,7 @@ class GJK():
 
             if GeomAlgo2D.is_point_on_segment(simplex._vertices[idx1]._res,
                                               simplex._vertices[idx2]._res,
-                                              [0.0, 0.0]):
+                                              Matrix([0.0, 0.0], 'vec')):
                 normal.negate()
 
             p = GJK.support(prima, primb, normal)
@@ -277,7 +280,10 @@ class GJK():
         for i in range(vert_len - 1):
             a: Matrix = simplex._vertices[i]._res
             b: Matrix = simplex._vertices[i + 1]._res
-            p: Matrix = GeomAlgo2D.point_to_line_segment(a, b, [0.0, 0.0])
+            p: Optional[Matrix] = GeomAlgo2D.point_to_line_segment(
+                a, b, Matrix([0.0, 0.0], 'vec'))
+
+            assert p is not None
             proj: float = p.len()
 
             if dist_min > proj:
@@ -316,36 +322,38 @@ class GJK():
         rot: Matrix = Matrix.rotate_mat(-prim._rot)
         rot_dir: Matrix = rot * dirn
 
-        if prim._shape.type() == Shape.Type.Polygon:
-            poly: Polygon = prim._shape
-            (vertex, idx) = GJK.find_farthest_point(poly.vertices, rot_dir)
+        assert prim._shape is not None
+        if prim._shape.type == Shape.Type.Polygon:
+            poly: Polygon = cast(Polygon, prim._shape)
+            (vertex, idx) = GJK.find_farthest_point2(poly.vertices, rot_dir)
             target = vertex
 
-        elif prim._shape.type() == Shape.Type.Circle:
-            cir: Circle = prim._shape
+        elif prim._shape.type == Shape.Type.Circle:
+            cir: Circle = cast(Circle, prim._shape)
             return dirn.normal() * cir.radius + prim._xform
 
-        elif prim._shape.type() == Shape.Type.Ellipse:
-            elli: Ellipse = prim._shape
+        elif prim._shape.type == Shape.Type.Ellipse:
+            elli: Ellipse = cast(Ellipse, prim._shape)
             target = GeomAlgo2D.calc_ellipse_project_on_point(
                 elli.A(), elli.B(), rot_dir)
 
-        elif prim._shape.type() == Shape.Type.Edge:
-            edg: Edge = prim._shape
+        elif prim._shape.type == Shape.Type.Edge:
+            edg: Edge = cast(Edge, prim._shape)
             dot1: float = Matrix.dot_product(edg.start, dirn)
             dot2: float = Matrix.dot_product(edg.end, dirn)
             target = edg.start if dot1 > dot2 else edg.end
 
-        elif prim._shape.type() == Shape.Type.Point:
-            return prim._shape.pos
+        elif prim._shape.type == Shape.Type.Point:
+            point: Point = cast(Point, prim._shape)
+            return point.pos
 
-        elif prim._shape.type() == Shape.Type.Capsule:
-            cap: Capsule = prim._shape
+        elif prim._shape.type == Shape.Type.Capsule:
+            cap: Capsule = cast(Capsule, prim._shape)
             target = GeomAlgo2D.calc_capsule_project_on_point(
                 cap.width, cap.height, rot_dir)
 
-        elif prim._shape.type() == Shape.Type.Sector:
-            sec: Sector = prim._shape
+        elif prim._shape.type == Shape.Type.Sector:
+            sec: Sector = cast(Sector, prim._shape)
             target = GeomAlgo2D.calc_sector_project_on_point(
                 sec.start, sec.span, sec.radius, rot_dir)
 
@@ -354,9 +362,25 @@ class GJK():
         return target
 
     @staticmethod
+    def find_farthest_point2(vertices: List[Matrix],
+                             dirn: Matrix) -> Tuple[Matrix, int]:
+        val_max: float = Config.NegativeMin
+        target: Matrix = Matrix([0.0, 0.0], 'vec')
+        idx: int = 0
+        vert_len: int = len(vertices)
+        for i in range(vert_len):
+            res: float = Matrix.dot_product(vertices[i], dirn)
+            if val_max < res:
+                val_max = res
+                target = vertices[i]
+                idx = i
+
+        return (target, idx)
+
+    @staticmethod
     def adjust_simplex(simplex: Simplex, closest1: int,
                        closest2: int) -> Optional[Minkowski]:
-        '''Adjust triangle simplex, remove the point that can not form a 
+        '''Adjust triangle simplex, remove the point that can not form a
         triangle that contains origin
 
         Parameters
@@ -393,7 +417,7 @@ class GJK():
     def calc_direction_by_edge(pa: Matrix,
                                pb: Matrix,
                                point_to_origin: bool = True) -> Matrix:
-        '''Given two points, calculate the perpendicular vector and 
+        '''Given two points, calculate the perpendicular vector and
         the orientation is user-defined.
 
         Parameters
@@ -491,17 +515,16 @@ class GJK():
 
         a: Matrix = src._a1 - src._b1
         b: Matrix = src._a2 - src._b2
-        l: Matrix = b - a
-        ll: float = l.dot(l)
-        la: float = l.dot(a)
+        lval: Matrix = b - a
+        ll: float = lval.dot(lval)
+        la: float = lval.dot(a)
         lambda2: float = -la / ll
         lambda1: float = 1 - lambda2
 
-        # BUG:?
-        res._pa.set_value(lambda1 * a_s1 + lambda2 * b_s1)
-        res._pb.set_value(lambda1 * a_s2 + lambda2 * b_s2)
+        res._pa.set_value(a_s1 * lambda1 + b_s1 * lambda2)
+        res._pb.set_value(a_s2 * lambda1 + b_s2 * lambda2)
 
-        if l == Matrix([0.0, 0.0], 'vec') or lambda2 < 0:
+        if lval == Matrix([0.0, 0.0], 'vec') or lambda2 < 0:
             res._pa.set_value([a_s1.x, a_s1.y])  # HACK:
             res._pb.set_value([a_s2.x, a_s2.y])
 
