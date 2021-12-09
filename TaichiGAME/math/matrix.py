@@ -290,10 +290,11 @@ class Matrix():
         assert other._val.shape == (2, 1)
         return np.dot(self._val.T, other._val)[0, 0]
 
-    def cross(self, other: Matrix) -> Union[float, np.ndarray]:
+    def cross(self, other: Matrix) -> float:
         assert self._val.shape == (2, 1)
         assert other._val.shape == (2, 1)
-        return np.cross(self._val.reshape(2), other._val.reshape(2))
+        # NOTE: same as the cross_product method
+        return np.cross(self._val.reshape(2), other._val.reshape(2)).tolist()
 
     def perpendicular(self) -> Matrix:
         assert self._val.shape == (2, 1)
@@ -306,10 +307,12 @@ class Matrix():
         return np.dot(veca._val.T, vecb._val)[0, 0]
 
     @staticmethod
-    def cross_product(veca: Matrix, vecb: Matrix) -> Union[float, np.ndarray]:
+    def cross_product(veca: Matrix, vecb: Matrix) -> float:
         assert veca._val.shape == (2, 1)
         assert vecb._val.shape == (2, 1)
-        return np.cross(veca._val.reshape(2), vecb._val.reshape(2))
+        # NOTE: just hack this impl to output scalar val otherwise vector
+        # to pass mypy check
+        return np.cross(veca._val.reshape(2), vecb._val.reshape(2)).tolist()
 
     @staticmethod
     def rotate_mat(radian: float) -> Matrix:
