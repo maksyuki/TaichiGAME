@@ -293,7 +293,7 @@ class TestMatrix():
         res: float = TestMatrix.vec1_arr[0] * TestMatrix.vec2_arr[
             0] + TestMatrix.vec1_arr[1] * TestMatrix.vec2_arr[1]
 
-        assert vec1.dot(vec2) == res
+        assert np.isclose(vec1.dot(vec2), res)
 
     def test_cross(self):
         vec1: Matrix = Matrix(TestMatrix.vec1_arr, 'vec')
@@ -301,7 +301,7 @@ class TestMatrix():
         res: float = TestMatrix.vec1_arr[0] * TestMatrix.vec2_arr[
             1] - TestMatrix.vec2_arr[0] * TestMatrix.vec1_arr[1]
 
-        assert vec1.cross(vec2) == res
+        assert np.isclose(vec1.cross(vec2), res)
 
     def test_perpendicular(self):
         assert 1
@@ -312,7 +312,7 @@ class TestMatrix():
 
         res: float = TestMatrix.vec1_arr[0] * TestMatrix.vec2_arr[
             0] + TestMatrix.vec1_arr[1] * TestMatrix.vec2_arr[1]
-        assert Matrix.dot_product(vec1, vec2) == res
+        assert np.isclose(Matrix.dot_product(vec1, vec2), res)
 
     def test_cross_product(self):
         vec1: Matrix = Matrix(TestMatrix.vec1_arr, 'vec')
@@ -320,7 +320,7 @@ class TestMatrix():
 
         res: float = TestMatrix.vec1_arr[0] * TestMatrix.vec2_arr[
             1] - TestMatrix.vec2_arr[0] * TestMatrix.vec1_arr[1]
-        assert Matrix.cross_product(vec1, vec2) == res
+        assert np.isclose(Matrix.cross_product(vec1, vec2), res)
 
     def test_rotate_mat(self):
         assert 1
