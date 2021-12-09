@@ -1,12 +1,14 @@
+from typing import List
+
 import numpy as np
-from typing import Any, List, Optional
 
 from TaichiGAME.math.matrix import Matrix
-from TaichiGAME.geometry.shape import *
+from TaichiGAME.geometry.shape import ShapePrimitive, Point
+from TaichiGAME.geometry.shape import Polygon, Rectangle, Circle
+from TaichiGAME.geometry.shape import Ellipse, Edge, Curve, Capsule, Sector
 
 
 class TestShape():
-    shape1: Shape = Shape()
     assert 1
 
 
@@ -41,7 +43,8 @@ class TestPolygon():
         ver_list.append(Matrix([0.0, 0.0], 'vec'))
         poly1.vertices = ver_list
 
-        # the pos is normalizated to the [-width/2, widhth/2] [-heigh/2, heigh/2]
+        # the pos is normalizated to the
+        # [-width/2, widhth/2] [-heigh/2, heigh/2]
         assert poly1.contains(Matrix([0.0, 0.0], 'vec'))
         assert poly1.contains(Matrix([2.0, 2.0], 'vec'))
         assert not poly1.contains(Matrix([2.0, 3.0], 'vec'))
