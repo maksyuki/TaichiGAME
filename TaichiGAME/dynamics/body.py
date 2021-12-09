@@ -1,11 +1,13 @@
+from __future__ import annotations
 from enum import IntEnum, unique
-from typing import List, Dict, Optional, Tuple
+from typing import Optional, Type, TypeVar
 
 import numpy as np
 
 from ..common.config import Config
 from ..math.matrix import Matrix
-from ..geometry.shape import Capsule, Ellipse, Polygon, Sector, Shape, ShapePrimitive, Circle
+from ..geometry.shape import Capsule, Ellipse
+from ..geometry.shape import Polygon, Sector, Shape, Circle
 
 
 class Body():
@@ -23,9 +25,11 @@ class Body():
             self._rot: float = 0.0
             self._ang_vel: float = 0.0
 
-        def step(self, dt: float):
+        def step(self, dt: float) -> None:
             self._pos += self._vel * dt
             self._rot += self._ang_vel * dt
+
+    U = TypeVar('U', bound=Shape)
 
     def __init__(self):
         self._id: int = 0
@@ -40,7 +44,7 @@ class Body():
         self._forces: Matrix = Matrix([0.0, 0.0], 'vec')
         self._torques: float = 0.0
 
-        self._shape: Shape = Shape()
+        self._shape: Optional[Type[Body.U]] = None
         self._type = Body.Type.Static
 
         self._sleep: bool = False
@@ -52,7 +56,7 @@ class Body():
         return self._phy_attr._pos
 
     @pos.setter
-    def pos(self, pos: Matrix):
+    def pos(self, pos: Matrix) -> None:
         self._phy_attr._pos = pos
 
     @property
@@ -60,7 +64,7 @@ class Body():
         return self._phy_attr._vel
 
     @vel.setter
-    def vel(self, vel: Matrix):
+    def vel(self, vel: Matrix) -> None:
         self._phy_attr._vel = vel
 
     @property
@@ -68,7 +72,7 @@ class Body():
         return self._phy_attr._rot
 
     @rot.setter
-    def rot(self, rot: float):
+    def rot(self, rot: float) -> None:
         self._phy_attr._rot = rot
 
     @property
@@ -76,7 +80,7 @@ class Body():
         return self._phy_attr._ang_vel
 
     @ang_vel.setter
-    def ang_vel(self, ang_vel: float):
+    def ang_vel(self, ang_vel: float) -> None:
         self._phy_attr._ang_vel = ang_vel
 
     @property
@@ -84,7 +88,7 @@ class Body():
         return self._forces
 
     @forces.setter
-    def forces(self, forces: Matrix):
+    def forces(self, forces: Matrix) -> None:
         self._forces = forces
 
     @property
@@ -92,35 +96,37 @@ class Body():
         return self._torques
 
     @torques.setter
-    def torques(self, tor: float):
+    def torques(self, tor: float) -> None:
         self._torques = tor
 
-    def clear_torque(self):
+    def clear_torque(self) -> None:
         self._torques = 0.0
 
     @property
-    def shape(self) -> Shape:
+    def shape(self):
         return self._shape
 
     @shape.setter
-    def shape(self, shape: Shape):
+    def shape(self, shape):
         self._shape = shape
         self.calc_inertia()
 
+    # NOTE: need to achieve type hint
     @property
     def type(self):
         return self._type
 
+    # NOTE: need to achieve type hint
     @type.setter
-    def type(self, type):
-        self._type = type
+    def type(self, val):
+        self._type = val
 
     @property
     def mass(self) -> float:
         return self._mass
 
     @mass.setter
-    def mass(self, mass: float):
+    def mass(self, mass: float) -> None:
         self._mass = mass
 
         if np.isclose(mass, Config.Max):
@@ -134,7 +140,7 @@ class Body():
     def inertia(self) -> float:
         return self._inertia
 
-    #FIXME: if import AABB, will trigger loop import err
+    # FIXME: if import AABB, will trigger loop import err
     # USE AABB.from_body static method
     # def aabb(self, factor: float = 1.0) -> AABB:
     #     prim: ShapePrimitive = ShapePrimitive()
@@ -148,7 +154,7 @@ class Body():
         return self._fric
 
     @fric.setter
-    def fric(self, fric: float):
+    def fric(self, fric: float) -> None:
         self._fric = fric
 
     @property
@@ -156,7 +162,7 @@ class Body():
         return self._sleep
 
     @sleep.setter
-    def sleep(self, sleep: bool):
+    def sleep(self, sleep: bool) -> None:
         self._sleep = sleep
 
     @property
@@ -175,12 +181,12 @@ class Body():
     def phy_attr(self, info: PhysicsAttribute):
         self._phy_attr = info
 
-    def step_position(self, dt: float):
+    def step_position(self, dt: float) -> None:
         self._phy_attr._pos += self._phy_attr._vel * dt
         self._phy_attr._rot += self._phy_attr._ang_vel * dt
 
-    def apply_impulse(self, impulse: Matrix, r: Matrix):
-        self._phy_attr._vel += self._inv_mass * impulse
+    def apply_impulse(self, impulse: Matrix, r: Matrix) -> None:
+        self._phy_attr._vel += impulse * self._inv_mass
         self._phy_attr._ang_vel += self._inv_inertia * r.cross(impulse)
 
     def to_local_point(self, point: Matrix) -> Matrix:
@@ -199,8 +205,8 @@ class Body():
         return self._id
 
     @id.setter
-    def id(self, id: int):
-        self._id = id
+    def id(self, val: int) -> None:
+        self._id = val
 
     @property
     def bitmask(self) -> int:
@@ -218,8 +224,10 @@ class Body():
     def restit(self, restit: float):
         self._restit = restit
 
+    # NOTE: need to achieve type hint
     def calc_inertia(self):
-        shape_type = self._shape.type()
+        assert self._shape is not None
+        shape_type = self._shape.type
 
         if shape_type == Shape.Type.Circle:
             cir: Circle = self._shape

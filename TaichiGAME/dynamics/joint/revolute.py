@@ -1,6 +1,4 @@
-from typing import List, Dict, Optional, Tuple
-
-import numpy as np
+from typing import List, Optional
 
 from ...math.matrix import Matrix
 from ..body import Body
@@ -27,14 +25,15 @@ class RevoluteJointPrimitive():
 class RevoluteJoint(Joint):
     def __init__(self,
                  prim: RevoluteJointPrimitive = RevoluteJointPrimitive()):
+        super().__init__()
         self._type: JointType = JointType.Revolute
         self._prim: RevoluteJointPrimitive = prim
 
-    def set_value(self, prim: RevoluteJointPrimitive):
+    def set_value(self, prim: RevoluteJointPrimitive) -> None:
         self._prim = prim
 
-    def prepare(self, dt: float):
-        if self._prim._bodya == None or self._prim._bodyb == None:
+    def prepare(self, dt: float) -> None:
+        if self._prim._bodya is None or self._prim._bodyb is None:
             return
 
         bodya: Body = self._prim._bodya
@@ -61,7 +60,7 @@ class RevoluteJoint(Joint):
         self._prim._gamma = Joint.constraint_impulse_mixing(
             dt, self._prim._stiff, self._prim._damping)
         erp: float = Joint.error_reduction_parameter(dt, self._prim._stiff,
-                                                    self._prim._damping)
+                                                     self._prim._damping)
 
         pa: Matrix = bodya.to_world_point(self._prim._local_pointa)
         ra: Matrix = pa - bodya.pos
@@ -86,18 +85,18 @@ class RevoluteJoint(Joint):
         self._prim._bodya.apply_impulse(self._prim._impulse, ra)
         self._prim._bodyb.apply_impulse(-self._prim._impulse, rb)
 
-    def solve_velocity(self, dt: float):
-        if self._prim._bodya == None or self._prim._bodyb == None:
+    def solve_velocity(self, dt: float) -> None:
+        if self._prim._bodya is None or self._prim._bodyb is None:
             return
 
         ra: Matrix = self._prim._bodya.to_world_point(
             self._prim._local_pointa) - self._prim._bodya.pos
         va: Matrix = self._prim._bodya.vel + Matrix.cross_product(
-            self._prim._bodya.ang_vel, ra)
+            Matrix([self._prim._bodya.ang_vel, 0.0], 'vec'), ra)
         rb: Matrix = self._prim._bodyb.to_world_point(
             self._prim._local_pointb) - self._prim._bodyb.pos
         vb: Matrix = self._prim._bodyb.vel + Matrix.cross_product(
-            self._prim._bodyb.ang_vel, rb)
+            Matrix([self._prim._bodyb.ang_vel, 0.0], 'vec'), rb)
 
         jvb: Matrix = va - vb
         jvb += self._prim._bias
@@ -117,8 +116,8 @@ class RevoluteJoint(Joint):
         self._prim._bodya.apply_impulse(J, ra)
         self._prim._bodyb.apply_impulse(-J, rb)
 
-    def solve_position(self, dt: float):
-        if self._prim._bodya == None or self._prim._bodby == None:
+    def solve_position(self, dt: float) -> None:
+        if self._prim._bodya is None or self._prim._bodyb is None:
             return
 
     def prim(self) -> RevoluteJointPrimitive:
