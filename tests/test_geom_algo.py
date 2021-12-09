@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional, Tuple
+from typing import List, Tuple
 
 import numpy as np
 
@@ -98,7 +98,7 @@ class TestGeomAlgo2D():
                                               TestGeomAlgo2D.pa1)
 
     def test_line_segment_intersection(self):
-        #NOTE: need to check the valid under the overlap situation
+        # NOTE: need to check the valid under the overlap situation
         assert (GeomAlgo2D.line_segment_intersection(
             TestGeomAlgo2D.pa1, TestGeomAlgo2D.pb1, TestGeomAlgo2D.pa2,
             TestGeomAlgo2D.pb2)._val == [1.4, 1.4]).all()
@@ -107,10 +107,9 @@ class TestGeomAlgo2D():
             TestGeomAlgo2D.pa1, TestGeomAlgo2D.pb1, TestGeomAlgo2D.pa2,
             TestGeomAlgo2D.pa1) == TestGeomAlgo2D.pa1
 
-        assert GeomAlgo2D.line_segment_intersection(TestGeomAlgo2D.pa1,
-                                                    TestGeomAlgo2D.pb1,
-                                                    TestGeomAlgo2D.pa2,
-                                                    TestGeomAlgo2D.pc1) == None
+        assert GeomAlgo2D.line_segment_intersection(
+            TestGeomAlgo2D.pa1, TestGeomAlgo2D.pb1, TestGeomAlgo2D.pa2,
+            TestGeomAlgo2D.pc1) is None
 
     def test_line_intersection(self):
         assert GeomAlgo2D.line_intersection(
@@ -121,15 +120,13 @@ class TestGeomAlgo2D():
             TestGeomAlgo2D.pa1, TestGeomAlgo2D.pb1, TestGeomAlgo2D.pa2,
             TestGeomAlgo2D.pc1) == TestGeomAlgo2D.pc1
 
-        assert GeomAlgo2D.line_intersection(TestGeomAlgo2D.pa1,
-                                            TestGeomAlgo2D.pb1,
-                                            TestGeomAlgo2D.pa2,
-                                            TestGeomAlgo2D.pc2) == None
+        assert GeomAlgo2D.line_intersection(
+            TestGeomAlgo2D.pa1, TestGeomAlgo2D.pb1, TestGeomAlgo2D.pa2,
+            TestGeomAlgo2D.pc2) is None
 
     def test_calc_circum_center(self):
-        assert GeomAlgo2D.calc_circum_center(TestGeomAlgo2D.pa1,
-                                             TestGeomAlgo2D.pb1,
-                                             TestGeomAlgo2D.pc1) == None
+        assert GeomAlgo2D.calc_circum_center(
+            TestGeomAlgo2D.pa1, TestGeomAlgo2D.pb1, TestGeomAlgo2D.pc1) is None
 
         dut1: Tuple[Matrix, float] = GeomAlgo2D.calc_circum_center(
             TestGeomAlgo2D.pa1, TestGeomAlgo2D.pb1, TestGeomAlgo2D.pa2)
@@ -138,9 +135,8 @@ class TestGeomAlgo2D():
         assert np.isclose(dut1[1], 1.58113)
 
     def test_calc_inscribed_center(self):
-        assert GeomAlgo2D.calc_inscribed_center(TestGeomAlgo2D.pa1,
-                                                TestGeomAlgo2D.pb1,
-                                                TestGeomAlgo2D.pc1) == None
+        assert GeomAlgo2D.calc_inscribed_center(
+            TestGeomAlgo2D.pa1, TestGeomAlgo2D.pb1, TestGeomAlgo2D.pc1) is None
 
         dut1: Tuple[Matrix, float] = GeomAlgo2D.calc_inscribed_center(
             TestGeomAlgo2D.pa1, TestGeomAlgo2D.pb1, TestGeomAlgo2D.pa2)
@@ -187,7 +183,7 @@ class TestGeomAlgo2D():
             [0.0, 0.0], 'vec')
 
     def test_shortest_length_line_segment_ellipse(self):
-        assert 1  #FIXME: need to modify
+        assert 1  # FIXME: need to modify
 
     def test_raycast(self):
         assert GeomAlgo2D.raycast(TestGeomAlgo2D.pa2, Matrix([1.0, -1.0],
@@ -196,13 +192,12 @@ class TestGeomAlgo2D():
                                   TestGeomAlgo2D.pc1) == Matrix([0.2, 0.2],
                                                                 'vec')
 
-        assert GeomAlgo2D.raycast(TestGeomAlgo2D.pa2, Matrix([-1.0, 1.0],
-                                                             'vec'),
-                                  TestGeomAlgo2D.pa1,
-                                  TestGeomAlgo2D.pb1) == None
+        assert GeomAlgo2D.raycast(TestGeomAlgo2D.pa2, Matrix(
+            [-1.0, 1.0], 'vec'), TestGeomAlgo2D.pa1,
+                                  TestGeomAlgo2D.pb1) is None
 
     def test_raycastAABB(self):
-        assert 1  #FIXME: need to modify
+        assert 1  # FIXME: need to modify
 
     def test_is_point_on_AABB(self):
         assert GeomAlgo2D.is_point_on_AABB(TestGeomAlgo2D.pa1,
@@ -217,14 +212,25 @@ class TestGeomAlgo2D():
             TestGeomAlgo2D.pc1, TestGeomAlgo2D.pa2, TestGeomAlgo2D.pb2)
 
     def test_rotate(self):
-        GeomAlgo2D.rotate(TestGeomAlgo2D.pa1, TestGeomAlgo2D.org, np.pi / 4) == Matrix([0.0, 1.41421], 'vec')
+        assert GeomAlgo2D.rotate(TestGeomAlgo2D.pa1, TestGeomAlgo2D.org,
+                                 np.pi / 4) == Matrix([0.0, 1.41421], 'vec')
 
     def test_calc_ellipse_project_on_point(self):
-        print (GeomAlgo2D.calc_ellipse_project_on_point(2, 1, TestGeomAlgo2D.dir_0))
-        print (GeomAlgo2D.calc_ellipse_project_on_point(2, 1, TestGeomAlgo2D.dir_45))
-        print (GeomAlgo2D.calc_ellipse_project_on_point(2, 1, TestGeomAlgo2D.dir_90))
-        print (GeomAlgo2D.calc_ellipse_project_on_point(2, 1, TestGeomAlgo2D.dir_135))
-        print (GeomAlgo2D.calc_ellipse_project_on_point(2, 1, TestGeomAlgo2D.dir_180))
+        print(
+            GeomAlgo2D.calc_ellipse_project_on_point(2, 1,
+                                                     TestGeomAlgo2D.dir_0))
+        print(
+            GeomAlgo2D.calc_ellipse_project_on_point(2, 1,
+                                                     TestGeomAlgo2D.dir_45))
+        print(
+            GeomAlgo2D.calc_ellipse_project_on_point(2, 1,
+                                                     TestGeomAlgo2D.dir_90))
+        print(
+            GeomAlgo2D.calc_ellipse_project_on_point(2, 1,
+                                                     TestGeomAlgo2D.dir_135))
+        print(
+            GeomAlgo2D.calc_ellipse_project_on_point(2, 1,
+                                                     TestGeomAlgo2D.dir_180))
         assert 1
 
     def test_calc_capsule_project_on_point(self):
