@@ -1,15 +1,15 @@
-from TaichiGAME.common.random import RandomGenerator
-from TaichiGAME.dynamics.joint.rotation import RotationJointPrimitive
-from typing import IO, List, Dict, Optional, Tuple, Union
+from typing import Union, List
 
 from ..math.matrix import Matrix
 from ..dynamics.body import Body
+from ..common.random import RandomGenerator
 from .joint.joint import Joint
 from .joint.distance import DistanceJoint, DistanceJointPrimitive
 from .joint.point import PointJoint, PointJointPrimitive
 from .joint.pulley import PulleyJoint, PulleyJointPrimitive
 from .joint.revolute import RevoluteJoint, RevoluteJointPrimitive
-from .joint.rotation import OrientationJoint, OrientationJointPrimitive, RotationJoint
+from .joint.rotation import OrientationJoint, OrientationJointPrimitive
+from .joint.rotation import RotationJointPrimitive, RotationJoint
 
 
 class PhysicsWorld():
