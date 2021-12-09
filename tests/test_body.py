@@ -111,26 +111,61 @@ class TestBody():
         assert np.isclose(dut.rot, 6)
 
     def test_apply_impulse(self):
-        # dut: Body = Body()
-        assert 1
+        dut: Body = Body()
+        dut.shape = Circle()
+        dut.vel = Matrix([1.0, 2.0], 'vec')
+        dut.ang_vel = 1.0
+        dut.mass = 10
+        print(dut.vel.shape)
+        dut.apply_impulse(Matrix([1.0, 1.0], 'vec'), Matrix([1.0, 1.0], 'vec'))
+        print(dut.vel.shape)
+        print(dut.vel)
+
+        print(dut.ang_vel)
+        assert dut.vel == Matrix([1.1, 2.1], 'vec')
+        assert np.isclose(dut.ang_vel, 1)
 
     def test_to_local_point(self):
-        assert 1
+        dut: Body = Body()
+        dut.rot = np.pi / 4
+        dut.pos = Matrix([0.0, 0.0], 'vec')
+        tmp = dut.to_local_point(Matrix([1.0, 1.0], 'vec'))
+        assert tmp == Matrix([1.414213, 0], 'vec')
 
     def test_to_world_point(self):
-        assert 1
+        dut: Body = Body()
+        dut.rot = np.pi / 4
+        dut.pos = Matrix([0.0, 0.0], 'vec')
+        tmp = dut.to_local_point(Matrix([1.414213, 0], 'vec'))
+        print(tmp)
+        assert tmp == Matrix([1, -1], 'vec')
 
     def test_to_actual_point(self):
-        assert 1
+        dut: Body = Body()
+        dut.rot = np.pi / 4
+        tmp = dut.to_actual_point(Matrix([1, 1], 'vec'))
+        print(tmp)
+        assert tmp == Matrix([0, 1.41421], 'vec')
 
     def test_id(self):
-        assert 1
+        dut: Body = Body()
+        dut.id = 6
+        assert dut.id == 6
 
     def test_bitmask(self):
-        assert 1
+        dut: Body = Body()
+        dut.bitmask = 6
+        assert dut.bitmask == 6
 
     def test_restit(self):
-        assert 1
+        dut: Body = Body()
+        dut.restit = 6.4
+        assert np.isclose(dut.restit, 6.4)
 
+    # NOTE: need to add more body type
     def test_calc_inertia(self):
-        assert 1
+        dut: Body = Body()
+        dut.shape = Circle(6)
+        dut.mass = 1
+        print(dut.inertia)
+        assert np.isclose(dut.inertia, 18)
