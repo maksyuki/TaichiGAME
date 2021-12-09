@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional
+from typing import List, Dict, Union, Optional
 
 import numpy as np
 
@@ -61,14 +61,19 @@ class TestMatrix():
             assert eq_val == eq_flag
         else:
             dut_data = mat.reshape(mat.size, 1)
-            for dut, ref in zip(dut_data, ref_data):
+            for dut, ref in zip(dut_data._val.tolist(), ref_data):
                 assert np.isclose(dut, ref)
 
-    def value_helper(self, data: Matrix, row: int = -1, col: int = -1):
+    def value_helper(self,
+                     data: Union[Matrix, float],
+                     row: int = -1,
+                     col: int = -1):
         if row != -1 and col == -1:
+            assert isinstance(data, Matrix)
             assert np.isclose(data.x, TestMatrix.mat1_arr[row * 2])
             assert np.isclose(data.y, TestMatrix.mat1_arr[row * 2 + 1])
         else:
+            assert isinstance(data, float)
             assert np.isclose(data, TestMatrix.mat1_arr[row * 2 + col])
 
     def mat_trans_helper(self, mat: Matrix, oper: str = 'none'):
@@ -82,20 +87,20 @@ class TestMatrix():
             ref_data[2] = -ref_data[2]
             ref_data = [v / det for v in ref_data]
         elif oper == 'set_value':
-            ref_data: List[float] = TestMatrix.mat2_arr
+            ref_data = TestMatrix.mat2_arr
         elif oper == 'clear':
-            ref_data: List[float] = [0 for v in ref_data]
+            ref_data = [0 for v in ref_data]
         elif oper == 'neg':
-            ref_data: List[float] = [-v for v in ref_data]
+            ref_data = [-v for v in ref_data]
         elif oper == 'swap':
-            ref_data: List[float] = TestMatrix.mat2_arr
+            ref_data = TestMatrix.mat2_arr
         elif oper == 'norm':
-            arr_len: int = sum([v * v for v in ref_data])
+            arr_len: float = sum([v * v for v in ref_data])
             arr_len = np.sqrt(arr_len)
-            ref_data: List[float] = [v / arr_len for v in ref_data]
+            ref_data = [v / arr_len for v in ref_data]
 
         dut_data = mat.reshape(mat.size, 1)
-        for dut, ref in zip(dut_data, ref_data):
+        for dut, ref in zip(dut_data._val.tolist(), ref_data):
             assert np.isclose(dut, ref)
 
     def test_vec_init(self):
@@ -109,7 +114,7 @@ class TestMatrix():
         assert mat.shape == (2, 2)
 
         dut_data = mat.reshape(4, 1)
-        for dut, ref in zip(dut_data, TestMatrix.mat1_arr):
+        for dut, ref in zip(dut_data._val.tolist(), TestMatrix.mat1_arr):
             assert np.isclose(dut, ref)
 
     def test_neg_operator(self):
@@ -280,7 +285,7 @@ class TestMatrix():
 
     def test_is_origin(self):
         vec1: Matrix = Matrix(TestMatrix.vec1_arr, 'vec')
-        assert vec1.is_origin() == False
+        assert not vec1.is_origin()
 
     def test_dot(self):
         vec1: Matrix = Matrix(TestMatrix.vec1_arr, 'vec')
