@@ -1,5 +1,3 @@
-from typing import List, Dict, Optional, Tuple
-
 import numpy as np
 
 from ...math.matrix import Matrix
@@ -28,15 +26,16 @@ class OrientationJointPrimitive():
 class RotationJoint(Joint):
     def __init__(self,
                  prim: RotationJointPrimitive = RotationJointPrimitive()):
+        super().__init__()
         self._type: JointType = JointType.Rotation
         self._prim: RotationJointPrimitive = prim
         self._factor: float = 0.2
 
-    def set_value(self, prim: RotationJointPrimitive):
+    def set_value(self, prim: RotationJointPrimitive) -> None:
         self._prim = prim
 
-    def prepare(self, dt: float):
-        if self._prim._bodya == None or self._prim._bodyb == None:
+    def prepare(self, dt: float) -> None:
+        if self._prim._bodya is None or self._prim._bodyb is None:
             return
 
         ii_a: float = self._prim._bodya.inv_inertia
@@ -44,18 +43,19 @@ class RotationJoint(Joint):
         inv_dt: float = 1.0 / dt
 
         self._prim._eff_mass = 1.0 / (ii_a + ii_b)
-        c: float = self._prim._bodya.rot - self._prim._bodyb.rot - self._prim._ref_rot
+        c: float = self._prim._bodya.rot - self._prim._bodyb.rot
+        c -= self._prim._ref_rot  # NOTE: just for static check
         self._prim._bias = -self._factor * inv_dt * c
 
-    def solve_velocity(self, dt: float):
+    def solve_velocity(self, dt: float) -> None:
         dw: float = self._prim._bodya.ang_vel - self._prim._bodyb.ang_vel
         impulse: float = self._prim._eff_mass * (-dw + self._prim._bias)
 
         self._prim._bodya.ang_vel += self._prim._bodya.inv_inertia * impulse
         self._prim._bodyb.ang_vel -= self._prim._bodyb.inv_inertia * impulse
 
-    def solve_position(self, dt: float):
-        pass
+    def solve_position(self, dt: float) -> None:
+        raise NotImplementedError('rot joint have not solve_position impl')
 
     def prim(self) -> RotationJointPrimitive:
         return self._prim
@@ -64,15 +64,16 @@ class RotationJoint(Joint):
 class OrientationJoint(Joint):
     def __init__(
         self, prim: OrientationJointPrimitive = OrientationJointPrimitive()):
+        super().__init__()
         self._type: JointType = JointType.Orientation
         self._prim: OrientationJointPrimitive = prim
         self._factor: float = 1.0
 
-    def set_value(self, prim: OrientationJointPrimitive):
+    def set_value(self, prim: OrientationJointPrimitive) -> None:
         self._prim = prim
 
-    def prepare(self, dt: float):
-        if self._prim._bodya == None:
+    def prepare(self, dt: float) -> None:
+        if self._prim._bodya is None:
             return
 
         bodya: Body = self._prim._bodya
@@ -90,13 +91,14 @@ class OrientationJoint(Joint):
 
         self._prim._bias = self._factor * inv_dt * c
 
-    def solve_velocity(self, dt: float):
+    def solve_velocity(self, dt: float) -> None:
         dw: float = self._prim._bodya.ang_vel
         impulse: float = self._prim._eff_mass * (-dw * self._prim._bias)
         self._prim._bodya.ang_vel += self._prim._bodya.inv_inertia * impulse
 
-    def solve_position(self, dt: float):
-        pass
+    def solve_position(self, dt: float) -> None:
+        raise NotImplementedError(
+            'orient-rot joint have not solve_position impl')
 
     def prim(self) -> OrientationJointPrimitive:
         return self._prim
