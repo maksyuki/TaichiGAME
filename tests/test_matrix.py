@@ -326,5 +326,12 @@ class TestMatrix():
             1] - TestMatrix.vec2_arr[0] * TestMatrix.vec1_arr[1]
         assert np.isclose(Matrix.cross_product(vec1, vec2), res)
 
+    def test_cross_product2(self):
+        vec: Matrix = Matrix(TestMatrix.vec1_arr, 'vec')
+        val: float = 2.0
+
+        assert Matrix.cross_product2(val, vec) == Matrix([-4.0, 2.0], 'vec')
+        assert Matrix.cross_product2(vec, val) == Matrix([4.0, -2.0], 'vec')
+
     def test_rotate_mat(self):
         assert 1
