@@ -7,7 +7,7 @@ sys.path.append('../')
 
 from TaichiGAME.scene import Scene
 
-ti.init(arch=ti.gpu)
+ti.init(arch=ti.cpu)
 
 scene = Scene()
 scene.show()
