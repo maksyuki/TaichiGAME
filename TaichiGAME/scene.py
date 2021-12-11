@@ -19,13 +19,17 @@ from .common.camera import Camera
 
 
 class Scene():
-    def __init__(self):
-        self._gui: GUI = GUI('TaichiGAME')
+    def __init__(self, width: int = 800, height: int = 600):
+        self._gui: GUI = GUI('TaichiGAME',
+                             res=(width, height),
+                             background_color=ti.rgb_to_hex(
+                                 [50 / 255.0, 50 / 255.0, 50 / 255.0]))
         # the physics world, all sim is run in physics world
         self._world: PhysicsWorld = PhysicsWorld()
         # the view camera, all viewport scale is in camera
         self._cam: Camera = Camera()
 
+        # physics init settings
         self._world.grav = Matrix([0.0, -9.8], 'vec')
         self._world._linear_vel_damping = 0.1
         self._world.air_fric_coeff = 0.8
@@ -33,6 +37,17 @@ class Scene():
         self._world.damping_ena = True
         self._world.pos_iter = 8
         self._world.vel_iter = 6
+
+        # camera init settings
+        self._cam.viewport = Camera.Viewport(Matrix([0.0, height], 'vec'),
+                                             Matrix([width, 0.0], 'vec'))
+
+        # print(self._cam._origin)
+        self._cam.aabb_visible = False
+        self._cam.dbvh_visible = False
+        self._cam.tree_visible = False
+        self._cam.axis_visible = False
+        self._cam.grid_scale_line_visible = False
 
         # the right-mouse btn drag move flag(change viewport)
         self._mouse_viewport_move: bool = False
@@ -48,24 +63,26 @@ class Scene():
 
     def render(self) -> None:
         # self._gui.circle([0.5, 0.5], radius=4)
-        self._gui.rect([0.1, 0.3], [0.3, 0.1], radius=3, color=0x00FF00)
-        self._gui.triangle([0.1, 0.3], [0.1, 0.1], [0.3, 0.1], color=0x008000)
-        self._gui.triangle([0.1, 0.3], [0.3, 0.1], [0.3, 0.3], color=0x008000)
+        self._cam.render(self._gui)
 
-        # draw the polygon
-        hex_st = np.array([[0.4, 0.4], [0.5, 0.4], [0.6, 0.5], [0.6, 0.6],
-                           [0.5, 0.7], [0.4, 0.7], [0.3, 0.6], [0.3, 0.5]])
-        hex_ed = np.array([[0.5, 0.4], [0.6, 0.5], [0.6, 0.6], [0.5, 0.7],
-                           [0.4, 0.7], [0.3, 0.6], [0.3, 0.5], [0.4, 0.4]])
-        self._gui.lines(hex_st, hex_ed, radius=2, color=0x00FF00)
+    #     self._gui.rect([0.1, 0.3], [0.3, 0.1], radius=3, color=0x00FF00)
+    #     self._gui.triangle([0.1, 0.3], [0.1, 0.1], [0.3, 0.1], color=0x008000)
+    #     self._gui.triangle([0.1, 0.3], [0.3, 0.1], [0.3, 0.3], color=0x008000)
 
-        hex_tri_a = np.array([[0.4, 0.4], [0.4, 0.4], [0.4, 0.4], [0.4, 0.4],
-                              [0.4, 0.4], [0.4, 0.4]])
-        hex_tri_b = np.array([[0.5, 0.4], [0.6, 0.5], [0.6, 0.6], [0.5, 0.7],
-                              [0.4, 0.7], [0.3, 0.6]])
-        hex_tri_c = np.array([[0.6, 0.5], [0.6, 0.6], [0.5, 0.7], [0.4, 0.7],
-                              [0.3, 0.6], [0.3, 0.5]])
-        self._gui.triangles(hex_tri_a, hex_tri_b, hex_tri_c, color=0x008000)
+    #     # draw the polygon
+    #     hex_st = np.array([[0.4, 0.4], [0.5, 0.4], [0.6, 0.5], [0.6, 0.6],
+    #                        [0.5, 0.7], [0.4, 0.7], [0.3, 0.6], [0.3, 0.5]])
+    #     hex_ed = np.array([[0.5, 0.4], [0.6, 0.5], [0.6, 0.6], [0.5, 0.7],
+    #                        [0.4, 0.7], [0.3, 0.6], [0.3, 0.5], [0.4, 0.4]])
+    #     self._gui.lines(hex_st, hex_ed, radius=2, color=0x00FF00)
+
+    #     hex_tri_a = np.array([[0.4, 0.4], [0.4, 0.4], [0.4, 0.4], [0.4, 0.4],
+    #                           [0.4, 0.4], [0.4, 0.4]])
+    #     hex_tri_b = np.array([[0.5, 0.4], [0.6, 0.5], [0.6, 0.6], [0.5, 0.7],
+    #                           [0.4, 0.7], [0.3, 0.6]])
+    #     hex_tri_c = np.array([[0.6, 0.5], [0.6, 0.6], [0.5, 0.7], [0.4, 0.7],
+    #                           [0.3, 0.6], [0.3, 0.5]])
+    #     self._gui.triangles(hex_tri_a, hex_tri_b, hex_tri_c, color=0x008000)
 
     def handle_left_mouse_event(self, state: Union[GUI.PRESS, GUI.RELEASE],
                                 x: float, y: float) -> None:
@@ -96,9 +113,9 @@ class Scene():
         # NOTE: need to set the sef._cam  the value scale
         # zoom in
         if y > 0:
-            print('zoom in')
+            self._cam.meter_to_pixel = self._cam.meter_to_pixel + self._cam.meter_to_pixel / 4
         else:
-            print('zoom out')
+            self._cam.meter_to_pixel = self._cam.meter_to_pixel - self._cam.meter_to_pixel / 4
 
     def show(self) -> None:
         while self._gui.running:
