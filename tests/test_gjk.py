@@ -1,7 +1,9 @@
+from typing import List
 import numpy as np
+from TaichiGAME.geometry.shape import Polygon, ShapePrimitive
 
 from TaichiGAME.math.matrix import Matrix
-from TaichiGAME.collision.algorithm.gjk import Simplex
+from TaichiGAME.collision.algorithm.gjk import GJK, Simplex
 from TaichiGAME.collision.algorithm.gjk import Minkowski, PenetrationInfo
 from TaichiGAME.collision.algorithm.gjk import PenetrationSource, PointPair
 
@@ -152,27 +154,74 @@ class TestPointPair():
 
 class TestGJK():
     def test_gjk(self):
+        prima: ShapePrimitive = ShapePrimitive()
+        primb: ShapePrimitive = ShapePrimitive()
+
+        polya: Polygon = Polygon()
+        polyb: Polygon = Polygon()
+
+        dataa: List[Matrix] = [
+            Matrix([4.0, 4.0], 'vec'),
+            Matrix([3.0, 3.0], 'vec'),
+            Matrix([3.0, 1.0], 'vec'),
+            Matrix([6.0, 2.0], 'vec'),
+            Matrix([4.0, 4.0], 'vec')
+        ]
+
+        datab: List[Matrix] = [
+            Matrix([2.0, 3.0], 'vec'),
+            Matrix([4.0, 2.0], 'vec'),
+            Matrix([1.0, 1.0], 'vec'),
+            Matrix([0.0, 2.0], 'vec'),
+            Matrix([2.0, 3.0], 'vec')
+        ]
+        polya.vertices = dataa
+        polyb.vertices = datab
+
+        prima._shape = polya
+        primb._shape = polyb
+        prima._xform = Matrix([4.0, 3.0], 'vec')
+        primb._xform = Matrix([2.0, 2.0], 'vec')
+        prima._rot = 0.0
+        primb._rot = 0.0
+
+        # print(f'polya center: {polya.center()}')
+        # print(f'polyb center: {polyb.center()}')
+        (is_collision, simplex) = GJK.gjk(prima, primb)
+        print(f'collision: {is_collision}')
+        assert is_collision
+
+        simplex = GJK.epa(prima, primb, simplex)
+        for m in simplex._vertices:
+            print(f'point: {m._res}')
+
         assert 1
 
     def test_epa(self):
+        # tested in test_gjk
         assert 1
 
     def test_dump_info(self):
         assert 1
 
     def test_support(self):
+        # tested in test_gjk
         assert 1
 
     def test_find_edge_closest_to_origin(self):
+        # tested in test_gjk
         assert 1
 
     def test_find_farthest_point(self):
+        # tested in test_gjk
         assert 1
 
     def test_adjust_simplex(self):
+        # tested in test_gjk
         assert 1
 
     def test_calc_direction_by_edge(self):
+        # tested in test_gjk
         assert 1
 
     def test_distance(self):
