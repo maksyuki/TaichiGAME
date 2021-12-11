@@ -1,4 +1,12 @@
-from typing import List, Dict, Optional, Tuple
+from __future__ import annotations
+from typing import List, Optional
+
+try:
+    from taichi.ui.gui import GUI  # for taichi >= 0.8.7
+except ImportError:
+    print('taichi < 0.8.7 import gui \'from taichi.misc._gui\'')
+    print('so feel free for this import error')
+    from taichi.misc._gui import GUI
 
 import numpy as np
 
@@ -26,7 +34,7 @@ class Camera():
             return self._bot_right.x - self._top_left.x
 
         @width.setter
-        def width(self, width: float):
+        def width(self, width: float) -> None:
             self._bot_right.x = self._top_left.x + width
 
         @property
@@ -34,7 +42,7 @@ class Camera():
             return self._top_left.y - self._bot_right.y
 
         @height.setter
-        def height(self, height: float):
+        def height(self, height: float) -> None:
             self._top_left.y = self._bot_right.y + height
 
         def set_value(self, width: float, height: float):
@@ -75,12 +83,53 @@ class Camera():
         self._delta_time: float = 15.0
         self._axis_point_count: float = 20.0
 
+    # render factory method
+    def render(self, gui: GUI) -> None:
+        if self.visible:
+            assert self.world is not None
+
+            # calc the 'meter to pixel' scale according
+            # to the 'target meter to pixel' set from
+            # the wheel event
+            inv_dt: float = 1.0 / self._delta_time
+            scale: float = self._target_meter_to_pixel - self._meter_to_pixel
+            if np.fabs(scale) < 0.1 or self._meter_to_pixel < 1.0:
+                self._meter_to_pixel = self._target_meter_to_pixel
+            else:
+                self._meter_to_pixel -= (1.0 -
+                                         np.exp(self._restit * inv_dt)) * scale
+
+            if self.body_visible:
+                self.render_body(gui)
+
+            if self.joint_visible:
+                self.render_joint(gui)
+
+            if self.axis_visible:
+                self.render_axis(gui)
+
+            if self.aabb_visible:
+                self.render_aabb(gui)
+
+            if self.dbvh_visible:
+                # self.render_dbvh(gui, self._)
+                raise NotImplementedError
+
+            if self.tree_visible:
+                raise NotImplementedError
+
+            if self.grid_scale_line_visible:
+                self.render_grid_scale_line(gui)
+
+            if self.contact_visible:
+                self.render_contact(gui)
+
     @property
     def visible(self) -> bool:
         return self._visible
 
     @visible.setter
-    def visible(self, visible: bool):
+    def visible(self, visible: bool) -> None:
         self._visible = visible
 
     @property
@@ -88,7 +137,7 @@ class Camera():
         return self._aabb_visible
 
     @aabb_visible.setter
-    def aabb_visible(self, visible: bool):
+    def aabb_visible(self, visible: bool) -> None:
         self._aabb_visible = visible
 
     @property
@@ -96,7 +145,7 @@ class Camera():
         return self._joint_visible
 
     @joint_visible.setter
-    def joint_visible(self, visible: bool):
+    def joint_visible(self, visible: bool) -> None:
         self._joint_visible = visible
 
     @property
@@ -104,7 +153,7 @@ class Camera():
         return self._body_visible
 
     @body_visible.setter
-    def body_visible(self, visible: bool):
+    def body_visible(self, visible: bool) -> None:
         self._body_visible = visible
 
     @property
@@ -112,7 +161,7 @@ class Camera():
         return self._axis_visible
 
     @axis_visible.setter
-    def axis_visible(self, visible: bool):
+    def axis_visible(self, visible: bool) -> None:
         self._axis_visible = visible
 
     @property
@@ -120,7 +169,7 @@ class Camera():
         return self._dbvh_visible
 
     @dbvh_visible.setter
-    def dbvh_visible(self, visible: bool):
+    def dbvh_visible(self, visible: bool) -> None:
         self._dbvh_visible = visible
 
     @property
@@ -128,7 +177,7 @@ class Camera():
         return self._tree_visible
 
     @tree_visible.setter
-    def tree_visible(self, visible: bool):
+    def tree_visible(self, visible: bool) -> None:
         self._tree_visible = visible
 
     @property
@@ -136,7 +185,7 @@ class Camera():
         return self._grid_scale_line_visible
 
     @grid_scale_line_visible.setter
-    def grid_scale_line_visible(self, visible: bool):
+    def grid_scale_line_visible(self, visible: bool) -> None:
         self._grid_scale_line_visible = visible
 
     @property
@@ -144,7 +193,7 @@ class Camera():
         return self._rotation_line_visible
 
     @rot_line_visible.setter
-    def rot_line_visible(self, visible: bool):
+    def rot_line_visible(self, visible: bool) -> None:
         self._rotation_line_visible = visible
 
     @property
@@ -152,7 +201,7 @@ class Camera():
         return self._center_visible
 
     @center_visible.setter
-    def center_visible(self, visible: bool):
+    def center_visible(self, visible: bool) -> None:
         self._center_visible = visible
 
     @property
@@ -160,7 +209,7 @@ class Camera():
         return self._contact_visible
 
     @contact_visible.setter
-    def contact_visible(self, visible: bool):
+    def contact_visible(self, visible: bool) -> None:
         self._contact_visible = visible
 
     @property
@@ -168,7 +217,10 @@ class Camera():
         return self._meter_to_pixel
 
     @meter_to_pixel.setter
-    def meter_to_pixel(self, val: float):
+    def meter_to_pixel(self, val: float) -> None:
+        # set the target 'meter_to_pixel' value
+        # when in render,
+        # clamp the scale value
         if val < 1.0:
             self._target_meter_to_pixel = 1.0
             self._target_pixel_to_meter = 1.0
@@ -182,23 +234,25 @@ class Camera():
         return self._transform
 
     @transform.setter
-    def transform(self, trans: Matrix):
+    def transform(self, trans: Matrix) -> None:
         self._transform = trans
 
     @property
     def world(self) -> PhysicsWorld:
+        assert self._world is not None
         return self._world
 
     @world.setter
-    def world(self, world: PhysicsWorld):
+    def world(self, world: PhysicsWorld) -> None:
         self._world = world
 
     @property
     def target_body(self) -> Body:
+        assert self._target_body is not None
         return self._target_body
 
     @target_body.setter
-    def target_body(self, body: Body):
+    def target_body(self, body: Body) -> None:
         self._target_body = body
 
     @property
@@ -206,7 +260,7 @@ class Camera():
         return self._zoom_factor
 
     @zoom_factor.setter
-    def zoom_factor(self, factor: float):
+    def zoom_factor(self, factor: float) -> None:
         self._zoom_factor = factor
 
     @property
@@ -214,7 +268,7 @@ class Camera():
         return self._viewport
 
     @viewport.setter
-    def viewport(self, viewport: Viewport):
+    def viewport(self, viewport: Viewport) -> None:
         self._viewport = viewport
 
         tmp: List[float] = []
@@ -249,10 +303,11 @@ class Camera():
 
     @property
     def dbvh(self) -> DBVH:
+        assert self._dbvh is not None
         return self._dbvh
 
     @dbvh.setter
-    def dbvh(self, dbvh: DBVH):
+    def dbvh(self, dbvh: DBVH) -> None:
         self._dbvh = dbvh
 
     # @property
@@ -268,25 +323,38 @@ class Camera():
         return self._delta_time
 
     @delta_time.setter
-    def delta_time(self, time: float):
+    def delta_time(self, time: float) -> None:
         self._delta_time = time
 
     @property
     def maintainer(self) -> ContactMaintainer:
+        assert self._maintainer is not None
         return self._maintainer
 
     @maintainer.setter
-    def maintainer(self, maintainer: ContactMaintainer):
+    def maintainer(self, maintainer: ContactMaintainer) -> None:
         self._maintainer = maintainer
 
-    def draw_tree(self, node_idx: int):
-        pass
+    def render_body(self, gui: GUI) -> None:
+        raise NotImplementedError
 
-    def draw_contact(self):
-        pass
+    def render_joint(self, gui: GUI) -> None:
+        raise NotImplementedError
 
-    def draw_grid_scale_line(self):
-        pass
+    def render_axis(self, gui: GUI) -> None:
+        raise NotImplementedError
 
-    def draw_dbvh(self, node: DBVH.Node):
-        pass
+    def render_aabb(self, gui: GUI) -> None:
+        raise NotImplementedError
+
+    def render_tree(self, gui: GUI, node_idx: int) -> None:
+        raise NotImplementedError
+
+    def render_contact(self, gui: GUI) -> None:
+        raise NotImplementedError
+
+    def render_grid_scale_line(self, gui: GUI) -> None:
+        raise NotImplementedError
+
+    def render_dbvh(self, gui: GUI, node: DBVH.Node) -> None:
+        raise NotImplementedError
