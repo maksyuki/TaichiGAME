@@ -614,6 +614,7 @@ class GeomAlgo2D():
         return np.fabs(Matrix.cross_product(pa - pb, pa - pc) / 2.0)
 
     # NOTE: need to focus on the vertices format
+    # the vertices format is for the close shape
     @staticmethod
     def calc_mass_center(vertices: List[Matrix]) -> Matrix:
         '''calculate the mass center of the convex polygon
