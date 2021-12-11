@@ -46,7 +46,7 @@ class Scene():
         self._cam.aabb_visible = False
         self._cam.dbvh_visible = False
         self._cam.tree_visible = False
-        self._cam.axis_visible = False
+        self._cam.axis_visible = True
         self._cam.grid_scale_line_visible = False
 
         # the right-mouse btn drag move flag(change viewport)

@@ -10,15 +10,20 @@ except ImportError:
 
 import numpy as np
 
+from ..common.config import Config
+from ..render.render import Render
 from ..math.matrix import Matrix
 from ..dynamics.phy_world import PhysicsWorld
 from ..dynamics.body import Body
-from ..collision.broad_phase.dbvh import DBVH
 from ..dynamics.constraint.contact import ContactMaintainer
+from ..collision.broad_phase.dbvh import DBVH
 
 
 class Camera():
     class Viewport():
+        '''the viewport of the render, the origin is bottom left of
+        the screen
+        '''
         def __init__(self,
                      top_left: Matrix = Matrix([0.0, 600.0], 'vec'),
                      bot_right: Matrix = Matrix([800.0, 0.0], 'vec')):
@@ -51,9 +56,9 @@ class Camera():
 
     def __init__(self):
         self._visible: bool = True
-        self._aabb_visible: bool = True
-        self._joint_visible: bool = True
-        self._body_visible: bool = True
+        self._aabb_visible: bool = False
+        self._joint_visible: bool = False
+        self._body_visible: bool = False
         self._axis_visible: bool = True
         self._dbvh_visible: bool = False
         self._tree_visible: bool = False
@@ -62,11 +67,11 @@ class Camera():
         self._center_visible: bool = False
         self._contact_visible: bool = False
 
-        self._meter_to_pixel: float = 50.0
-        self._pixel_to_meter: float = 0.02
+        self._meter_to_pixel: float = 12.0
+        self._pixel_to_meter: float = 1 / self._meter_to_pixel
 
-        self._target_meter_to_pixel: float = 80.0
-        self._target_pixel_to_meter: float = 0.02
+        self._target_meter_to_pixel: float = 20.0  # 1920x1080 -> 800*600
+        self._target_pixel_to_meter: float = 1 / self._target_meter_to_pixel
 
         self._transform: Matrix = Matrix([0.0, 0.0], 'vec')
         self._origin: Matrix = Matrix([0.0, 0.0], 'vec')
@@ -81,16 +86,16 @@ class Camera():
         self._zoom_factor: float = 1.0
         self._restit: float = 2.0
         self._delta_time: float = 15.0
-        self._axis_point_count: float = 20.0
+        self._axis_point_count: int = 20
 
     # render factory method
     def render(self, gui: GUI) -> None:
         if self.visible:
-            assert self.world is not None
+            # assert self.world is not None
 
             # calc the 'meter to pixel' scale according
             # to the 'target meter to pixel' set from
-            # the wheel event
+            # the wheel event smooth animation
             inv_dt: float = 1.0 / self._delta_time
             scale: float = self._target_meter_to_pixel - self._meter_to_pixel
             if np.fabs(scale) < 0.1 or self._meter_to_pixel < 1.0:
@@ -281,13 +286,18 @@ class Camera():
     def world_to_screen(self, pos: Matrix) -> Matrix:
         orign: Matrix = Matrix([
             self._origin.x + self._transform.x,
-            self._origin.y - self._transform.y
+            self._origin.y + self._transform.y
         ], 'vec')
 
-        return Matrix([
-            orign.x + pos.x * self._meter_to_pixel,
-            orign.y - pos.y * self._meter_to_pixel
-        ], 'vec')
+        # taichi axis system is radio-based
+        view_width: float = self.viewport.width
+        view_height: float = self.viewport.height
+
+        tmpx: float = (orign.x + pos.x * self._meter_to_pixel) / view_width
+        tmpx = Config.clamp(tmpx, 0.0, 1.0)
+        tmpy: float = (orign.y + pos.y * self._meter_to_pixel) / view_height
+        tmpy = Config.clamp(tmpy, 0.0, 1.0)
+        return Matrix([tmpx, tmpy], 'vec')
 
     def screen_to_world(self, pos: Matrix) -> Matrix:
         orign: Matrix = Matrix([
@@ -342,7 +352,23 @@ class Camera():
         raise NotImplementedError
 
     def render_axis(self, gui: GUI) -> None:
-        raise NotImplementedError
+        axis_points: List[Matrix] = []
+
+        for i in range(-self._axis_point_count, self._axis_point_count + 1):
+            tmp: Matrix = self.world_to_screen(Matrix([0.0, i * 1.0], 'vec'))
+            axis_points.append(tmp)
+            tmp = self.world_to_screen(Matrix([i * 1.0, 0.0], 'vec'))
+            axis_points.append(tmp)
+
+        Render.rd_points(gui, axis_points, Config.AxisPointColor)
+        Render.rd_line(gui,
+                       axis_points[0],
+                       axis_points[-2],
+                       color=Config.AxisLineColor)
+        Render.rd_line(gui,
+                       axis_points[1],
+                       axis_points[-1],
+                       color=Config.AxisLineColor)
 
     def render_aabb(self, gui: GUI) -> None:
         raise NotImplementedError
