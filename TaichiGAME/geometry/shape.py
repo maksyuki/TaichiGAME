@@ -104,6 +104,7 @@ class Polygon(Shape):
         self.update_vertices()
 
     def append(self, vertice: Matrix) -> None:
+        raise AssertionError('dont use, otherwise make gjk algo fail! ')
         self._vertices.append(vertice)
         self.update_vertices()
 
