@@ -318,6 +318,19 @@ class Matrix():
         return np.cross(veca._val.reshape(2), vecb._val.reshape(2)).tolist()
 
     @staticmethod
+    def cross_product2(lhs: Union[Matrix, float], rhs: Union[Matrix,
+                                                             float]) -> Matrix:
+        if isinstance(lhs, float) and isinstance(rhs, Matrix):
+            assert rhs._val.shape == (2, 1)
+            return Matrix([-rhs.y, rhs.x], 'vec') * lhs
+
+        elif isinstance(lhs, Matrix) and isinstance(rhs, float):
+            assert lhs._val.shape == (2, 1)
+            return Matrix([lhs.y, -lhs.x], 'vec') * rhs
+        else:
+            raise TypeError
+
+    @staticmethod
     def rotate_mat(radian: float) -> Matrix:
         res: List[float] = []
         cos_val: float = np.cos(radian)

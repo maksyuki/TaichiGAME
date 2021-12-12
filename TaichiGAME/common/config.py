@@ -14,6 +14,8 @@ class Config():
     # render
     OuterLineColor: int = 0x00FF00
     FillColor: int = 0x008000
+    AxisPointColor: int = 0x00FF00
+    AxisLineColor: int = 0x008000
 
     @staticmethod
     def clamp(num: float, low: float, high: float) -> float:

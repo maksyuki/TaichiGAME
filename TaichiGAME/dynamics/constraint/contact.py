@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict
 
 import numpy as np
 
@@ -54,18 +54,18 @@ class ContactMaintainer():
         self._bias_factor: float = 0.03
         self._contact_table: Dict[int, List[ContactConstraintPoint]] = {}
 
-    def clear_all(self):
+    def clear_all(self) -> None:
         self._contact_table.clear()
 
-    def solve_velocity(self, dt: float):
+    def solve_velocity(self, dt: float) -> None:
         for val in self._contact_table.values():
-            if val.empty() or not val[0]._active:
+            if len(val) == 0 or not val[0]._active:
                 continue
 
             for ccp in val:
                 vcp: VelocityConstraintPoint = ccp._vcp
-                wa: Matrix = Matrix.cross_product(ccp._bodya.ang_vel, vcp._ra)
-                wb: Matrix = Matrix.cross_product(ccp._bodyb.ang_vel, vcp._rb)
+                wa: Matrix = Matrix.cross_product2(ccp._bodya.ang_vel, vcp._ra)
+                wb: Matrix = Matrix.cross_product2(ccp._bodyb.ang_vel, vcp._rb)
                 vcp._va = ccp._bodya.vel + wa
                 vcp._vb = ccp._bodyb.vel + wb
 
@@ -76,14 +76,14 @@ class ContactMaintainer():
                 vcp._accum_normal_impulse = np.fmax(old_impulse + lambda_n, 0)
 
                 lambda_n = vcp._accum_normal_impulse - old_impulse
-                impulse_n: Matrix = lambda_n * vcp._normal
+                impulse_n: Matrix = vcp._normal * lambda_n
 
                 ccp._bodya.apply_impulse(impulse_n, vcp._ra)
                 ccp._bodyb.apply_impulse(-impulse_n, vcp._rb)
 
-                vcp._va = ccp._bodya.vel + Matrix.cross_product(
+                vcp._va = ccp._bodya.vel + Matrix.cross_product2(
                     ccp._bodya.ang_vel, vcp._ra)
-                vcp._vb = ccp._bodyb.vel + Matrix.cross_product(
+                vcp._vb = ccp._bodyb.vel + Matrix.cross_product2(
                     ccp._bodyb.ang_vel, vcp._rb)
                 dv = vcp._va - vcp._vb
 
@@ -96,18 +96,18 @@ class ContactMaintainer():
                 vcp._accum_tangent_impulse = Config.clamp(
                     old_impulse + lambda_t, -maxT, maxT)
                 lambda_t = vcp._accum_tangent_impulse - old_impulse
-                impulse_t: Matrix = lambda_t * vcp._tangent
+                impulse_t: Matrix = vcp._tangent * lambda_t
 
                 ccp._bodya.apply_impulse(impulse_t, vcp._ra)
                 ccp._bodyb.apply_impulse(-impulse_t, vcp._rb)
 
-    def solve_position(self, dt: float):
+    def solve_position(self, dt: float) -> None:
         for val in self._contact_table.values():
-            if val.empty() or not val[0]._active:
+            if len(val) == 0 or not val[0]._active:
                 continue
 
             for ccp in val:
-                vcp: VelocityConstraintPoint = ccp.vcp
+                vcp: VelocityConstraintPoint = ccp._vcp
                 bodya: Body = ccp._bodya
                 bodyb: Body = ccp._bodyb
                 pa: Matrix = vcp._ra + bodya.pos
@@ -120,23 +120,25 @@ class ContactMaintainer():
                 bias: float = self._bias_factor * np.fmax(
                     c.len() - self._penetration_max, 0.0)
                 val_lambda: float = vcp._eff_mass_normal * bias
-                impulse: Matrix = val_lambda * vcp._normal
+                impulse: Matrix = vcp._normal * val_lambda
 
                 if bodya.type != Body.Type.Static and not ccp._bodya.sleep:
-                    bodya.pos += bodya.inv_mass * impulse
+                    bodya.pos += impulse * bodya.inv_mass
                     bodya.rot += bodya.inv_inertia * vcp._ra.cross(impulse)
 
                 if bodyb.type != Body.Type.Static and not ccp._bodyb.sleep:
-                    bodyb.pos += bodyb.inv_mass * impulse
+                    bodyb.pos += impulse * bodyb.inv_mass
                     bodyb.rot += bodyb.inv_inertia * vcp._rb.cross(impulse)
 
-
-    def add(self, collision: Collsion):
+    def add(self, collision: Collsion) -> None:
+        assert collision._bodya is not None
+        assert collision._bodyb is not None
         bodya: Body = collision._bodya
         bodyb: Body = collision._bodyb
-        
-        relation: int = generate_relation(collision._bodya, collision._bodyb)
-        contact_list: List[ContactConstraintPoint] = self._contact_table[relation]
+
+        relation: int = generate_relation(bodya, bodyb)
+        contact_list: List[ContactConstraintPoint] = self._contact_table[
+            relation]
 
         for elem in collision._contact_list:
             existed: bool = False
@@ -144,11 +146,11 @@ class ContactMaintainer():
             localb: Matrix = bodyb.to_local_point(elem._pb)
 
             for contact in contact_list:
-                is_pointa: bool = np.isclose(contact._locala, locala)
-                is_pointb: bool = np.isclose(contact._localb, localb)
+                is_pointa: bool = np.isclose(contact._locala._val, locala._val)
+                is_pointb: bool = np.isclose(contact._localb._val, localb._val)
 
                 if is_pointa and is_pointb:
-                    # satisfy the condition, transmit the old 
+                    # satisfy the condition, transmit the old
                     # accumulated value to new value
                     contact._locala = locala
                     contact._localb = localb
@@ -158,7 +160,7 @@ class ContactMaintainer():
 
             if existed:
                 continue
-            
+
             # no eligible contact, push new contact points
             ccp: ContactConstraintPoint = ContactConstraintPoint()
             ccp._locala = locala
@@ -167,15 +169,18 @@ class ContactMaintainer():
             self.prepare(ccp, elem, collision)
             contact_list.append(ccp)
 
+    def prepare(self, ccp: ContactConstraintPoint, pair: PointPair,
+                collision: Collsion) -> None:
+        assert collision._bodya is not None
+        assert collision._bodyb is not None
 
-    def prepare(self, ccp: ContactConstraintPoint, pair: PointPair, collision: Collsion):
         ccp._bodya = collision._bodya
         ccp._bodyb = collision._bodyb
         ccp._active = True
 
         ccp._fric = np.sqrt(ccp._bodya.fric * ccp._bodyb.fric)
 
-        vcp: VelocityConstraintPoint = ccp.vcp
+        vcp: VelocityConstraintPoint = ccp._vcp
         vcp._ra = pair._pa - collision._bodya.pos
         vcp._rb = pair._pb - collision._bodyb.pos
 
@@ -193,58 +198,62 @@ class ContactMaintainer():
         rt_a: float = vcp._ra.cross(vcp._tangent)
         rt_b: float = vcp._rb.cross(vcp._tangent)
 
-        k_normal: float = im_a + ii_a * rn_a * rn_a + im_b + ii_b * rn_b * rn_b
-        k_tangent: float = im_a + ii_a * rt_a * rt_a + im_b + ii_b * rt_b * rt_b
+        k_normal: float = im_a + ii_a * rn_a * rn_a
+        k_normal += im_b + ii_b * rn_b * rn_b
+        k_tangent: float = im_a + ii_a * rt_a * rt_a
+        k_tangent += im_b + ii_b * rt_b * rt_b
 
-        vcp._eff_mass_normal = 0.0 if np.isclose(k_normal, 0) else 1.0 / k_normal
-        vcp._eff_mass_tangent = 0.0 if np.isclose(k_tangent, 0) else 1.0 / k_tangent
+        vcp._eff_mass_normal = 0.0 if np.isclose(k_normal,
+                                                 0) else 1.0 / k_normal
+        vcp._eff_mass_tangent = 0.0 if np.isclose(k_tangent,
+                                                  0) else 1.0 / k_tangent
 
         vcp._restit = np.fmin(ccp._bodya.restit, ccp._bodyb.restit)
         vcp._penetration = collision._penetration
 
-        wa: Matrix = Matrix.cross_product(ccp._bodya.ang_vel, vcp._ra)
-        wb: Matrix = Matrix.cross_product(ccp._bodyb.ang_vel, vcp._rb)
-        vcp.va = ccp._bodya.vel + wa
-        vcp.vb = ccp._bodyb.vel + wb
+        wa: Matrix = Matrix.cross_product2(ccp._bodya.ang_vel, vcp._ra)
+        wb: Matrix = Matrix.cross_product2(ccp._bodyb.ang_vel, vcp._rb)
+        vcp._va = ccp._bodya.vel + wa
+        vcp._vb = ccp._bodyb.vel + wb
 
-        vcp._vel_bias = -vcp._restit * (vcp.va - vcp.vb)
+        vcp._vel_bias = (vcp._va - vcp._vb) * -vcp._restit
 
         # accumulate inherited impulse
-        impulse: Matrix = vcp._accum_normal_impulse * vcp._normal + vcp._accum_tangent_impulse * vcp._tangent
+        impulse: Matrix = vcp._normal * vcp._accum_normal_impulse
+        impulse += vcp._tangent * vcp._accum_tangent_impulse
+
         ccp._bodya.apply_impulse(impulse, vcp._ra)
         ccp._bodyb.apply_impulse(-impulse, vcp._rb)
 
-
-    def clear_inactive_points(self):
+    def clear_inactive_points(self) -> None:
         clear_list: List[int] = []
         removed_list: List[ContactConstraintPoint] = []
 
         for key, val in self._contact_table.items():
-            if val.empty():
+            if len(val) == 0:
                 clear_list.append(key)
                 continue
 
-            for v in val:
-                if not v._active:
-                    removed_list.append(v)
+            for v1 in val:
+                if not v1._active:
+                    removed_list.append(v1)
 
-            for v in removed_list:
+            for v1 in removed_list:
                 for re in val:
-                    if re == v:
+                    if re == v1:
                         val.remove(re)
 
             removed_list.clear()
 
-        for v in clear_list:
-            for key in self._contact_table.keys():
-                if key == v:
-                    del self._contact_table[key]
+        for v2 in clear_list:
+            for item in self._contact_table.items():
+                if item[0] == v2:
+                    del self._contact_table[item[0]]
                     break
 
-
-    def deactivate_all_points(self):
+    def deactivate_all_points(self) -> None:
         for val in self._contact_table.values():
-            if val.empty() or not val[0]._active:
+            if len(val) == 0 or not val[0]._active:
                 continue
 
             for ccp in val:

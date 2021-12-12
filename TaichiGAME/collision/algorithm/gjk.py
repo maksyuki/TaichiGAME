@@ -142,10 +142,13 @@ class GJK():
         for i in range(iter_val):
             diff = GJK.support(prima, primb, dirn)
             simplex._vertices.append(diff)
+            # print(f'i: {i}')
 
             # build a close polygon
             if len(simplex._vertices) == 3:
                 simplex._vertices.append(simplex._vertices[0])
+                # for v in simplex._vertices:
+                    # print(f'vertice res: {v._res}')
 
             if simplex.last_vertex().dot(dirn) <= 0:
                 break
@@ -165,6 +168,8 @@ class GJK():
                                               simplex._vertices[idx2]._res,
                                               True)
 
+            # print(f'idx1: {idx1} idx2: {idx2}')
+            # print(f'dirn: {dirn}')
             res: Optional[Minkowski] = GJK.adjust_simplex(simplex, idx1, idx2)
 
             if res is not None:
@@ -311,12 +316,12 @@ class GJK():
         prim : ShapePrimitive
             primitive
         dirn : Matrix
-            dirn vector
+            given direction
 
         Returns
         -------
         Matrix
-            farthest point
+            farthest point's val
         '''
         target: Matrix = Matrix([0.0, 0.0], 'vec')
         rot: Matrix = Matrix.rotate_mat(-prim._rot)
@@ -357,25 +362,43 @@ class GJK():
             target = GeomAlgo2D.calc_sector_project_on_point(
                 sec.start, sec.span, sec.radius, rot_dir)
 
+        # calc gemo algo in origin-base axis system
+        # return the 'target' back in former coord
         rot.set_value(Matrix.rotate_mat(prim._rot))
         target = rot * target + prim._xform
+        # print(f'target: {target}')
         return target
 
     @staticmethod
     def find_farthest_point2(vertices: List[Matrix],
                              dirn: Matrix) -> Tuple[Matrix, int]:
+        '''find the farthest point of polygon
+        in a given direction
+
+        Parameters
+        ----------
+        vertices : List[Matrix]
+            polygon's vertices
+        dirn : Matrix
+            given direction
+
+        Returns
+        -------
+        Tuple[Matrix, int]
+            pos and its index in polygon's vertices list
+        '''
         val_max: float = Config.NegativeMin
-        target: Matrix = Matrix([0.0, 0.0], 'vec')
-        idx: int = 0
+        tgt_max: Matrix = Matrix([0.0, 0.0], 'vec')
+        tgt_idx: int = 0
         vert_len: int = len(vertices)
         for i in range(vert_len):
-            res: float = Matrix.dot_product(vertices[i], dirn)
-            if val_max < res:
-                val_max = res
-                target = vertices[i]
-                idx = i
+            tmp: float = Matrix.dot_product(vertices[i], dirn)
+            if val_max < tmp:
+                val_max = tmp
+                tgt_max = vertices[i]
+                tgt_idx = i
 
-        return (target, idx)
+        return (tgt_max, tgt_idx)
 
     @staticmethod
     def adjust_simplex(simplex: Simplex, closest1: int,
@@ -407,6 +430,9 @@ class GJK():
 
             target: Minkowski = simplex._vertices[idx]
             del simplex._vertices[idx]
+
+            # NOTE: need to calc again, because del oper
+            vert_len = len(simplex._vertices)
             del simplex._vertices[vert_len - 1]
 
             return target
@@ -525,7 +551,7 @@ class GJK():
         res._pb.set_value(a_s2 * lambda1 + b_s2 * lambda2)
 
         if lval == Matrix([0.0, 0.0], 'vec') or lambda2 < 0:
-            res._pa.set_value([a_s1.x, a_s1.y])  # HACK:
+            res._pa.set_value([a_s1.x, a_s1.y])
             res._pb.set_value([a_s2.x, a_s2.y])
 
         if lambda1 < 0:
