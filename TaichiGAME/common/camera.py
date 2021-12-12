@@ -1,6 +1,8 @@
 from __future__ import annotations
 from typing import List, Optional
 
+from TaichiGAME.geometry.shape import Circle, Edge, Polygon, ShapePrimitive
+
 try:
     from taichi.ui.gui import GUI  # for taichi >= 0.8.7
 except ImportError:
@@ -25,8 +27,8 @@ class Camera():
         the screen
         '''
         def __init__(self,
-                     top_left: Matrix = Matrix([0.0, 600.0], 'vec'),
-                     bot_right: Matrix = Matrix([800.0, 0.0], 'vec')):
+                     top_left: Matrix = Matrix([0.0, 720.0], 'vec'),
+                     bot_right: Matrix = Matrix([1280.0, 0.0], 'vec')):
 
             assert top_left.x < bot_right.x
             assert top_left.y > bot_right.y
@@ -67,10 +69,10 @@ class Camera():
         self._center_visible: bool = False
         self._contact_visible: bool = False
 
-        self._meter_to_pixel: float = 12.0
+        self._meter_to_pixel: float = 33.0
         self._pixel_to_meter: float = 1 / self._meter_to_pixel
 
-        self._target_meter_to_pixel: float = 20.0  # 1920x1080 -> 800*600
+        self._target_meter_to_pixel: float = 53.0  # 1920x1080[80] -> 1280x720[53]
         self._target_pixel_to_meter: float = 1 / self._target_meter_to_pixel
 
         self._transform: Matrix = Matrix([0.0, 0.0], 'vec')
@@ -302,11 +304,16 @@ class Camera():
     def screen_to_world(self, pos: Matrix) -> Matrix:
         orign: Matrix = Matrix([
             self._origin.x + self._transform.x,
-            self._origin.y - self._transform.y
+            self._origin.y + self._transform.y
         ], 'vec')
 
-        res: Matrix = pos - orign
-        res.y = -res.y
+        view_width: float = self.viewport.width
+        view_height: float = self.viewport.height
+
+        res: Matrix = Matrix([0.0, 0.0], 'vec')
+        res.x = pos.x * view_width
+        res.y = pos.y * view_height
+        res -= orign
         res *= self._pixel_to_meter
 
         return res
@@ -346,7 +353,30 @@ class Camera():
         self._maintainer = maintainer
 
     def render_body(self, gui: GUI) -> None:
-        raise NotImplementedError
+        prim: ShapePrimitive = ShapePrimitive()
+        cir: Circle = Circle(2)
+        edg: Edge = Edge()
+        edg.start = Matrix([-3.0, -1.0], 'vec')
+        edg.end = Matrix([3.0, -1.0], 'vec')
+
+        dataa: List[Matrix] = [
+            Matrix([4.0, 4.0], 'vec'),
+            Matrix([3.0, 3.0], 'vec'),
+            Matrix([3.0, 1.0], 'vec'),
+            Matrix([6.0, 2.0], 'vec'),
+            Matrix([4.0, 4.0], 'vec')
+        ]
+
+        poly: Polygon = Polygon()
+        poly.vertices = dataa
+        # prim._shape = cir
+        # prim._shape = poly
+        prim._shape = edg
+        prim._xform = Matrix([2.0, 2.0], 'vec')
+        prim._rot = 0.0
+        Render.rd_shape(gui, prim, self.world_to_screen, self.viewport.width,
+                        self.viewport.height, self.meter_to_pixel,
+                        Config.FillColor)
 
     def render_joint(self, gui: GUI) -> None:
         raise NotImplementedError
