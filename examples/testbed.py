@@ -9,5 +9,5 @@ from TaichiGAME.scene import Scene
 
 ti.init(arch=ti.cpu)
 
-scene = Scene(800, 600)
+scene = Scene()
 scene.show()

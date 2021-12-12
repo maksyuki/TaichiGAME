@@ -19,7 +19,7 @@ from .common.camera import Camera
 
 
 class Scene():
-    def __init__(self, width: int = 800, height: int = 600):
+    def __init__(self, width: int = 1280, height: int = 720):
         self._gui: GUI = GUI('TaichiGAME',
                              res=(width, height),
                              background_color=ti.rgb_to_hex(
@@ -47,8 +47,10 @@ class Scene():
         self._cam.dbvh_visible = False
         self._cam.tree_visible = False
         self._cam.axis_visible = True
+        self._cam.body_visible = True
         self._cam.grid_scale_line_visible = False
 
+        self._mouse_pos: Matrix = Matrix([0.0, 0.0], 'vec')
         # the right-mouse btn drag move flag(change viewport)
         self._mouse_viewport_move: bool = False
 
@@ -87,12 +89,11 @@ class Scene():
     def handle_left_mouse_event(self, state: Union[GUI.PRESS, GUI.RELEASE],
                                 x: float, y: float) -> None:
 
+        self._mouse_pos = self._cam.screen_to_world(Matrix([x, y], 'vec'))
         if state == GUI.PRESS:
-            assert x == 0.5
-            assert y == 0.5
+            pass
         else:
-            assert x == 0.5
-            assert y == 0.5
+            pass
 
     def handle_right_mouse_event(self, state: Union[GUI.PRESS,
                                                     GUI.RELEASE]) -> None:
@@ -101,13 +102,19 @@ class Scene():
         else:
             self._mouse_viewport_move = False
 
-    def handle_mouse_move_event(self, state: Union[GUI.PRESS, GUI.RELEASE],
-                                x: float, y: float) -> None:
+    def handle_mouse_move_event(self, x: float, y: float) -> None:
+
+        cur_pos: Matrix = self._cam.screen_to_world(Matrix([x, y], 'vec'))
+        delta_pos: Matrix = cur_pos - self._mouse_pos
 
         if self._mouse_viewport_move:
-            print('press right key+move')
+            delta_pos *= self._cam.meter_to_pixel
+            self._cam.transform = self._cam.transform + delta_pos
         else:
             pass
+
+        self._mouse_pos = cur_pos
+        print(f'({self._mouse_pos.x}, {self._mouse_pos.y}')
 
     def handle_wheel_event(self, y: float) -> None:
         # NOTE: need to set the sef._cam  the value scale
@@ -133,7 +140,7 @@ class Scene():
                     self.handle_right_mouse_event(e.type)
 
                 elif e.key == ti.GUI.MOVE:
-                    self.handle_mouse_move_event(e.type, e.pos[0], e.pos[1])
+                    self.handle_mouse_move_event(e.pos[0], e.pos[1])
 
                 elif e.key == ti.GUI.WHEEL:
                     self.handle_wheel_event(e.delta[1])
