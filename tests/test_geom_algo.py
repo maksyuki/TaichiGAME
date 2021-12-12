@@ -183,6 +183,27 @@ class TestGeomAlgo2D():
         assert GeomAlgo2D.calc_mass_center(TestGeomAlgo2D.poly1) == Matrix(
             [0.0, 0.0], 'vec')
 
+        dataa: List[Matrix] = [
+            Matrix([2.0, 3.0], 'vec'),
+            Matrix([4.0, 3.0], 'vec'),
+            Matrix([5.0, 5.0], 'vec'),
+            Matrix([3.0, 6.0], 'vec'),
+            Matrix([2.0, 3.0], 'vec')
+        ]
+
+        datab: List[Matrix] = [
+            Matrix([5.0, 3.0], 'vec'),
+            Matrix([8.0, 5.0], 'vec'),
+            Matrix([5.0, 6.0], 'vec'),
+            Matrix([4.0, 5.0], 'vec'),
+            Matrix([5.0, 3.0], 'vec')
+        ]
+
+        tmp: Matrix = GeomAlgo2D.calc_mass_center(dataa)
+        assert tmp == Matrix([3.45455, 4.30303], 'vec')
+        tmp = GeomAlgo2D.calc_mass_center(datab)
+        assert tmp == Matrix([5.66667, 4.66667], 'vec')
+
     def test_shortest_length_line_segment_ellipse(self):
         assert 1  # FIXME: need to modify
 

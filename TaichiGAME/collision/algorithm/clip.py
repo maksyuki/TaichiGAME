@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional, Tuple, cast
+from typing import List, Optional, Tuple, cast
 
 import numpy as np
 
@@ -16,7 +16,7 @@ class ContactGenerator():
             self._p2: Matrix = Matrix([0.0, 0.0], 'vec')
             self._normal: Matrix = Matrix([0.0, 0.0], 'vec')
 
-        def is_empty(self):
+        def is_empty(self) -> bool:
             return self._p1.is_origin() and self._p2.is_origin()
 
     @staticmethod
@@ -68,8 +68,9 @@ class ContactGenerator():
         final_edg: ContactGenerator.ClipEdge = ContactGenerator.ClipEdge()
         p: Matrix = Matrix([0.0, 0.0], 'vec')
 
-        if np.fabs((edg1._p2 - edg1._p1).dot(normal)) >= np.fabs(
-            (edg2._p2 - edg2._p1).dot(normal)):
+        tmp_val1: float = np.fabs((edg1._p2 - edg1._p1).dot(normal))
+        tmp_val2: float = np.fabs((edg2._p2 - edg2._p1).dot(normal))
+        if tmp_val1 >= tmp_val2:
             final_edg = edg2
             p = (edg2._p2 - edg2._p1).normal().perpendicular()
             if GeomAlgo2D.is_point_on_same_side(edg2._p1, edg2._p2, edg1._p1,
@@ -115,8 +116,14 @@ class ContactGenerator():
         typea = prima._shape.type
         typeb = primb._shape.type
 
-        if typea == Shape.Type.Point or typea == Shape.Type.Circle or typea == Shape.Type.Ellipse or typeb == Shape.Type.Point or typeb == Shape.Type.Circle or typeb == Shape.Type.Ellipse:
-            return (ContactGenerator.ClipEdge(), ContactGenerator.ClipEdge())
+        tmp_shape: List[Shape.Type] = [
+            Shape.Type.Point, Shape.Type.Circle, Shape.Type.Ellipse
+        ]
+
+        for s in tmp_shape:
+            if typea == s or typeb == s:
+                return (ContactGenerator.ClipEdge(),
+                        ContactGenerator.ClipEdge())
 
         verta: List[Matrix] = ContactGenerator.dump_vertices(prima)
         vertb: List[Matrix] = ContactGenerator.dump_vertices(primb)

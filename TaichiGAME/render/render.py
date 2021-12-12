@@ -1,70 +1,87 @@
-from TaichiGAME.common.config import Config
-from typing import List, Tuple
-
+from typing import Callable, List, Optional, Tuple, cast
 import numpy as np
 
-from taichi.misc.gui import GUI
+import taichi as ti
+try:
+    from taichi.ui.gui import GUI
+except ImportError:
+    from taichi.misc.gui import GUI
 
 from ..math.matrix import Matrix
 from ..geometry.shape import Circle, Edge, Polygon, Shape, ShapePrimitive
 from ..dynamics.joint.joint import Joint
 from ..collision.broad_phase.aabb import AABB
-from ..common.camera import Camera
+from ..common.config import Config
 
 
 class Render():
     @staticmethod
-    def rd_point(gui: GUI, cam: Camera, point: Matrix):
-        assert gui != None and cam != None
-
-        view_width: float = cam.viewport.width
-        view_height: float = cam.viewport.height
-
-        scrnp: Matrix = cam.world_to_screen(point)
-        gui.circle([scrnp.x / view_width, scrnp.y / view_height])
+    def rd_point(gui: GUI,
+                 point: Matrix,
+                 color: int = ti.rgb_to_hex([1.0, 1.0, 1.0]),
+                 radius: int = 2) -> None:
+        assert gui is not None
+        assert 0 <= point.x <= 1.0
+        assert 0 <= point.y <= 1.0
+        gui.circle([point.x, point.y], color, radius)
 
     @staticmethod
-    def rd_points(gui: GUI, cam: Camera, points: List[Matrix]):
-        assert gui != None and cam != None
+    def rd_points(gui: GUI,
+                  points: List[Matrix],
+                  color: int = ti.rgb_to_hex([1.0, 1.0, 1.0]),
+                  radius: int = 2) -> None:
+        assert gui is not None
 
         for p in points:
-            Render.rd_point(gui, cam, p)
+            Render.rd_point(gui, p, color, radius)
 
     @staticmethod
-    def rd_line(gui: GUI, cam: Camera, p1: Matrix, p2: Matrix):
-        assert gui != None and cam != None
+    def rd_line(gui: GUI,
+                p1: Matrix,
+                p2: Matrix,
+                color: int = ti.rgb_to_hex([1.0, 1.0, 1.0]),
+                radius: int = 1) -> None:
+        assert gui is not None
+        assert 0 <= p1.x <= 1.0
+        assert 0 <= p1.y <= 1.0
+        assert 0 <= p2.x <= 1.0
+        assert 0 <= p2.y <= 1.0
 
-        scrnp1: Matrix = cam.world_to_screen(p1)
-        scrnp2: Matrix = cam.world_to_screen(p2)
-
-        scrnp1.x /= cam.viewport.width
-        scrnp1.y /= cam.viewport.height
-        scrnp2.x /= cam.viewport.width
-        scrnp2.y /= cam.viewport.height
-
-        gui.line([scrnp1.x, scrnp1.y], [scrnp2.x, scrnp2.y])
+        gui.line([p1.x, p1.y], [p2.x, p2.y], radius, color)
 
     @staticmethod
-    def rd_lines(gui: GUI, cam: Camera, lines: List[Tuple[Matrix, Matrix]]):
-        assert gui != None and cam != None
+    def rd_lines(gui: GUI,
+                 lines: List[Tuple[Matrix, Matrix]],
+                 color: int = ti.rgb_to_hex([1.0, 1.0, 1.0]),
+                 radius: int = 1) -> None:
+        assert gui is not None
 
         for lin in lines:
-            Render.rd_line(gui, cam, lin[0], lin[1])
+            Render.rd_line(gui, lin[0], lin[1], radius, color)
 
     @staticmethod
-    def rd_shape(gui: GUI, cam: Camera, prim: ShapePrimitive):
-        assert gui != None and cam != None
+    def rd_shape(
+        gui: GUI,
+        prim: ShapePrimitive,
+        world_to_screen: Callable[[Matrix], Matrix],
+        vp_width: float,
+        vp_height,
+        meter_to_pixel: float,
+        color: int = ti.rgb_to_hex([1.0, 1.0, 1.0])
+    ) -> None:
+        assert gui is not None
+        assert prim._shape is not None
 
-        if prim._shape.type() == Shape.Type.Polygon:
-            #[trick] draw polygon by draw multi triangle
-            poly: Polygon = prim._shape
+        if prim._shape.type == Shape.Type.Polygon:
+            # [trick] draw polygon by draw multi triangle
+            poly: Polygon = cast(Polygon, prim._shape)
             assert len(poly.vertices) >= 3
 
-            outer_line_st: np.ndarray = None
-            outer_line_ed: np.ndarray = None
-            fill_tri_pa: np.ndarray = None
-            fill_tri_pb: np.ndarray = None
-            fill_tri_pc: np.ndarray = None
+            outer_line_st: Optional[np.ndarray] = None
+            outer_line_ed: Optional[np.ndarray] = None
+            fill_tri_pa: Optional[np.ndarray] = None
+            fill_tri_pb: Optional[np.ndarray] = None
+            fill_tri_pc: Optional[np.ndarray] = None
 
             is_first: bool = True
 
@@ -74,25 +91,28 @@ class Render():
             for i in range(vert_len - 1):
                 wordpa: Matrix = Matrix.rotate_mat(
                     prim._rot) * poly.vertices[i] + prim._xform
-                scrnpa: Matrix = cam.world_to_screen(wordpa)
-                scrnpa.x /= cam.viewport.width
-                scrnpa.y /= cam.viewport.height
+                scrnpa: Matrix = world_to_screen(wordpa)
+                scrnpa.x /= vp_width
+                scrnpa.y /= vp_height
 
                 wordpb: Matrix = Matrix.rotate_mat(
                     prim._rot) * poly.vertices[i + 1] + prim._xform
-                scrnpb: Matrix = cam.world_to_screen(wordpb)
-                scrnpb.x /= cam.viewport.width
-                scrnpb.y /= cam.viewport.height
+                scrnpb: Matrix = world_to_screen(wordpb)
+                scrnpb.x /= vp_width
+                scrnpb.y /= vp_height
 
                 if is_first:
                     is_first = False
                     outer_line_st = np.array([[scrnpa.x, scrnpa.y]])
-                    outer_line_st = np.array([[scrnpb.x, scrnpb.y]])
+                    outer_line_ed = np.array([[scrnpb.x, scrnpb.y]])
                 else:
                     tmpa = np.array([[scrnpa.x, scrnpa.y]])
                     tmpb = np.array([[scrnpb.x, scrnpb.y]])
                     np.concatenate((outer_line_st, tmpa))
                     np.concatenate((outer_line_ed, tmpb))
+
+            assert outer_line_st is not None
+            assert outer_line_ed is not None
 
             fill_tri_pa = np.repeat(np.array([outer_line_st[0]]),
                                     vert_len - 3,
@@ -100,56 +120,62 @@ class Render():
             fill_tri_pb = outer_line_st[1:-1]
             fill_tri_pc = outer_line_st[2:]
 
+            for v in outer_line_st:
+                print(v)
+
             gui.lines(outer_line_st,
                       outer_line_ed,
                       radius=2,
                       color=Config.OuterLineColor)
-            gui.triangles(fill_tri_pa,
-                          fill_tri_pb,
-                          fill_tri_pc,
-                          color=Config.FillColor)
+            # gui.triangles(fill_tri_pa,
+            #               fill_tri_pb,
+            #               fill_tri_pc,
+            #               color=Config.FillColor)
 
-        elif prim._shape.type() == Shape.Type.Ellipse:
-            pass
+        elif prim._shape.type == Shape.Type.Ellipse:
+            raise NotImplementedError
 
-        elif prim._shape.type() == Shape.Type.Circle:
-            cir: Circle = prim._shape
-            scrnp: Matrix = cam.world_to_screen(prim._xform)
+        elif prim._shape.type == Shape.Type.Circle:
+            cir: Circle = cast(Circle, prim._shape)
+            scrnp: Matrix = world_to_screen(prim._xform)
             gui.circle([scrnp.x, scrnp.y],
-                       radius=cir.radius * cam.meter_to_pixel)
+                       color,
+                       radius=cir.radius * meter_to_pixel)
 
-        elif prim._shape.type() == Shape.Type.Curve:
-            pass
-        elif prim._shape.type() == Shape.Type.Edge:
-            edg: Edge = prim._shape
-            Render.rd_point(gui, cam, edg.start + prim._xform)
-            Render.rd_point(gui, cam, edg.end + prim._xform)
-            Render.rd_line(gui, cam, edg.start + prim._xform,
-                           edg.end + prim._xform)
+        elif prim._shape.type == Shape.Type.Curve:
+            raise NotImplementedError
 
-            center: Matrix = (edg.start + edg.end) / 2.0
+        elif prim._shape.type == Shape.Type.Edge:
+            edg: Edge = cast(Edge, prim._shape)
+            tmp1: Matrix = world_to_screen(edg.start + prim._xform)
+            tmp2: Matrix = world_to_screen(edg.end + prim._xform)
+            Render.rd_point(gui, tmp1, Config.AxisPointColor)
+            Render.rd_point(gui, tmp2, Config.AxisPointColor)
+            Render.rd_line(gui, tmp1, tmp2)
+
+            center: Matrix = edg.center()
             center += prim._xform
-            Render.rd_line(gui, cam, center, center + 0.1 * edg.normal)
+            Render.rd_line(gui, world_to_screen(center),
+                           world_to_screen(center + edg.normal * 0.1),
+                           Config.AxisLineColor)
 
-        elif prim._shape.type() == Shape.Type.Capsule:
-            pass
-        elif prim._shape.type() == Shape.Type.Sector:
-            pass
+        elif prim._shape.type == Shape.Type.Capsule:
+            raise NotImplementedError
 
-    @staticmethod
-    def rd_aabb(gui: GUI, cam: Camera, aabb: AABB):
-        assert gui != None and cam != None
-
-        top_left: Matrix = cam.world_to_screen(aabb.top_left)
-        top_left.x /= cam.viewport.width
-        top_left.y /= cam.viewport.height
-
-        bot_right: Matrix = cam.world_to_screen(aabb.bot_right)
-        bot_right.x /= cam.viewport.width
-        bot_right.y /= cam.viewport.height
-
-        gui.rect([top_left.x, top_left.y], [bot_right.x, bot_right.y])
+        elif prim._shape.type == Shape.Type.Sector:
+            raise NotImplementedError
 
     @staticmethod
-    def rd_joint(gui, joint: Joint):
-        pass
+    def rd_aabb(gui: GUI, aabb: AABB) -> None:
+        assert gui is not None
+        assert 0 <= aabb.top_left.x <= 1.0
+        assert 0 <= aabb.top_left.y <= 1.0
+        assert 0 <= aabb.bot_right.x <= 1.0
+        assert 0 <= aabb.bot_right.y <= 1.0
+
+        gui.rect([aabb.top_left.x, aabb.top_left.y],
+                 [aabb.bot_right.x, aabb.bot_right.y])
+
+    @staticmethod
+    def rd_joint(gui, joint: Joint) -> None:
+        raise NotImplementedError

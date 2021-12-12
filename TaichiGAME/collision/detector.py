@@ -1,10 +1,11 @@
-from typing import List, Dict, Optional, Tuple
+from typing import List, Optional
 
 from ..math.matrix import Matrix
 from ..dynamics.body import Body
 from .algorithm.clip import ContactGenerator
 from ..geometry.shape import ShapePrimitive
-from ..collision.algorithm.gjk import PenetrationSource, PointPair, GJK, Simplex
+from ..collision.algorithm.gjk import PenetrationInfo, PenetrationSource
+from ..collision.algorithm.gjk import GJK, PointPair
 
 
 class Collsion():
@@ -20,7 +21,8 @@ class Collsion():
 class Detector():
     @staticmethod
     def collide(bodya: Body, bodyb: Body) -> bool:
-        assert bodya != None and bodyb != None
+        assert bodya is not None
+        assert bodyb is not None
 
         prima: ShapePrimitive = ShapePrimitive()
         primb: ShapePrimitive = ShapePrimitive()
@@ -43,7 +45,7 @@ class Detector():
     def detect(bodya: Body, bodyb: Body) -> Collsion:
         res: Collsion = Collsion()
 
-        if bodya == None or bodyb == None:
+        if bodya is None or bodyb is None:
             return res
 
         if bodya == bodyb:
@@ -76,7 +78,7 @@ class Detector():
             # old_simplex: Simplex = simplex
             simplex = GJK.epa(prima, primb, simplex)
             source: PenetrationSource = GJK.dump_source(simplex)
-            info = GJK.dump_info(source)
+            info: PenetrationInfo = GJK.dump_info(source)
 
             res._normal = info._normal
             res._penetration = info._penetration
@@ -84,14 +86,14 @@ class Detector():
             (clip_edga,
              clip_edgb) = ContactGenerator.recognize(prima, primb,
                                                      info._normal)
-            #HACK: add type hint
-            pair_list = ContactGenerator.clip(clip_edga, clip_edgb,
-                                              info._normal)
+
+            pair_list: List[PointPair] = ContactGenerator.clip(
+                clip_edga, clip_edgb, info._normal)
 
             val_pass: bool = False
             for elem in pair_list:
-                if (elem._pa - elem._pb
-                    ).len_square() == res._penetration * res._penetration:
+                tmp_val: float = (elem._pa - elem._pb).len_square()
+                if tmp_val == res._penetration * res._penetration:
                     val_pass = True
 
                 # if fail, there must be a deeper contact point, use it:
@@ -100,14 +102,14 @@ class Detector():
                 else:
                     res._contact_list.append(GJK.dump_points(source))
 
-            assert len(res._contact_list) != 3
-            return res
+        assert len(res._contact_list) != 3
+        return res
 
     @staticmethod
     def distance(bodya: Body, bodyb: Body) -> PointPair:
         res: PointPair = PointPair()
 
-        if bodya == None or bodyb == None:
+        if bodya is None or bodyb is None:
             return res
 
         if bodya == bodyb:

@@ -92,7 +92,7 @@ class Polygon(Shape):
     def __init__(self):
         super().__init__()
         self.type = self.Type.Polygon
-        self.vertices: List[Matrix] = []
+        self._vertices: List[Matrix] = []
 
     @property
     def vertices(self) -> List[Matrix]:
@@ -104,6 +104,7 @@ class Polygon(Shape):
         self.update_vertices()
 
     def append(self, vertice: Matrix) -> None:
+        raise AssertionError('dont use, otherwise make gjk algo fail! ')
         self._vertices.append(vertice)
         self.update_vertices()
 
@@ -248,8 +249,8 @@ class Ellipse(Shape):
         self._height: float = height
 
     def set_value(self, width: float, height: float) -> None:
-        self.width = width
-        self.height = height
+        self._width = width
+        self._height = height
 
     def scale(self, factor: float) -> None:
         self._width *= factor
@@ -276,7 +277,8 @@ class Ellipse(Shape):
 class Edge(Shape):
     def __init__(self):
         super().__init__()
-        self._type = self.Type.Edge
+        self.type = self.Type.Edge
+        self.set_value(Matrix([0.0, 0.0], 'vec'), Matrix([0.0, 0.0], 'vec'))
 
     @property
     def start(self) -> Matrix:
@@ -285,6 +287,7 @@ class Edge(Shape):
     @start.setter
     def start(self, point: Matrix) -> None:
         self._start: Matrix = point
+        self.update_normal()
 
     @property
     def end(self) -> Matrix:
@@ -293,12 +296,17 @@ class Edge(Shape):
     @end.setter
     def end(self, point: Matrix) -> None:
         self._end: Matrix = point
+        self.update_normal()
 
+    # the only method to init the edge value
     def set_value(self, start: Matrix, end: Matrix) -> None:
-        self.start = start
-        self.end = end
-        self.normal: Matrix = (self.end -
-                               self.start).perpendicular().normal().negate()
+        self._start = start
+        self._end = end
+        self.update_normal()
+
+    def update_normal(self) -> None:
+        self._normal: Matrix = (self.end -
+                                self.start).perpendicular().normal().negate()
 
     def scale(self, factor: float) -> None:
         self._start *= factor
@@ -323,6 +331,8 @@ class Curve(Shape):
     def __init__(self):
         super().__init__()
         self.type = self.Type.Curve
+        self.set_value(Matrix([0.0, 0.0], 'vec'), Matrix([0.0, 0.0], 'vec'),
+                       Matrix([0.0, 0.0], 'vec'), Matrix([0.0, 0.0], 'vec'))
 
     @property
     def start(self) -> Matrix:
@@ -358,10 +368,10 @@ class Curve(Shape):
 
     def set_value(self, start: Matrix, ctrl1: Matrix, ctrl2: Matrix,
                   end: Matrix) -> None:
-        self.start = start
-        self.ctrl1 = ctrl1
-        self.ctrl2 = ctrl2
-        self.end = end
+        self._start = start
+        self._ctrl1 = ctrl1
+        self._ctrl2 = ctrl2
+        self._end = end
 
     def scale(self, factor: float) -> None:
         self._start *= factor
@@ -379,7 +389,7 @@ class Curve(Shape):
 class Capsule(Shape):
     def __init__(self, width: float = 0.0, height: float = 0.0):
         super().__init__()
-        self._type = self.Type.Capsule
+        self.type = self.Type.Capsule
         self.set_value(width, height)
 
     @property
@@ -399,8 +409,8 @@ class Capsule(Shape):
         self._height: float = height
 
     def set_value(self, width: float, height: float) -> None:
-        self.width = width
-        self.height = height
+        self._width = width
+        self._height = height
 
     def calc_pos(self, sign: int = 1) -> List[float]:
         res: List[float] = []
@@ -505,7 +515,7 @@ class Capsule(Shape):
 class Sector(Shape):
     def __init__(self):
         super().__init__()
-        self._type = self.Type.Sector
+        self.type = self.Type.Sector
         self.set_value()
 
     def vertices(self) -> List[Matrix]:
@@ -547,9 +557,9 @@ class Sector(Shape):
                   start: float = 0.0,
                   span: float = 0.0,
                   radius: float = 0.0) -> None:
-        self.start = start
-        self.span = span
-        self.radius = radius
+        self._start = start
+        self._span = span
+        self._radius = radius
 
     def area(self) -> float:
         return self._span * self._radius * self._radius / 2.0
