@@ -1,15 +1,14 @@
-from typing import List, Dict, Optional, Tuple
-
 import numpy as np
 
 from TaichiGAME.collision.broad_phase.tree import Tree
 from TaichiGAME.collision.broad_phase.aabb import AABB
 
+
 class TestTree():
     def test_node__init__(self):
         dut: Tree.Node = Tree.Node()
 
-        assert dut._body == None
+        assert dut._body is None
         assert isinstance(dut._aabb, AABB)
         assert dut._parent_idx == -1
         assert dut._left_idx == -1
