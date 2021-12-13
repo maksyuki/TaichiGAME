@@ -1,9 +1,9 @@
-from TaichiGAME.common.config import Config
 from typing import List, Dict, Optional, Union, Tuple
 
 import numpy as np
 
 from ...math.matrix import Matrix
+from ...common.config import Config
 from ...dynamics.body import Body
 from ..broad_phase.aabb import AABB
 
@@ -24,10 +24,12 @@ class Tree():
             return self._left_idx == -1 and self._right_idx == -1
 
         def is_branch(self) -> bool:
-            return self._parent_idx != -1 and self._left_idx != -1 and self._right_idx != -1
+            child_ck: bool = self._left_idx != -1 and self._right_idx != -1
+            return self._parent_idx != -1 and child_ck
 
         def is_root(self) -> bool:
-            return self._parent_idx == -1 and self._left_idx != -1 and self._right_idx != -1
+            child_ck: bool = self._left_idx != -1 and self._right_idx != -1
+            return self._parent_idx == -1 and child_ck
 
         def is_empty(self) -> bool:
             return self._aabb.is_empty()
@@ -55,6 +57,7 @@ class Tree():
         elif isinstance(val, AABB):
             aabb = val
 
+        assert aabb is not None
         self._query_nodes(self._root_idx, aabb, res)
         return res
 
@@ -278,6 +281,7 @@ class Tree():
             self._generate2(self._tree[left_idx]._right_idx, right_idx, pairs)
 
     def _extract(self, target_idx: int):
+        another_child_index: int = -1
         if target_idx == self._root_idx:
             self._root_idx = -1
             self._body_table[self._tree[target_idx]._body] = -1
@@ -285,7 +289,7 @@ class Tree():
             return
 
         if self._tree[target_idx]._parent_idx == self._root_idx:
-            another_child_index: int = self._tree[
+            another_child_index = self._tree[
                 self._root_idx]._right_idx if self._tree[
                     self._root_idx]._left_idx == target_idx else self._tree[
                         self._root_idx]._left_idx
@@ -297,10 +301,9 @@ class Tree():
             return
 
         parent_idx: int = self._tree[target_idx]._parent_idx
-        another_child_index: int = self._tree[
-            parent_idx]._right_idx if self._tree[
-                parent_idx]._left_idx == target_idx else self._tree[
-                    parent_idx]._left_idx
+        another_child_index = self._tree[parent_idx]._right_idx if self._tree[
+            parent_idx]._left_idx == target_idx else self._tree[
+                parent_idx]._left_idx
 
         self._separate(target_idx, parent_idx)
         self._elevate(another_child_index)
@@ -321,9 +324,12 @@ class Tree():
         if node_idx == -1 or self._tree[node_idx].is_root():
             return
 
+        parent_idx: int = -1
+        grand_idx: int = -1
+        right_idx: int = -1
         if self._tree[node_idx]._parent_idx == self._root_idx:
-            parent_idx: int = self._tree[node_idx]._parent_idx
-            right_idx: int = self._tree[node_idx]._right_idx
+            parent_idx = self._tree[node_idx]._parent_idx
+            right_idx = self._tree[node_idx]._right_idx
             self._separate(node_idx, parent_idx)
             self._separate(right_idx, node_idx)
             self._join(right_idx, parent_idx)
@@ -332,9 +338,9 @@ class Tree():
             self._upgrade(parent_idx)
             return
 
-        parent_idx: int = self._tree[node_idx]._parent_idx
-        grand_idx: int = self._tree[parent_idx]._parent_idx
-        right_idx: int = self._tree[node_idx]._right_idx
+        parent_idx = self._tree[node_idx]._parent_idx
+        grand_idx = self._tree[parent_idx]._parent_idx
+        right_idx = self._tree[node_idx]._right_idx
 
         self._separate(parent_idx, grand_idx)
         self._separate(node_idx, parent_idx)
@@ -349,9 +355,12 @@ class Tree():
         if node_idx == -1 or self._tree[node_idx].is_root():
             return
 
+        parent_idx: int = -1
+        grand_idx: int = -1
+        left_idx: int = -1
         if self._tree[node_idx]._parent_idx == self._root_idx:
-            parent_idx: int = self._tree[node_idx]._parent_idx
-            left_idx: int = self._tree[node_idx]._left_idx
+            parent_idx = self._tree[node_idx]._parent_idx
+            left_idx = self._tree[node_idx]._left_idx
             self._separate(node_idx, parent_idx)
             self._separate(left_idx, node_idx)
             self._join(left_idx, parent_idx)
@@ -360,9 +369,9 @@ class Tree():
             self._upgrade(parent_idx)
             return
 
-        parent_idx: int = self._tree[node_idx]._parent_idx
-        grand_idx: int = self._tree[parent_idx]._parent_idx
-        left_idx: int = self._tree[node_idx]._left_idx
+        parent_idx = self._tree[node_idx]._parent_idx
+        grand_idx = self._tree[parent_idx]._parent_idx
+        left_idx = self._tree[node_idx]._left_idx
 
         self._separate(parent_idx, grand_idx)
         self._separate(node_idx, parent_idx)
@@ -398,7 +407,7 @@ class Tree():
 
             self._ll(self._tree[target_idx]._left_idx)
 
-        else:  #right unbalance
+        else:  # right unbalance
             rr_height: int = self._height(
                 self._tree[self._tree[target_idx]._right_idx]._right_idx)
             rl_height: int = self._height(
@@ -465,14 +474,14 @@ class Tree():
             self._tree[self._tree[node_idx]._right_idx]._aabb)
 
     def _calc_lowest_cost_node(self, node_idx: int):
-        lowest_cost: float = Config.Max
-        target_idx: int = -1
+        lowest_cost: List[float] = [Config.Max]
+        target_idx: List[int] = [-1]
 
         # start traverse lowest cost node
         # the lowest_cost is not returned
         self._traverse_lowest_cost(node_idx, self._root_idx, lowest_cost,
                                    target_idx)
-        return target_idx
+        return target_idx[0]
 
     def _total_cost(self, node_idx: int, leaf_idx: int) -> float:
         total_cost: float = AABB.unite(
