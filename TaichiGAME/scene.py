@@ -3,9 +3,6 @@ from typing import Union
 
 import taichi as ti
 
-from TaichiGAME.dynamics.phy_world import PhysicsWorld
-from TaichiGAME.math.matrix import Matrix
-
 try:
     from taichi.ui.gui import GUI  # for taichi >= 0.8.7
 except ImportError:
@@ -16,6 +13,8 @@ except ImportError:
 import numpy as np
 
 from .common.camera import Camera
+from .dynamics.phy_world import PhysicsWorld
+from .math.matrix import Matrix
 
 
 class Scene():
@@ -41,14 +40,13 @@ class Scene():
         # camera init settings
         self._cam.viewport = Camera.Viewport(Matrix([0.0, height], 'vec'),
                                              Matrix([width, 0.0], 'vec'))
-
-        # print(self._cam._origin)
         self._cam.aabb_visible = False
         self._cam.dbvh_visible = False
         self._cam.tree_visible = False
         self._cam.axis_visible = True
         self._cam.body_visible = True
         self._cam.grid_scale_line_visible = False
+        self._cam._world = self._world
 
         self._mouse_pos: Matrix = Matrix([0.0, 0.0], 'vec')
         # the right-mouse btn drag move flag(change viewport)
@@ -87,9 +85,9 @@ class Scene():
         delta_pos: Matrix = cur_pos - self._mouse_pos
 
         if self._mouse_viewport_move:
-            print(f'delta_pos1: {delta_pos}')
+            # print(f'delta_pos1: {delta_pos}')
             delta_pos *= self._cam.meter_to_pixel
-            print(f'delta_pos2: {delta_pos}')
+            # print(f'delta_pos2: {delta_pos}')
             # 0.5 just a hack value for equal radio move offset
             # 33.0 is init meter_to_pixel value
             self._cam.transform += delta_pos * 0.5 * (33.0 /
@@ -104,9 +102,9 @@ class Scene():
         # NOTE: need to set the sef._cam  the value scale
         # zoom in
         if y > 0:
-            self._cam.meter_to_pixel = self._cam.meter_to_pixel + self._cam.meter_to_pixel / 4
+            self._cam.meter_to_pixel += self._cam.meter_to_pixel / 4
         else:
-            self._cam.meter_to_pixel = self._cam.meter_to_pixel - self._cam.meter_to_pixel / 4
+            self._cam.meter_to_pixel -= self._cam.meter_to_pixel / 4
 
     def show(self) -> None:
         while self._gui.running:

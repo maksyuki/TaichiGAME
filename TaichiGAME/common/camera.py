@@ -1,8 +1,6 @@
 from __future__ import annotations
 from typing import List, Optional
 
-from TaichiGAME.geometry.shape import Circle, Edge, Polygon, ShapePrimitive
-
 try:
     from taichi.ui.gui import GUI  # for taichi >= 0.8.7
 except ImportError:
@@ -19,6 +17,7 @@ from ..dynamics.phy_world import PhysicsWorld
 from ..dynamics.body import Body
 from ..dynamics.constraint.contact import ContactMaintainer
 from ..collision.broad_phase.dbvh import DBVH
+from ..geometry.shape import ShapePrimitive
 
 
 class Camera():
@@ -355,29 +354,16 @@ class Camera():
         self._maintainer = maintainer
 
     def render_body(self, gui: GUI) -> None:
-        prim: ShapePrimitive = ShapePrimitive()
-        cir: Circle = Circle(2)
-        edg: Edge = Edge()
-        edg.start = Matrix([-3.0, -1.0], 'vec')
-        edg.end = Matrix([3.0, -1.0], 'vec')
+        assert self._world is not None
 
-        dataa: List[Matrix] = [
-            Matrix([4.0, 4.0], 'vec'),
-            Matrix([3.0, 3.0], 'vec'),
-            Matrix([3.0, 1.0], 'vec'),
-            Matrix([6.0, 2.0], 'vec'),
-            Matrix([4.0, 4.0], 'vec')
-        ]
+        for bd in self._world._body_list:
+            prim: ShapePrimitive = ShapePrimitive()
+            prim._shape = bd.shape
+            prim._rot = bd.rot
+            prim._xform = bd.pos
 
-        poly: Polygon = Polygon()
-        poly.vertices = dataa
-        # prim._shape = cir
-        prim._shape = poly
-        # prim._shape = edg
-        prim._xform = Matrix([0.0, 0.0], 'vec')
-        prim._rot = np.pi / 4
-        Render.rd_shape(gui, prim, self.world_to_screen, self.meter_to_pixel,
-                        Config.FillColor)
+            Render.rd_shape(gui, prim, self.world_to_screen,
+                            self.meter_to_pixel, Config.FillColor)
 
     def render_joint(self, gui: GUI) -> None:
         raise NotImplementedError
