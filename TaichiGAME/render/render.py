@@ -103,13 +103,13 @@ class Render():
 
                 if is_first:
                     is_first = False
-                    outer_line_st = np.array([[scrnpa.x, scrnpa.y]])
-                    outer_line_ed = np.array([[scrnpb.x, scrnpb.y]])
+                    outer_line_st = np.array([[scrnpa.x, scrnpa.y]]) * 220.0
+                    outer_line_ed = np.array([[scrnpb.x, scrnpb.y]]) * 220.0
                 else:
-                    tmpa = np.array([[scrnpa.x, scrnpa.y]])
-                    tmpb = np.array([[scrnpb.x, scrnpb.y]])
-                    np.concatenate((outer_line_st, tmpa))
-                    np.concatenate((outer_line_ed, tmpb))
+                    tmpa = np.array([[scrnpa.x, scrnpa.y]]) * 220.0
+                    tmpb = np.array([[scrnpb.x, scrnpb.y]]) * 220.0
+                    outer_line_st = np.concatenate((outer_line_st, tmpa))
+                    outer_line_ed = np.concatenate((outer_line_ed, tmpb))
 
             assert outer_line_st is not None
             assert outer_line_ed is not None
@@ -120,6 +120,12 @@ class Render():
             fill_tri_pb = outer_line_st[1:-1]
             fill_tri_pc = outer_line_st[2:]
 
+            print('poly ver:')
+            for v in poly.vertices:
+                print(v)
+            print('end')
+
+            print(f'line_len: {len(outer_line_st)}')
             for v in outer_line_st:
                 print(v)
 
@@ -127,10 +133,10 @@ class Render():
                       outer_line_ed,
                       radius=2,
                       color=Config.OuterLineColor)
-            # gui.triangles(fill_tri_pa,
-            #               fill_tri_pb,
-            #               fill_tri_pc,
-            #               color=Config.FillColor)
+            gui.triangles(fill_tri_pa,
+                          fill_tri_pb,
+                          fill_tri_pc,
+                          color=Config.FillColor)
 
         elif prim._shape.type == Shape.Type.Ellipse:
             raise NotImplementedError
@@ -151,7 +157,7 @@ class Render():
             tmp2: Matrix = world_to_screen(edg.end + prim._xform)
             Render.rd_point(gui, tmp1, Config.AxisPointColor)
             Render.rd_point(gui, tmp2, Config.AxisPointColor)
-            Render.rd_line(gui, tmp1, tmp2)
+            Render.rd_line(gui, tmp1, tmp2, Config.AxisLineColor)
 
             center: Matrix = edg.center()
             center += prim._xform

@@ -370,8 +370,8 @@ class Camera():
         poly: Polygon = Polygon()
         poly.vertices = dataa
         # prim._shape = cir
-        # prim._shape = poly
-        prim._shape = edg
+        prim._shape = poly
+        # prim._shape = edg
         prim._xform = Matrix([2.0, 2.0], 'vec')
         prim._rot = 0.0
         Render.rd_shape(gui, prim, self.world_to_screen, self.viewport.width,
