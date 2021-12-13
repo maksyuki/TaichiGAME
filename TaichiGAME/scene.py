@@ -64,27 +64,7 @@ class Scene():
         pass
 
     def render(self) -> None:
-        # self._gui.circle([0.5, 0.5], radius=4)
         self._cam.render(self._gui)
-
-    #     self._gui.rect([0.1, 0.3], [0.3, 0.1], radius=3, color=0x00FF00)
-    #     self._gui.triangle([0.1, 0.3], [0.1, 0.1], [0.3, 0.1], color=0x008000)
-    #     self._gui.triangle([0.1, 0.3], [0.3, 0.1], [0.3, 0.3], color=0x008000)
-
-    #     # draw the polygon
-    #     hex_st = np.array([[0.4, 0.4], [0.5, 0.4], [0.6, 0.5], [0.6, 0.6],
-    #                        [0.5, 0.7], [0.4, 0.7], [0.3, 0.6], [0.3, 0.5]])
-    #     hex_ed = np.array([[0.5, 0.4], [0.6, 0.5], [0.6, 0.6], [0.5, 0.7],
-    #                        [0.4, 0.7], [0.3, 0.6], [0.3, 0.5], [0.4, 0.4]])
-    #     self._gui.lines(hex_st, hex_ed, radius=2, color=0x00FF00)
-
-    #     hex_tri_a = np.array([[0.4, 0.4], [0.4, 0.4], [0.4, 0.4], [0.4, 0.4],
-    #                           [0.4, 0.4], [0.4, 0.4]])
-    #     hex_tri_b = np.array([[0.5, 0.4], [0.6, 0.5], [0.6, 0.6], [0.5, 0.7],
-    #                           [0.4, 0.7], [0.3, 0.6]])
-    #     hex_tri_c = np.array([[0.6, 0.5], [0.6, 0.6], [0.5, 0.7], [0.4, 0.7],
-    #                           [0.3, 0.6], [0.3, 0.5]])
-    #     self._gui.triangles(hex_tri_a, hex_tri_b, hex_tri_c, color=0x008000)
 
     def handle_left_mouse_event(self, state: Union[GUI.PRESS, GUI.RELEASE],
                                 x: float, y: float) -> None:
@@ -103,18 +83,22 @@ class Scene():
             self._mouse_viewport_move = False
 
     def handle_mouse_move_event(self, x: float, y: float) -> None:
-
         cur_pos: Matrix = self._cam.screen_to_world(Matrix([x, y], 'vec'))
         delta_pos: Matrix = cur_pos - self._mouse_pos
 
         if self._mouse_viewport_move:
+            print(f'delta_pos1: {delta_pos}')
             delta_pos *= self._cam.meter_to_pixel
-            self._cam.transform = self._cam.transform + delta_pos
+            print(f'delta_pos2: {delta_pos}')
+            # 0.5 just a hack value for equal radio move offset
+            # 33.0 is init meter_to_pixel value
+            self._cam.transform += delta_pos * 0.5 * (33.0 /
+                                                      self._cam.meter_to_pixel)
         else:
             pass
 
         self._mouse_pos = cur_pos
-        print(f'({self._mouse_pos.x}, {self._mouse_pos.y}')
+        # print(f'({self._mouse_pos.x}, {self._mouse_pos.y}')
 
     def handle_wheel_event(self, y: float) -> None:
         # NOTE: need to set the sef._cam  the value scale

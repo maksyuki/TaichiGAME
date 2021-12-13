@@ -375,7 +375,7 @@ class Camera():
         prim._shape = poly
         # prim._shape = edg
         prim._xform = Matrix([0.0, 0.0], 'vec')
-        prim._rot = 0.0
+        prim._rot = np.pi / 4
         Render.rd_shape(gui, prim, self.world_to_screen, self.meter_to_pixel,
                         Config.FillColor)
 
