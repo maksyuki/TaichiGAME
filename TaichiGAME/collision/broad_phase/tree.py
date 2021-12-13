@@ -76,6 +76,7 @@ class Tree():
         new_node_idx: int = self._allocate_node()
         self._tree[new_node_idx]._body = body
         self._tree[new_node_idx]._aabb = AABB.from_body(body)
+        # expand outline a litte
         self._tree[new_node_idx]._aabb.expand(self._fat_expansion_factor)
         self._body_table[body] = new_node_idx
 

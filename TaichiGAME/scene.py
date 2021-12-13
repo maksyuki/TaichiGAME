@@ -42,24 +42,17 @@ class Scene():
         # camera init settings
         self._cam.viewport = Camera.Viewport(Matrix([0.0, height], 'vec'),
                                              Matrix([width, 0.0], 'vec'))
-        self._cam.aabb_visible = False
-        self._cam.dbvh_visible = False
-        self._cam.tree_visible = False
-        self._cam.axis_visible = True
+        self._cam.aabb_visible = True
+        # self._cam.axis_visible = True
         self._cam.body_visible = True
-        self._cam.grid_scale_line_visible = False
+        self._cam.center_visible = True
+        self._cam.rot_line_visible = True
         self._cam._world = self._world
         self._cam._dbvt = self._dbvt
 
         self._mouse_pos: Matrix = Matrix([0.0, 0.0], 'vec')
         # the right-mouse btn drag move flag(change viewport)
         self._mouse_viewport_move: bool = False
-
-        self.radius = self._gui.slider('Radius', 1, 50, step=1)
-        self.xcoor = self._gui.label('X-coordinate')
-        self.okay = self._gui.button('OK')
-        self.xcoor.value = 0.5
-        self.radius.value = 10
 
     def physics_sim(self) -> None:
         pass
@@ -142,15 +135,12 @@ class Scene():
                 elif e.key == ti.GUI.RIGHT:
                     print("press right key")
                 elif e.key == 'a':
-                    self.xcoor.value -= 0.05
+                    pass
                 elif e.key == 'd':
-                    self.xcoor.value += 0.05
+                    pass
                 elif e.key == 's':
-                    self.radius.value -= 1
+                    pass
                 elif e.key == 'w':
-                    self.radius.value += 1
-                elif e.key == self.okay:
-                    print('OK clicked')
+                    pass
 
-            self._gui.circle((self.xcoor.value, 0.5), radius=self.radius.value)
             self._gui.show()
