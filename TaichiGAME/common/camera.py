@@ -1,8 +1,6 @@
 from __future__ import annotations
 from typing import List, Optional
 
-from TaichiGAME.geometry.shape import Circle, Edge, Polygon, ShapePrimitive
-
 try:
     from taichi.ui.gui import GUI  # for taichi >= 0.8.7
 except ImportError:
@@ -19,6 +17,8 @@ from ..dynamics.phy_world import PhysicsWorld
 from ..dynamics.body import Body
 from ..dynamics.constraint.contact import ContactMaintainer
 from ..collision.broad_phase.dbvh import DBVH
+from ..collision.broad_phase.tree import Tree
+from ..geometry.shape import ShapePrimitive
 
 
 class Camera():
@@ -61,7 +61,7 @@ class Camera():
         self._aabb_visible: bool = False
         self._joint_visible: bool = False
         self._body_visible: bool = False
-        self._axis_visible: bool = True
+        self._axis_visible: bool = False
         self._dbvh_visible: bool = False
         self._tree_visible: bool = False
         self._grid_scale_line_visible: bool = False
@@ -72,7 +72,8 @@ class Camera():
         self._meter_to_pixel: float = 33.0
         self._pixel_to_meter: float = 1 / self._meter_to_pixel
 
-        self._target_meter_to_pixel: float = 53.0  # 1920x1080[80] -> 1280x720[53]
+        # 1920x1080[80] -> 1280x720[53]
+        self._target_meter_to_pixel: float = 53.0
         self._target_pixel_to_meter: float = 1 / self._target_meter_to_pixel
 
         self._transform: Matrix = Matrix([0.0, 0.0], 'vec')
@@ -82,7 +83,7 @@ class Camera():
         self._world: Optional[PhysicsWorld] = None
         self._target_body: Optional[Body] = None
         self._dbvh: Optional[DBVH] = None
-        #  self._tree: Optional[Tree] = None
+        self._dbvt: Optional[Tree] = None
         self._maintainer: Optional[ContactMaintainer] = None
 
         self._zoom_factor: float = 1.0
@@ -119,7 +120,6 @@ class Camera():
                 self.render_aabb(gui)
 
             if self.dbvh_visible:
-                # self.render_dbvh(gui, self._)
                 raise NotImplementedError
 
             if self.tree_visible:
@@ -296,8 +296,9 @@ class Camera():
         view_height: float = self.viewport.height
 
         tmpx: float = (orign.x + pos.x * self._meter_to_pixel) / view_width
-        tmpx = Config.clamp(tmpx, 0.0, 1.0)
         tmpy: float = (orign.y + pos.y * self._meter_to_pixel) / view_height
+        # print(f'({tmpx}, {tmpy})')
+        tmpx = Config.clamp(tmpx, 0.0, 1.0)
         tmpy = Config.clamp(tmpy, 0.0, 1.0)
         return Matrix([tmpx, tmpy], 'vec')
 
@@ -327,13 +328,14 @@ class Camera():
     def dbvh(self, dbvh: DBVH) -> None:
         self._dbvh = dbvh
 
-    # @property
-    # def tree(self) -> Tree:
-    #     return self._tree
+    @property
+    def dbvt(self) -> Tree:
+        assert self._dbvt is not None
+        return self._dbvt
 
-    # @tree.setter
-    # def tree(self, tree: Tree):
-    #     self._tree = tree
+    @dbvt.setter
+    def dbvt(self, dbvt: Tree):
+        self._dbvt = dbvt
 
     @property
     def delta_time(self) -> float:
@@ -353,30 +355,23 @@ class Camera():
         self._maintainer = maintainer
 
     def render_body(self, gui: GUI) -> None:
-        prim: ShapePrimitive = ShapePrimitive()
-        cir: Circle = Circle(2)
-        edg: Edge = Edge()
-        edg.start = Matrix([-3.0, -1.0], 'vec')
-        edg.end = Matrix([3.0, -1.0], 'vec')
+        assert self._world is not None
 
-        dataa: List[Matrix] = [
-            Matrix([4.0, 4.0], 'vec'),
-            Matrix([3.0, 3.0], 'vec'),
-            Matrix([3.0, 1.0], 'vec'),
-            Matrix([6.0, 2.0], 'vec'),
-            Matrix([4.0, 4.0], 'vec')
-        ]
+        for bd in self._world._body_list:
+            prim: ShapePrimitive = ShapePrimitive()
+            prim._shape = bd.shape
+            prim._rot = bd.rot
+            prim._xform = bd.pos
 
-        poly: Polygon = Polygon()
-        poly.vertices = dataa
-        # prim._shape = cir
-        # prim._shape = poly
-        prim._shape = edg
-        prim._xform = Matrix([2.0, 2.0], 'vec')
-        prim._rot = 0.0
-        Render.rd_shape(gui, prim, self.world_to_screen, self.viewport.width,
-                        self.viewport.height, self.meter_to_pixel,
-                        Config.FillColor)
+            Render.rd_shape(gui, prim, self.world_to_screen,
+                            self.meter_to_pixel, Config.FillColor)
+
+            if self.center_visible:
+                Render.rd_point(gui, self.world_to_screen(prim._xform),
+                                Config.BodyCenterColor, 4)
+
+            if self._rotation_line_visible:
+                Render.rd_angle_line(gui, prim, self.world_to_screen)
 
     def render_joint(self, gui: GUI) -> None:
         raise NotImplementedError
@@ -401,7 +396,13 @@ class Camera():
                        color=Config.AxisLineColor)
 
     def render_aabb(self, gui: GUI) -> None:
-        raise NotImplementedError
+        assert self._dbvt is not None
+
+        for elem in self._dbvt.tree():
+            if elem._body is not None:
+                tmp1: Matrix = self.world_to_screen(elem._aabb.top_left)
+                tmp2: Matrix = self.world_to_screen(elem._aabb.bot_right)
+                Render.rd_rect(gui, tmp1, tmp2, Config.AABBLineColor)
 
     def render_tree(self, gui: GUI, node_idx: int) -> None:
         raise NotImplementedError

@@ -10,7 +10,6 @@ except ImportError:
 from ..math.matrix import Matrix
 from ..geometry.shape import Circle, Edge, Polygon, Shape, ShapePrimitive
 from ..dynamics.joint.joint import Joint
-from ..collision.broad_phase.aabb import AABB
 from ..common.config import Config
 
 
@@ -19,7 +18,7 @@ class Render():
     def rd_point(gui: GUI,
                  point: Matrix,
                  color: int = ti.rgb_to_hex([1.0, 1.0, 1.0]),
-                 radius: int = 2) -> None:
+                 radius: float = 2.0) -> None:
         assert gui is not None
         assert 0 <= point.x <= 1.0
         assert 0 <= point.y <= 1.0
@@ -29,7 +28,7 @@ class Render():
     def rd_points(gui: GUI,
                   points: List[Matrix],
                   color: int = ti.rgb_to_hex([1.0, 1.0, 1.0]),
-                  radius: int = 2) -> None:
+                  radius: float = 2.0) -> None:
         assert gui is not None
 
         for p in points:
@@ -40,7 +39,7 @@ class Render():
                 p1: Matrix,
                 p2: Matrix,
                 color: int = ti.rgb_to_hex([1.0, 1.0, 1.0]),
-                radius: int = 1) -> None:
+                radius: float = 1.0) -> None:
         assert gui is not None
         assert 0 <= p1.x <= 1.0
         assert 0 <= p1.y <= 1.0
@@ -53,19 +52,17 @@ class Render():
     def rd_lines(gui: GUI,
                  lines: List[Tuple[Matrix, Matrix]],
                  color: int = ti.rgb_to_hex([1.0, 1.0, 1.0]),
-                 radius: int = 1) -> None:
+                 radius: float = 1.0) -> None:
         assert gui is not None
 
         for lin in lines:
-            Render.rd_line(gui, lin[0], lin[1], radius, color)
+            Render.rd_line(gui, lin[0], lin[1], color, radius)
 
     @staticmethod
     def rd_shape(
         gui: GUI,
         prim: ShapePrimitive,
         world_to_screen: Callable[[Matrix], Matrix],
-        vp_width: float,
-        vp_height,
         meter_to_pixel: float,
         color: int = ti.rgb_to_hex([1.0, 1.0, 1.0])
     ) -> None:
@@ -87,19 +84,16 @@ class Render():
 
             # NOTE: the vertices can form a close shape,
             # so the first vertex and last vertex are same
+            # print('render poly')
             vert_len: int = len(poly.vertices)
             for i in range(vert_len - 1):
                 wordpa: Matrix = Matrix.rotate_mat(
                     prim._rot) * poly.vertices[i] + prim._xform
                 scrnpa: Matrix = world_to_screen(wordpa)
-                scrnpa.x /= vp_width
-                scrnpa.y /= vp_height
 
                 wordpb: Matrix = Matrix.rotate_mat(
                     prim._rot) * poly.vertices[i + 1] + prim._xform
                 scrnpb: Matrix = world_to_screen(wordpb)
-                scrnpb.x /= vp_width
-                scrnpb.y /= vp_height
 
                 if is_first:
                     is_first = False
@@ -108,8 +102,8 @@ class Render():
                 else:
                     tmpa = np.array([[scrnpa.x, scrnpa.y]])
                     tmpb = np.array([[scrnpb.x, scrnpb.y]])
-                    np.concatenate((outer_line_st, tmpa))
-                    np.concatenate((outer_line_ed, tmpb))
+                    outer_line_st = np.concatenate((outer_line_st, tmpa))
+                    outer_line_ed = np.concatenate((outer_line_ed, tmpb))
 
             assert outer_line_st is not None
             assert outer_line_ed is not None
@@ -120,17 +114,23 @@ class Render():
             fill_tri_pb = outer_line_st[1:-1]
             fill_tri_pc = outer_line_st[2:]
 
-            for v in outer_line_st:
-                print(v)
+            # print('poly ver:')
+            # for v in poly.vertices:
+            # print(v)
+            # print('end')
+
+            # print(f'line_len: {len(outer_line_st)}')
+            # for v in outer_line_st:
+            # print(v)
 
             gui.lines(outer_line_st,
                       outer_line_ed,
-                      radius=2,
+                      radius=2.0,
                       color=Config.OuterLineColor)
-            # gui.triangles(fill_tri_pa,
-            #               fill_tri_pb,
-            #               fill_tri_pc,
-            #               color=Config.FillColor)
+            gui.triangles(fill_tri_pa,
+                          fill_tri_pb,
+                          fill_tri_pc,
+                          color=Config.FillColor)
 
         elif prim._shape.type == Shape.Type.Ellipse:
             raise NotImplementedError
@@ -151,7 +151,7 @@ class Render():
             tmp2: Matrix = world_to_screen(edg.end + prim._xform)
             Render.rd_point(gui, tmp1, Config.AxisPointColor)
             Render.rd_point(gui, tmp2, Config.AxisPointColor)
-            Render.rd_line(gui, tmp1, tmp2)
+            Render.rd_line(gui, tmp1, tmp2, Config.AxisLineColor)
 
             center: Matrix = edg.center()
             center += prim._xform
@@ -166,16 +166,36 @@ class Render():
             raise NotImplementedError
 
     @staticmethod
-    def rd_aabb(gui: GUI, aabb: AABB) -> None:
+    def rd_rect(gui: GUI,
+                p1: Matrix,
+                p2: Matrix,
+                color: int = ti.rgb_to_hex([1.0, 1.0, 1.0]),
+                radius: float = 1.0) -> None:
         assert gui is not None
-        assert 0 <= aabb.top_left.x <= 1.0
-        assert 0 <= aabb.top_left.y <= 1.0
-        assert 0 <= aabb.bot_right.x <= 1.0
-        assert 0 <= aabb.bot_right.y <= 1.0
+        assert 0 <= p1.x <= 1.0
+        assert 0 <= p1.y <= 1.0
+        assert 0 <= p2.x <= 1.0
+        assert 0 <= p2.y <= 1.0
 
-        gui.rect([aabb.top_left.x, aabb.top_left.y],
-                 [aabb.bot_right.x, aabb.bot_right.y])
+        gui.rect([p1.x, p1.y], [p2.x, p2.y], radius, color)
 
     @staticmethod
     def rd_joint(gui, joint: Joint) -> None:
         raise NotImplementedError
+
+    @staticmethod
+    def rd_angle_line(gui: GUI, prim: ShapePrimitive,
+                      world_to_screen: Callable[[Matrix], Matrix]) -> None:
+        xpos: Matrix = Matrix([0.3, 0.0], 'vec')
+        ypos: Matrix = Matrix([0.0, 0.3], 'vec')
+
+        assert prim._shape is not None
+        mc: Matrix = Matrix.rotate_mat(prim._rot) * prim._shape.center()
+        start: Matrix = prim._xform + mc
+        xpos = Matrix.rotate_mat(prim._rot) * xpos + start
+        ypos = Matrix.rotate_mat(prim._rot) * ypos + start
+
+        Render.rd_line(gui, world_to_screen(start), world_to_screen(xpos),
+                       Config.AngleLineXColor)
+        Render.rd_line(gui, world_to_screen(start), world_to_screen(ypos),
+                       Config.AngleLineYColor)

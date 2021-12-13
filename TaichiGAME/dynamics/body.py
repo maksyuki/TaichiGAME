@@ -1,13 +1,13 @@
 from __future__ import annotations
 from enum import IntEnum, unique
-from typing import Optional, Type, TypeVar
+from typing import Optional, Union
 
 import numpy as np
 
 from ..common.config import Config
 from ..math.matrix import Matrix
-from ..geometry.shape import Capsule, Ellipse
-from ..geometry.shape import Polygon, Sector, Shape, Circle
+from ..geometry.shape import Capsule, Ellipse, Point, Edge, Curve
+from ..geometry.shape import Polygon, Sector, Shape, Circle, Rectangle
 
 
 class Body():
@@ -29,8 +29,6 @@ class Body():
             self._pos += self._vel * dt
             self._rot += self._ang_vel * dt
 
-    U = TypeVar('U', bound=Shape)
-
     def __init__(self):
         self._id: int = 0
         self._bitmask: int = 1
@@ -44,7 +42,8 @@ class Body():
         self._forces: Matrix = Matrix([0.0, 0.0], 'vec')
         self._torques: float = 0.0
 
-        self._shape: Optional[Type[Body.U]] = None
+        self._shape: Optional[Union[Point, Polygon, Rectangle, Circle, Ellipse,
+                                    Edge, Curve, Capsule, Sector]] = None
         self._type = Body.Type.Static
 
         self._sleep: bool = False

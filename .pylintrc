@@ -1,0 +1,13 @@
+[MASTER]
+ignore=testbed.py
+
+[MESSAGES CONTROL]
+disable=
+    invalid-name,
+    protected-access,
+    missing-docstring,
+    missing-function-docstring,
+    missing-class-docstring,
+    missing-module-docstring,
+    blacklisted-name,
+    import-outside-toplevel
