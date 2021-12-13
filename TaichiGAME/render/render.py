@@ -19,7 +19,7 @@ class Render():
     def rd_point(gui: GUI,
                  point: Matrix,
                  color: int = ti.rgb_to_hex([1.0, 1.0, 1.0]),
-                 radius: int = 2) -> None:
+                 radius: float = 2.0) -> None:
         assert gui is not None
         assert 0 <= point.x <= 1.0
         assert 0 <= point.y <= 1.0
@@ -29,7 +29,7 @@ class Render():
     def rd_points(gui: GUI,
                   points: List[Matrix],
                   color: int = ti.rgb_to_hex([1.0, 1.0, 1.0]),
-                  radius: int = 2) -> None:
+                  radius: float = 2.0) -> None:
         assert gui is not None
 
         for p in points:
@@ -40,7 +40,7 @@ class Render():
                 p1: Matrix,
                 p2: Matrix,
                 color: int = ti.rgb_to_hex([1.0, 1.0, 1.0]),
-                radius: int = 1) -> None:
+                radius: float = 1.0) -> None:
         assert gui is not None
         assert 0 <= p1.x <= 1.0
         assert 0 <= p1.y <= 1.0
@@ -53,11 +53,11 @@ class Render():
     def rd_lines(gui: GUI,
                  lines: List[Tuple[Matrix, Matrix]],
                  color: int = ti.rgb_to_hex([1.0, 1.0, 1.0]),
-                 radius: int = 1) -> None:
+                 radius: float = 1.0) -> None:
         assert gui is not None
 
         for lin in lines:
-            Render.rd_line(gui, lin[0], lin[1], radius, color)
+            Render.rd_line(gui, lin[0], lin[1], color, radius)
 
     @staticmethod
     def rd_shape(
@@ -126,7 +126,7 @@ class Render():
 
             gui.lines(outer_line_st,
                       outer_line_ed,
-                      radius=2,
+                      radius=2.0,
                       color=Config.OuterLineColor)
             gui.triangles(fill_tri_pa,
                           fill_tri_pb,
@@ -167,7 +167,10 @@ class Render():
             raise NotImplementedError
 
     @staticmethod
-    def rd_aabb(gui: GUI, aabb: AABB) -> None:
+    def rd_aabb(gui: GUI,
+                aabb: AABB,
+                color: int = ti.rgb_to_hex([1.0, 1.0, 1.0]),
+                radius: float = 1.0) -> None:
         assert gui is not None
         assert 0 <= aabb.top_left.x <= 1.0
         assert 0 <= aabb.top_left.y <= 1.0
@@ -175,7 +178,7 @@ class Render():
         assert 0 <= aabb.bot_right.y <= 1.0
 
         gui.rect([aabb.top_left.x, aabb.top_left.y],
-                 [aabb.bot_right.x, aabb.bot_right.y])
+                 [aabb.bot_right.x, aabb.bot_right.y], radius, color)
 
     @staticmethod
     def rd_joint(gui, joint: Joint) -> None:
