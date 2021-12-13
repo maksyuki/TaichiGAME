@@ -64,8 +64,6 @@ class Render():
         gui: GUI,
         prim: ShapePrimitive,
         world_to_screen: Callable[[Matrix], Matrix],
-        vp_width: float,
-        vp_height,
         meter_to_pixel: float,
         color: int = ti.rgb_to_hex([1.0, 1.0, 1.0])
     ) -> None:
@@ -87,27 +85,24 @@ class Render():
 
             # NOTE: the vertices can form a close shape,
             # so the first vertex and last vertex are same
+            # print('render poly')
             vert_len: int = len(poly.vertices)
             for i in range(vert_len - 1):
                 wordpa: Matrix = Matrix.rotate_mat(
                     prim._rot) * poly.vertices[i] + prim._xform
                 scrnpa: Matrix = world_to_screen(wordpa)
-                scrnpa.x /= vp_width
-                scrnpa.y /= vp_height
 
                 wordpb: Matrix = Matrix.rotate_mat(
                     prim._rot) * poly.vertices[i + 1] + prim._xform
                 scrnpb: Matrix = world_to_screen(wordpb)
-                scrnpb.x /= vp_width
-                scrnpb.y /= vp_height
 
                 if is_first:
                     is_first = False
-                    outer_line_st = np.array([[scrnpa.x, scrnpa.y]]) * 220.0
-                    outer_line_ed = np.array([[scrnpb.x, scrnpb.y]]) * 220.0
+                    outer_line_st = np.array([[scrnpa.x, scrnpa.y]])
+                    outer_line_ed = np.array([[scrnpb.x, scrnpb.y]])
                 else:
-                    tmpa = np.array([[scrnpa.x, scrnpa.y]]) * 220.0
-                    tmpb = np.array([[scrnpb.x, scrnpb.y]]) * 220.0
+                    tmpa = np.array([[scrnpa.x, scrnpa.y]])
+                    tmpb = np.array([[scrnpb.x, scrnpb.y]])
                     outer_line_st = np.concatenate((outer_line_st, tmpa))
                     outer_line_ed = np.concatenate((outer_line_ed, tmpb))
 
@@ -120,14 +115,14 @@ class Render():
             fill_tri_pb = outer_line_st[1:-1]
             fill_tri_pc = outer_line_st[2:]
 
-            print('poly ver:')
-            for v in poly.vertices:
-                print(v)
-            print('end')
+            # print('poly ver:')
+            # for v in poly.vertices:
+            # print(v)
+            # print('end')
 
-            print(f'line_len: {len(outer_line_st)}')
-            for v in outer_line_st:
-                print(v)
+            # print(f'line_len: {len(outer_line_st)}')
+            # for v in outer_line_st:
+            # print(v)
 
             gui.lines(outer_line_st,
                       outer_line_ed,

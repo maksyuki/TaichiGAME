@@ -72,7 +72,8 @@ class Camera():
         self._meter_to_pixel: float = 33.0
         self._pixel_to_meter: float = 1 / self._meter_to_pixel
 
-        self._target_meter_to_pixel: float = 53.0  # 1920x1080[80] -> 1280x720[53]
+        # 1920x1080[80] -> 1280x720[53]
+        self._target_meter_to_pixel: float = 53.0
         self._target_pixel_to_meter: float = 1 / self._target_meter_to_pixel
 
         self._transform: Matrix = Matrix([0.0, 0.0], 'vec')
@@ -296,8 +297,9 @@ class Camera():
         view_height: float = self.viewport.height
 
         tmpx: float = (orign.x + pos.x * self._meter_to_pixel) / view_width
-        tmpx = Config.clamp(tmpx, 0.0, 1.0)
         tmpy: float = (orign.y + pos.y * self._meter_to_pixel) / view_height
+        # print(f'({tmpx}, {tmpy})')
+        tmpx = Config.clamp(tmpx, 0.0, 1.0)
         tmpy = Config.clamp(tmpy, 0.0, 1.0)
         return Matrix([tmpx, tmpy], 'vec')
 
@@ -372,10 +374,9 @@ class Camera():
         # prim._shape = cir
         prim._shape = poly
         # prim._shape = edg
-        prim._xform = Matrix([2.0, 2.0], 'vec')
+        prim._xform = Matrix([0.0, 0.0], 'vec')
         prim._rot = 0.0
-        Render.rd_shape(gui, prim, self.world_to_screen, self.viewport.width,
-                        self.viewport.height, self.meter_to_pixel,
+        Render.rd_shape(gui, prim, self.world_to_screen, self.meter_to_pixel,
                         Config.FillColor)
 
     def render_joint(self, gui: GUI) -> None:
