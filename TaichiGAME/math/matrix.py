@@ -278,10 +278,12 @@ class Matrix():
         return self
 
     def normalize(self) -> Matrix:
+        assert not np.isclose(self.len(), 0)
         self._val /= self.len()
         return self
 
     def normal(self) -> Matrix:
+        assert not np.isclose(self.len(), 0)
         return Matrix(self._val / self.len(), self._data_type)
 
     def is_origin(self) -> bool:

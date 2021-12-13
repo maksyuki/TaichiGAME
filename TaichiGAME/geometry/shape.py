@@ -109,7 +109,7 @@ class Polygon(Shape):
         self.update_vertices()
 
     def scale(self, factor: float) -> None:
-        assert len(self._vertices)
+        assert len(self._vertices) > 0
         self._vertices = [v * factor for v in self._vertices]
 
     def contains(self, point: Matrix) -> bool:
@@ -278,7 +278,9 @@ class Edge(Shape):
     def __init__(self):
         super().__init__()
         self.type = self.Type.Edge
-        self.set_value(Matrix([0.0, 0.0], 'vec'), Matrix([0.0, 0.0], 'vec'))
+        # set (1.0, 1.0) just for init calc the normal vec correctly
+        # if both are (0.0, 0.0), can lead div zero error
+        self.set_value(Matrix([1.0, 1.0], 'vec'), Matrix([0.0, 0.0], 'vec'))
 
     @property
     def start(self) -> Matrix:
@@ -305,8 +307,8 @@ class Edge(Shape):
         self.update_normal()
 
     def update_normal(self) -> None:
-        self._normal: Matrix = (self.end -
-                                self.start).perpendicular().normal().negate()
+        self._normal: Matrix = (self._end -
+                                self._start).perpendicular().normal().negate()
 
     def scale(self, factor: float) -> None:
         self._start *= factor
@@ -324,7 +326,7 @@ class Edge(Shape):
 
     @normal.setter
     def normal(self, normal: Matrix) -> None:
-        self._normal: Matrix = normal
+        self._normal = normal
 
 
 class Curve(Shape):
