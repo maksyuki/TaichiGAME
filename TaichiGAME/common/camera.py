@@ -17,6 +17,7 @@ from ..dynamics.phy_world import PhysicsWorld
 from ..dynamics.body import Body
 from ..dynamics.constraint.contact import ContactMaintainer
 from ..collision.broad_phase.dbvh import DBVH
+from ..collision.broad_phase.tree import Tree
 from ..geometry.shape import ShapePrimitive
 
 
@@ -82,7 +83,7 @@ class Camera():
         self._world: Optional[PhysicsWorld] = None
         self._target_body: Optional[Body] = None
         self._dbvh: Optional[DBVH] = None
-        #  self._tree: Optional[Tree] = None
+        self._dbvt: Optional[Tree] = None
         self._maintainer: Optional[ContactMaintainer] = None
 
         self._zoom_factor: float = 1.0
@@ -328,13 +329,14 @@ class Camera():
     def dbvh(self, dbvh: DBVH) -> None:
         self._dbvh = dbvh
 
-    # @property
-    # def tree(self) -> Tree:
-    #     return self._tree
+    @property
+    def dbvt(self) -> Tree:
+        assert self._dbvt is not None
+        return self._dbvt
 
-    # @tree.setter
-    # def tree(self, tree: Tree):
-    #     self._tree = tree
+    @dbvt.setter
+    def dbvt(self, dbvt: Tree):
+        self._dbvt = dbvt
 
     @property
     def delta_time(self) -> float:
@@ -388,7 +390,11 @@ class Camera():
                        color=Config.AxisLineColor)
 
     def render_aabb(self, gui: GUI) -> None:
-        raise NotImplementedError
+        assert self._dbvt is not None
+
+        for elem in self._dbvt.tree():
+            if elem._body is not None:
+                Render.rd_aabb(gui, elem._aabb)
 
     def render_tree(self, gui: GUI, node_idx: int) -> None:
         raise NotImplementedError

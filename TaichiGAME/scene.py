@@ -14,6 +14,7 @@ import numpy as np
 
 from .common.camera import Camera
 from .dynamics.phy_world import PhysicsWorld
+from .collision.broad_phase.tree import Tree
 from .math.matrix import Matrix
 
 
@@ -25,6 +26,7 @@ class Scene():
                                  [50 / 255.0, 50 / 255.0, 50 / 255.0]))
         # the physics world, all sim is run in physics world
         self._world: PhysicsWorld = PhysicsWorld()
+        self._dbvt: Tree = Tree()
         # the view camera, all viewport scale is in camera
         self._cam: Camera = Camera()
 
@@ -47,6 +49,7 @@ class Scene():
         self._cam.body_visible = True
         self._cam.grid_scale_line_visible = False
         self._cam._world = self._world
+        self._cam._dbvt = self._dbvt
 
         self._mouse_pos: Matrix = Matrix([0.0, 0.0], 'vec')
         # the right-mouse btn drag move flag(change viewport)

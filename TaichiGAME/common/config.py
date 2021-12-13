@@ -16,6 +16,7 @@ class Config():
     FillColor: int = 0x008000
     AxisPointColor: int = 0x00FF00
     AxisLineColor: int = 0x008000
+    AABBLineColor: int = 0xFFFF33
 
     @staticmethod
     def clamp(num: float, low: float, high: float) -> float:
