@@ -10,7 +10,6 @@ except ImportError:
 from ..math.matrix import Matrix
 from ..geometry.shape import Circle, Edge, Polygon, Shape, ShapePrimitive
 from ..dynamics.joint.joint import Joint
-from ..collision.broad_phase.aabb import AABB
 from ..common.config import Config
 
 
@@ -167,19 +166,36 @@ class Render():
             raise NotImplementedError
 
     @staticmethod
-    def rd_aabb(gui: GUI,
-                aabb: AABB,
+    def rd_rect(gui: GUI,
+                p1: Matrix,
+                p2: Matrix,
                 color: int = ti.rgb_to_hex([1.0, 1.0, 1.0]),
                 radius: float = 1.0) -> None:
         assert gui is not None
-        assert 0 <= aabb.top_left.x <= 1.0
-        assert 0 <= aabb.top_left.y <= 1.0
-        assert 0 <= aabb.bot_right.x <= 1.0
-        assert 0 <= aabb.bot_right.y <= 1.0
+        assert 0 <= p1.x <= 1.0
+        assert 0 <= p1.y <= 1.0
+        assert 0 <= p2.x <= 1.0
+        assert 0 <= p2.y <= 1.0
 
-        gui.rect([aabb.top_left.x, aabb.top_left.y],
-                 [aabb.bot_right.x, aabb.bot_right.y], radius, color)
+        gui.rect([p1.x, p1.y], [p2.x, p2.y], radius, color)
 
     @staticmethod
     def rd_joint(gui, joint: Joint) -> None:
         raise NotImplementedError
+
+    @staticmethod
+    def rd_angle_line(gui: GUI, prim: ShapePrimitive,
+                      world_to_screen: Callable[[Matrix], Matrix]) -> None:
+        xpos: Matrix = Matrix([0.3, 0.0], 'vec')
+        ypos: Matrix = Matrix([0.0, 0.3], 'vec')
+
+        assert prim._shape is not None
+        mc: Matrix = Matrix.rotate_mat(prim._rot) * prim._shape.center()
+        start: Matrix = prim._xform + mc
+        xpos = Matrix.rotate_mat(prim._rot) * xpos + start
+        ypos = Matrix.rotate_mat(prim._rot) * ypos + start
+
+        Render.rd_line(gui, world_to_screen(start), world_to_screen(xpos),
+                       Config.AngleLineXColor)
+        Render.rd_line(gui, world_to_screen(start), world_to_screen(ypos),
+                       Config.AngleLineYColor)

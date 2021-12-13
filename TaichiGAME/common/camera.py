@@ -61,7 +61,7 @@ class Camera():
         self._aabb_visible: bool = False
         self._joint_visible: bool = False
         self._body_visible: bool = False
-        self._axis_visible: bool = True
+        self._axis_visible: bool = False
         self._dbvh_visible: bool = False
         self._tree_visible: bool = False
         self._grid_scale_line_visible: bool = False
@@ -120,7 +120,6 @@ class Camera():
                 self.render_aabb(gui)
 
             if self.dbvh_visible:
-                # self.render_dbvh(gui, self._)
                 raise NotImplementedError
 
             if self.tree_visible:
@@ -367,6 +366,13 @@ class Camera():
             Render.rd_shape(gui, prim, self.world_to_screen,
                             self.meter_to_pixel, Config.FillColor)
 
+            if self.center_visible:
+                Render.rd_point(gui, self.world_to_screen(prim._xform),
+                                Config.BodyCenterColor, 4)
+
+            if self._rotation_line_visible:
+                Render.rd_angle_line(gui, prim, self.world_to_screen)
+
     def render_joint(self, gui: GUI) -> None:
         raise NotImplementedError
 
@@ -394,7 +400,9 @@ class Camera():
 
         for elem in self._dbvt.tree():
             if elem._body is not None:
-                Render.rd_aabb(gui, elem._aabb)
+                tmp1: Matrix = self.world_to_screen(elem._aabb.top_left)
+                tmp2: Matrix = self.world_to_screen(elem._aabb.bot_right)
+                Render.rd_rect(gui, tmp1, tmp2, Config.AABBLineColor)
 
     def render_tree(self, gui: GUI, node_idx: int) -> None:
         raise NotImplementedError
