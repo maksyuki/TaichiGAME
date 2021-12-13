@@ -128,7 +128,7 @@ class AABB():
         res: AABB = AABB()
         assert prim._shape is not None
 
-        if prim._shape == Shape.Type.Polygon:
+        if prim._shape.type == Shape.Type.Polygon:
             polygon: Polygon = cast(Polygon, prim._shape)
             x_max: float = Config.NegativeMin
             y_max: float = Config.NegativeMin
@@ -153,7 +153,7 @@ class AABB():
             res._height = np.fabs(y_max - y_min)
             res._pos.set_value([(x_max + x_min) / 2.0, (y_max + y_min) / 2.0])
 
-        elif prim._shape == Shape.Type.Ellipse:
+        elif prim._shape.type == Shape.Type.Ellipse:
             ellipse: Ellipse = cast(Ellipse, prim._shape)
 
             top_dir: Matrix = Matrix([0.0, 1.0], 'vec')
@@ -183,12 +183,12 @@ class AABB():
             res._height = np.fabs(top.y - bot.y)
             res._width = np.fabs(right.x - left.x)
 
-        elif prim._shape == Shape.Type.Circle:
+        elif prim._shape.type == Shape.Type.Circle:
             cir: Circle = cast(Circle, prim._shape)
             res._width = cir.radius * 2.0
             res._height = cir.radius * 2.0
 
-        elif prim._shape == Shape.Type.Edge:
+        elif prim._shape.type == Shape.Type.Edge:
             edg: Edge = cast(Edge, prim._shape)
             res._width = np.fabs(edg.start.x - edg.end.x)
             res._height = np.fabs(edg.start.y - edg.end.y)
@@ -196,15 +196,15 @@ class AABB():
                 [edg.start.x + edg.end.x, edg.start.y + edg.end.y])
             res._pos *= 0.5
 
-        elif prim._shape == Shape.Type.Curve:
+        elif prim._shape.type == Shape.Type.Curve:
             pass
-        elif prim._shape == Shape.Type.Point:
+        elif prim._shape.type == Shape.Type.Point:
             res._width = 1.0
             res._height = 1.0
 
-        elif prim._shape == Shape.Type.Capsule:
+        elif prim._shape.type == Shape.Type.Capsule:
             pass
-        elif prim._shape == Shape.Type.Sector:
+        elif prim._shape.type == Shape.Type.Sector:
             pass
 
         res._pos += prim._xform
@@ -220,6 +220,7 @@ class AABB():
         prim._shape = body.shape
         prim._rot = body.rot
         prim._xform = body.pos
+
         return AABB.from_prim(prim, factor)
 
     @staticmethod
