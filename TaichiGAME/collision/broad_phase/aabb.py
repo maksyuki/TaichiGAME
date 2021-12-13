@@ -1,11 +1,13 @@
-from typing import List, Dict, Optional, Tuple
+from __future__ import annotations
+from typing import Optional, Tuple, cast
 
 import numpy as np
 
 from ...common.config import Config
 from ...math.matrix import Matrix
 from ...geometry.geom_algo import GeomAlgo2D
-from ...geometry.shape import Circle, Edge, Ellipse, Polygon, Shape, ShapePrimitive
+from ...geometry.shape import Circle, Edge, Ellipse
+from ...geometry.shape import Polygon, Shape, ShapePrimitive
 from ...dynamics.body import Body
 
 
@@ -15,7 +17,7 @@ class AABB():
         self._width: float = width
         self._height: float = height
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return np.isclose(self._width, other._width) and np.isclose(
             self._height, other._height) and self._pos == other._pos
 
@@ -24,7 +26,7 @@ class AABB():
         return self._pos
 
     @pos.setter
-    def pos(self, pos: Matrix):
+    def pos(self, pos: Matrix) -> None:
         self._pos = pos
 
     @property
@@ -66,19 +68,19 @@ class AABB():
         '''
         return AABB._collide(self, aabb)
 
-    def expand(self, factor: float):
+    def expand(self, factor: float) -> None:
         AABB._expand(self, factor)
 
-    def scale(self, factor: float):
+    def scale(self, factor: float) -> None:
         self._width *= factor
         self._height *= factor
 
-    def clear(self):
+    def clear(self) -> None:
         self._pos.clear()
         self._width = 0.0
         self._height = 0.0
 
-    def unite(self, aabb):
+    def unite(self, aabb: AABB) -> AABB:
         '''return two AABB union result
 
         Parameters
@@ -112,7 +114,7 @@ class AABB():
         bool
             True: is subset, otherwise not
         '''
-        return AABB._is_subset(aabb, self)  #NOTE: the seq is important
+        return AABB._is_subset(aabb, self)  # NOTE: the seq is important
 
     def is_empty(self) -> bool:
         return np.isclose(self._width, 0.0) and np.isclose(
@@ -122,17 +124,17 @@ class AABB():
         return AABB._raycast(self, start, dirn)
 
     @staticmethod
-    def from_prim(prim: ShapePrimitive, factor: float = 0.0):
-        res = AABB()
-        shape_type = prim._shape.type()
+    def from_prim(prim: ShapePrimitive, factor: float = 0.0) -> AABB:
+        res: AABB = AABB()
+        assert prim._shape is not None
 
-        if shape_type == Shape.Type.Polygon:
-            polygon: Polygon = prim._shape
+        if prim._shape.type == Shape.Type.Polygon:
+            polygon: Polygon = cast(Polygon, prim._shape)
             x_max: float = Config.NegativeMin
             y_max: float = Config.NegativeMin
             x_min: float = Config.Max
             y_min: float = Config.Max
-            for v in polygon.vertices():
+            for v in polygon.vertices:
                 vertex: Matrix = Matrix.rotate_mat(prim._rot) * v
 
                 if x_max < vertex.x:
@@ -149,10 +151,10 @@ class AABB():
 
             res._width = np.fabs(x_max - x_min)
             res._height = np.fabs(y_max - y_min)
-            res._pos.set_value((x_max + x_min) / 2.0, (y_max + y_min) / 2.0)
+            res._pos.set_value([(x_max + x_min) / 2.0, (y_max + y_min) / 2.0])
 
-        elif shape_type == Shape.Type.Ellipse:
-            ellipse: Ellipse = prim._shape
+        elif prim._shape.type == Shape.Type.Ellipse:
+            ellipse: Ellipse = cast(Ellipse, prim._shape)
 
             top_dir: Matrix = Matrix([0.0, 1.0], 'vec')
             left_dir: Matrix = Matrix([-1.0, 0.0], 'vec')
@@ -181,28 +183,28 @@ class AABB():
             res._height = np.fabs(top.y - bot.y)
             res._width = np.fabs(right.x - left.x)
 
-        elif shape_type == Shape.Type.Circle:
-            cir: Circle = prim._shape
+        elif prim._shape.type == Shape.Type.Circle:
+            cir: Circle = cast(Circle, prim._shape)
             res._width = cir.radius * 2.0
             res._height = cir.radius * 2.0
 
-        elif shape_type == Shape.Type.Edge:
-            edg: Edge = prim._shape
+        elif prim._shape.type == Shape.Type.Edge:
+            edg: Edge = cast(Edge, prim._shape)
             res._width = np.fabs(edg.start.x - edg.end.x)
             res._height = np.fabs(edg.start.y - edg.end.y)
             res._pos.set_value(
                 [edg.start.x + edg.end.x, edg.start.y + edg.end.y])
-            res._pos *= 2.0
+            res._pos *= 0.5
 
-        elif shape_type == Shape.Type.Curve:
+        elif prim._shape.type == Shape.Type.Curve:
             pass
-        elif shape_type == Shape.Type.Point:
+        elif prim._shape.type == Shape.Type.Point:
             res._width = 1.0
             res._height = 1.0
 
-        elif shape_type == Shape.Type.Capsule:
+        elif prim._shape.type == Shape.Type.Capsule:
             pass
-        elif shape_type == Shape.Type.Sector:
+        elif prim._shape.type == Shape.Type.Sector:
             pass
 
         res._pos += prim._xform
@@ -210,26 +212,27 @@ class AABB():
         return res
 
     @staticmethod
-    def from_body(body: Body, factor: float = 0.0):
-        assert body != None
-        assert body.shape != None
+    def from_body(body: Body, factor: float = 0.0) -> AABB:
+        assert body is not None
+        assert body.shape is not None
 
         prim: ShapePrimitive = ShapePrimitive()
         prim._shape = body.shape
         prim._rot = body.rot
         prim._xform = body.pos
-        return AABB.from_prim(prim, factor)  #FIXME: the type is right?
+
+        return AABB.from_prim(prim, factor)
 
     @staticmethod
-    def from_box(top_left, bot_right):
-        res = AABB()
+    def from_box(top_left: Matrix, bot_right: Matrix) -> AABB:
+        res: AABB = AABB()
         res._width = bot_right.x - top_left.x
         res._height = top_left.y - bot_right.y
         res._pos = (top_left + bot_right) / 2.0
         return res
 
     @staticmethod
-    def _collide(src, target) -> bool:
+    def _collide(src: AABB, target: AABB) -> bool:
         '''check if two aabbs are overlapping
 
         Parameters
@@ -246,16 +249,16 @@ class AABB():
         '''
         src_top_left: Matrix = src.top_left
         src_bot_right: Matrix = src.bot_right
-        target_top_left: Matrix = target.top_left
-        target_bot_right: Matrix = target.bot_right
+        tgt_top_left: Matrix = target.top_left
+        tgt_bot_right: Matrix = target.bot_right
 
-        return not (src_bot_right.x < target_top_left.x
-                    or target_bot_right.x < src_top_left.x
-                    or src_top_left.y < target_bot_right.y
-                    or target_top_left.y < src_bot_right.y)
+        return not (src_bot_right.x < tgt_top_left.x
+                    or tgt_bot_right.x < src_top_left.x
+                    or src_top_left.y < tgt_bot_right.y
+                    or tgt_top_left.y < src_bot_right.y)
 
     @staticmethod
-    def _unite(src, target, factor: float = 0.0):
+    def _unite(src: AABB, target: AABB, factor: float = 0.0) -> AABB:
         '''return two AABB union result
 
         Parameters
@@ -280,15 +283,15 @@ class AABB():
 
         src_top_left: Matrix = src.top_left
         src_bot_right: Matrix = src.bot_right
-        target_top_left: Matrix = target.top_left
-        target_bot_right: Matrix = target.bot_right
+        tgt_top_left: Matrix = target.top_left
+        tgt_bot_right: Matrix = target.bot_right
 
-        x_min: float = np.fmin(src_top_left.x, target_top_left.x)
-        x_max: float = np.fmax(src_bot_right.x, target_bot_right.x)
-        y_min: float = np.fmin(src_bot_right.y, target_bot_right.y)
-        y_max: float = np.fmax(src_top_left.y, target_top_left.y)
+        x_min: float = np.fmin(src_top_left.x, tgt_top_left.x)
+        x_max: float = np.fmax(src_bot_right.x, tgt_bot_right.x)
+        y_min: float = np.fmin(src_bot_right.y, tgt_bot_right.y)
+        y_max: float = np.fmax(src_top_left.y, tgt_top_left.y)
 
-        res = AABB()
+        res: AABB = AABB()
         res._pos.set_value([(x_min + x_max) / 2.0, (y_min + y_max) / 2.0])
         res._width = x_max - x_min
         res._height = y_max - y_min
@@ -297,7 +300,7 @@ class AABB():
         return res
 
     @staticmethod
-    def _is_subset(src, target) -> bool:
+    def _is_subset(src: AABB, target: AABB) -> bool:
         '''check if target is the subset of src
 
         Parameters
@@ -314,21 +317,26 @@ class AABB():
         '''
         src_top_left: Matrix = src.top_left
         src_bot_right: Matrix = src.bot_right
-        target_top_left: Matrix = target.top_left
-        target_bot_right: Matrix = target.bot_right
+        tgt_top_left: Matrix = target.top_left
+        tgt_bot_right: Matrix = target.bot_right
 
-        return src_bot_right.x >= target_bot_right.x and target_top_left.x >= src_top_left.x and src_top_left.y >= target_top_left.y and target_bot_right.y >= src_bot_right.y
+        x_ck1: bool = src_bot_right.x >= tgt_bot_right.x
+        x_ck2: bool = tgt_top_left.x >= src_top_left.x
+        y_ck1: bool = src_top_left.y >= tgt_top_left.y
+        y_ck2: bool = tgt_bot_right.y >= src_bot_right.y
+        return x_ck1 and x_ck2 and y_ck1 and y_ck2
 
     @staticmethod
-    def _expand(aabb, factor: float = 0.0):
+    def _expand(aabb: AABB, factor: float = 0.0) -> None:
         aabb._width += factor
         aabb._height += factor
 
     @staticmethod
-    def _raycast(aabb, start: Matrix, dirn: Matrix) -> bool:
-        res = GeomAlgo2D.raycastAABB(start, dirn, aabb.top_left,
-                                     aabb.bot_right)
-        if res == None:
+    def _raycast(aabb: AABB, start: Matrix, dirn: Matrix) -> bool:
+        res: Optional[Tuple[Matrix, Matrix]] = GeomAlgo2D.raycastAABB(
+            start, dirn, aabb.top_left, aabb.bot_right)
+
+        if res is None:
             return False
 
         p1, p2 = res[0], res[1]
