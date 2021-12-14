@@ -137,18 +137,24 @@ class ContactMaintainer():
         bodya: Body = collision._bodya
         bodyb: Body = collision._bodyb
 
-        print(f'bodya id: {bodya.id}')
-        print(f'bodyb id: {bodyb.id}')
+        # print(f'bodya id: {bodya.id}')
+        # print(f'bodyb id: {bodyb.id}')
         relation: int = generate_relation(bodya, bodyb)
+        # print(f'relation: {relation}')
 
         contact_list: List[ContactConstraintPoint] = []
         if self._contact_table.get(relation, False):
+            # print('sssss')
             contact_list = self._contact_table[relation]
         else:
             self._contact_table[relation] = []
+            # print('zzzzzz')
             contact_list = self._contact_table[relation]
 
         for elem in collision._contact_list:
+            print(f'pa: ({elem._pa.x},{elem._pa.y})')
+            print(f'pb: ({elem._pb.x},{elem._pb.y})')
+
             existed: bool = False
             locala: Matrix = bodya.to_local_point(elem._pa)
             localb: Matrix = bodyb.to_local_point(elem._pb)
@@ -179,6 +185,7 @@ class ContactMaintainer():
             ccp._relation = relation
             self.prepare(ccp, elem, collision)
             contact_list.append(ccp)
+            print(f'ct len: {len(self._contact_table[relation])}')
 
     def prepare(self, ccp: ContactConstraintPoint, pair: PointPair,
                 collision: Collsion) -> None:

@@ -42,14 +42,14 @@ grd.fric = 0.7
 grd.restit = 1.0
 scene._dbvt.insert(grd)
 
-bd1: Body = scene._world.create_body()
-bd1.shape = cir
-bd1.pos = Matrix([4.0, 3.0], 'vec')
-bd1.mass = 1
-bd1.type = Body.Type.Dynamic
-bd1.fric = 0.4
-bd1.restit = 0.0
-scene._dbvt.insert(bd1)
+# bd1: Body = scene._world.create_body()
+# bd1.shape = cir
+# bd1.pos = Matrix([4.0, 3.0], 'vec')
+# bd1.mass = 1
+# bd1.type = Body.Type.Dynamic
+# bd1.fric = 0.4
+# bd1.restit = 0.0
+# scene._dbvt.insert(bd1)
 
 bd2: Body = scene._world.create_body()
 bd2.shape = poly
