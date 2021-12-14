@@ -1,18 +1,19 @@
-name: test
+name: unit-test
 
 on:
   push:
-    branches: [ feature-2d-physics ]
+    branches: [ main, dev, feature-2d-physics ]
   pull_request:
     branches: [ main ]
 
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest, macos-latest, macos-11, windows-latest, windows-2022]
         python-version: ["3.7", "3.8", "3.9"]
 
     steps:
