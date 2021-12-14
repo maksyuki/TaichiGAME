@@ -42,8 +42,6 @@ class Scene():
         # camera init settings
         self._cam.viewport = Camera.Viewport(Matrix([0.0, height], 'vec'),
                                              Matrix([width, 0.0], 'vec'))
-        self._cam.aabb_visible = True
-        # self._cam.axis_visible = True
         self._cam.body_visible = True
         self._cam.center_visible = True
         self._cam.rot_line_visible = True
@@ -134,13 +132,37 @@ class Scene():
 
                 elif e.key == ti.GUI.RIGHT:
                     print("press right key")
-                elif e.key == 'a':
-                    pass
-                elif e.key == 'd':
-                    pass
-                elif e.key == 's':
-                    pass
-                elif e.key == 'w':
-                    pass
+                elif e.key == 'q' and e.type == GUI.PRESS:
+                    self._cam.visible = not self._cam.visible
+
+                elif e.key == 'w' and e.type == GUI.PRESS:
+                    self._cam.aabb_visible = not self._cam.aabb_visible
+
+                elif e.key == 'e' and e.type == GUI.PRESS:
+                    self._cam.joint_visible = not self._cam.joint_visible
+
+                elif e.key == 'r' and e.type == GUI.PRESS:
+                    self._cam.body_visible = not self._cam.body_visible
+
+                elif e.key == 't' and e.type == GUI.PRESS:
+                    self._cam.axis_visible = not self._cam.axis_visible
+
+                elif e.key == 'a' and e.type == GUI.PRESS:
+                    self._cam.dbvh_visible = not self._cam.dbvh_visible
+
+                elif e.key == 's' and e.type == GUI.PRESS:
+                    self._cam.dbvt_visible = not self._cam.dbvt_visible
+
+                elif e.key == 'd' and e.type == GUI.PRESS:
+                    self._cam.grid_visible = not self._cam.grid_visible
+
+                elif e.key == 'f' and e.type == GUI.PRESS:
+                    self._cam.rot_line_visible = not self._cam.rot_line_visible
+
+                elif e.key == 'g' and e.type == GUI.PRESS:
+                    self._cam.center_visible = not self._cam.center_visible
+
+                elif e.key == 'z' and e.type == GUI.PRESS:
+                    self._cam.contact_visible = not self._cam.contact_visible
 
             self._gui.show()
