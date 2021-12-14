@@ -140,12 +140,14 @@ class ContactGenerator():
         if clip_edga.is_empty() or clip_edgb.is_empty():
             return res
 
+        # find reference edge
         tmp1: Matrix = Matrix([0.0, 0.0], 'vec')
         tmp2: Matrix = Matrix([0.0, 0.0], 'vec')
         tmp1.set_value(clip_edga._p1 - clip_edga._p2)
         tmp2.set_value(clip_edgb._p1 - clip_edgb._p2)
         d1: float = tmp1.dot(normal)
         d2: float = tmp2.dot(normal)
+
         ref_edg: ContactGenerator.ClipEdge = clip_edga
         incident_edge: ContactGenerator.ClipEdge = clip_edgb
         swap: bool = False
@@ -162,11 +164,13 @@ class ContactGenerator():
 
         if not GeomAlgo2D.is_point_on_same_side(
                 ref_edg._p1, ref_anchor1, ref_edg._p2, incident_edge._p1):
+
             incident_edge._p1 = GeomAlgo2D.line_intersection(
                 ref_edg._p1, ref_anchor1, incident_edge._p1, incident_edge._p2)
 
         if not GeomAlgo2D.is_point_on_same_side(
                 ref_edg._p1, ref_anchor1, ref_edg._p2, incident_edge._p2):
+
             incident_edge._p2 = GeomAlgo2D.line_intersection(
                 ref_edg._p1, ref_anchor1, incident_edge._p1, incident_edge._p2)
 
@@ -175,11 +179,13 @@ class ContactGenerator():
         ref_anchor2: Matrix = u.perpendicular() + ref_edg._p2
         if not GeomAlgo2D.is_point_on_same_side(
                 ref_edg._p2, ref_anchor2, ref_edg._p1, incident_edge._p1):
+
             incident_edge._p1 = GeomAlgo2D.line_intersection(
                 ref_edg._p2, ref_anchor2, incident_edge._p1, incident_edge._p2)
 
         if not GeomAlgo2D.is_point_on_same_side(
                 ref_edg._p2, ref_anchor2, ref_edg._p1, incident_edge._p2):
+
             incident_edge._p2 = GeomAlgo2D.line_intersection(
                 ref_edg._p2, ref_anchor2, incident_edge._p1, incident_edge._p2)
 
@@ -189,29 +195,32 @@ class ContactGenerator():
 
         p1_on_clip_area: bool = GeomAlgo2D.is_point_on_same_side(
             ref_edg._p1, ref_edg._p2, ref_anchor3, incident_edge._p1)
+
         p2_on_clip_area: bool = GeomAlgo2D.is_point_on_same_side(
             ref_edg._p1, ref_edg._p2, ref_anchor3, incident_edge._p2)
 
         if not (p1_on_clip_area and p2_on_clip_area):
             return res
 
+        # p1 inside, p2 ouside
         if p1_on_clip_area and not p2_on_clip_area:
             incident_edge._p2 = GeomAlgo2D.line_intersection(
                 ref_edg._p1, ref_edg._p2, incident_edge._p1, incident_edge._p2)
 
+        # p1 outisde, p2 inside
         if not p1_on_clip_area and p2_on_clip_area:
             incident_edge._p1 = GeomAlgo2D.line_intersection(
                 ref_edg._p1, ref_edg._p2, incident_edge._p1, incident_edge._p2)
 
         # p1 and p2 are inside, clip nothing, just go to project
         # 4. project to reference edge
-        pp1: Optional[Matrix] = GeomAlgo2D.point_to_line_segment(
-            ref_edg._p1, ref_edg._p2, incident_edge._p1)
-        pp2: Optional[Matrix] = GeomAlgo2D.point_to_line_segment(
-            ref_edg._p1, ref_edg._p2, incident_edge._p2)
+        pp1: Matrix = GeomAlgo2D.point_to_line_segment(ref_edg._p1,
+                                                       ref_edg._p2,
+                                                       incident_edge._p1)
+        pp2: Matrix = GeomAlgo2D.point_to_line_segment(ref_edg._p1,
+                                                       ref_edg._p2,
+                                                       incident_edge._p2)
 
-        assert pp1 is not None
-        assert pp2 is not None
         pair1: PointPair = PointPair()
         pair2: PointPair = PointPair()
 

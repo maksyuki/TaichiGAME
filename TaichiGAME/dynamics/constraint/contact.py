@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, cast
 
 import numpy as np
 
@@ -114,6 +114,7 @@ class ContactMaintainer():
                 pb: Matrix = vcp._rb + bodyb.pos
                 c: Matrix = pa - pb
 
+                # already solved by vel
                 if c.dot(vcp._normal) < 0.0:
                     continue
 
@@ -127,8 +128,8 @@ class ContactMaintainer():
                     bodya.rot += bodya.inv_inertia * vcp._ra.cross(impulse)
 
                 if bodyb.type != Body.Type.Static and not ccp._bodyb.sleep:
-                    bodyb.pos += impulse * bodyb.inv_mass
-                    bodyb.rot += bodyb.inv_inertia * vcp._rb.cross(impulse)
+                    bodyb.pos -= impulse * bodyb.inv_mass
+                    bodyb.rot -= bodyb.inv_inertia * vcp._rb.cross(impulse)
 
     def add(self, collision: Collsion) -> None:
         assert collision._bodya is not None
@@ -136,18 +137,34 @@ class ContactMaintainer():
         bodya: Body = collision._bodya
         bodyb: Body = collision._bodyb
 
+        # print(f'bodya id: {bodya.id}')
+        # print(f'bodyb id: {bodyb.id}')
         relation: int = generate_relation(bodya, bodyb)
-        contact_list: List[ContactConstraintPoint] = self._contact_table[
-            relation]
+        # print(f'relation: {relation}')
+
+        contact_list: List[ContactConstraintPoint] = []
+        if self._contact_table.get(relation, False):
+            # print('sssss')
+            contact_list = self._contact_table[relation]
+        else:
+            self._contact_table[relation] = []
+            # print('zzzzzz')
+            contact_list = self._contact_table[relation]
 
         for elem in collision._contact_list:
+            print(f'pa: ({elem._pa.x},{elem._pa.y})')
+            print(f'pb: ({elem._pb.x},{elem._pb.y})')
+
             existed: bool = False
             locala: Matrix = bodya.to_local_point(elem._pa)
             localb: Matrix = bodyb.to_local_point(elem._pb)
 
             for contact in contact_list:
-                is_pointa: bool = np.isclose(contact._locala._val, locala._val)
-                is_pointb: bool = np.isclose(contact._localb._val, localb._val)
+                print('x')
+                is_pointa: bool = np.isclose(contact._locala._val,
+                                             locala._val).all()
+                is_pointb: bool = np.isclose(contact._localb._val,
+                                             localb._val).all()
 
                 if is_pointa and is_pointb:
                     # satisfy the condition, transmit the old
@@ -168,6 +185,7 @@ class ContactMaintainer():
             ccp._relation = relation
             self.prepare(ccp, elem, collision)
             contact_list.append(ccp)
+            print(f'ct len: {len(self._contact_table[relation])}')
 
     def prepare(self, ccp: ContactConstraintPoint, pair: PointPair,
                 collision: Collsion) -> None:

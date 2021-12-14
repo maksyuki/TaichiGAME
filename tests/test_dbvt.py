@@ -1,12 +1,12 @@
 import numpy as np
 
-from TaichiGAME.collision.broad_phase.tree import Tree
+from TaichiGAME.collision.broad_phase.dbvt import DBVT
 from TaichiGAME.collision.broad_phase.aabb import AABB
 
 
-class TestTree():
+class TestDVBT():
     def test_node__init__(self):
-        dut: Tree.Node = Tree.Node()
+        dut: DBVT.Node = DBVT.Node()
 
         assert dut._body is None
         assert isinstance(dut._aabb, AABB)
@@ -15,9 +15,9 @@ class TestTree():
         assert dut._right_idx == -1
 
     def test_node_is_leaf(self):
-        dut1: Tree.Node = Tree.Node()
-        dut2: Tree.Node = Tree.Node()
-        dut3: Tree.Node = Tree.Node()
+        dut1: DBVT.Node = DBVT.Node()
+        dut2: DBVT.Node = DBVT.Node()
+        dut3: DBVT.Node = DBVT.Node()
 
         # suppose dutx's id is same as x
         dut1._left_idx = 2
@@ -27,9 +27,9 @@ class TestTree():
         assert dut3.is_leaf()
 
     def test_node_is_branch(self):
-        dut1: Tree.Node = Tree.Node()
-        dut2: Tree.Node = Tree.Node()
-        dut3: Tree.Node = Tree.Node()
+        dut1: DBVT.Node = DBVT.Node()
+        dut2: DBVT.Node = DBVT.Node()
+        dut3: DBVT.Node = DBVT.Node()
 
         # suppose dutx's id is same as x
         dut1._left_idx = 2
@@ -43,9 +43,9 @@ class TestTree():
         assert not dut3.is_branch()
 
     def test_node_is_root(self):
-        dut1: Tree.Node = Tree.Node()
-        dut2: Tree.Node = Tree.Node()
-        dut3: Tree.Node = Tree.Node()
+        dut1: DBVT.Node = DBVT.Node()
+        dut2: DBVT.Node = DBVT.Node()
+        dut3: DBVT.Node = DBVT.Node()
 
         # suppose dutx's id is same as x
         dut1._left_idx = 2
@@ -59,11 +59,11 @@ class TestTree():
         assert not dut3.is_root()
 
     def test_node_is_empty(self):
-        dut: Tree.Node = Tree.Node()
+        dut: DBVT.Node = DBVT.Node()
         assert dut.is_empty()
 
     def test_node_clear(self):
-        dut1: Tree.Node = Tree.Node()
+        dut1: DBVT.Node = DBVT.Node()
 
         # suppose dutx's id is same as x
         dut1._left_idx = 2
@@ -76,7 +76,7 @@ class TestTree():
         assert dut1._right_idx == -1
 
     def test__init__(self):
-        dut: Tree = Tree()
+        dut: DBVT = DBVT()
 
         assert np.isclose(dut._fat_expansion_factor, 0.5)
         assert dut._root_idx == -1
@@ -148,7 +148,7 @@ class TestTree():
         assert 1
 
     def test__remove(self):
-        dut: Tree = Tree()
+        dut: DBVT = DBVT()
         assert dut._allocate_node() == 0
         assert dut._allocate_node() == 1
         assert dut._allocate_node() == 2
@@ -172,7 +172,7 @@ class TestTree():
         assert 1
 
     def test__allocate_node(self):
-        dut: Tree = Tree()
+        dut: DBVT = DBVT()
         assert dut._allocate_node() == 0
         assert dut._allocate_node() == 1
         assert dut._allocate_node() == 2

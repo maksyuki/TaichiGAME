@@ -462,8 +462,7 @@ class GeomAlgo2D():
         return res
 
     @staticmethod
-    def point_to_line_segment(pa: Matrix, pb: Matrix,
-                              pc: Matrix) -> Optional[Matrix]:
+    def point_to_line_segment(pa: Matrix, pb: Matrix, pc: Matrix) -> Matrix:
         '''calculate point on line segment pa-pb that is
         the shortest length to pc
 
@@ -478,12 +477,12 @@ class GeomAlgo2D():
 
         Returns
         -------
-        Optional[Matrix]
-            shortest-dis point to the segment, otherwise None
+        Matrix
+            shortest-dis point to the segment, otherwise zero
         '''
 
         if pa == pb:
-            return None
+            return Matrix([0.0, 0.0], 'vec')
 
         if GeomAlgo2D.is_collinear(pa, pb, pc):
             if GeomAlgo2D.is_point_on_segment(pa, pb, pc):

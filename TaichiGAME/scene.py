@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Union
+from typing import Tuple, Union, List
 
 import taichi as ti
 
@@ -13,9 +13,13 @@ except ImportError:
 import numpy as np
 
 from .common.camera import Camera
-from .dynamics.phy_world import PhysicsWorld
-from .collision.broad_phase.tree import Tree
+
+from .collision.broad_phase.dbvt import DBVT
 from .math.matrix import Matrix
+from .collision.detector import Collsion, Detector
+from .dynamics.body import Body
+from .dynamics.phy_world import PhysicsWorld
+from .dynamics.constraint.contact import ContactMaintainer
 
 
 class Scene():
@@ -26,36 +30,63 @@ class Scene():
                                  [50 / 255.0, 50 / 255.0, 50 / 255.0]))
         # the physics world, all sim is run in physics world
         self._world: PhysicsWorld = PhysicsWorld()
-        self._dbvt: Tree = Tree()
+        self._dbvt: DBVT = DBVT()
+        self._maintainer: ContactMaintainer = ContactMaintainer()
         # the view camera, all viewport scale is in camera
         self._cam: Camera = Camera()
 
         # physics init settings
         self._world.grav = Matrix([0.0, -9.8], 'vec')
-        self._world._linear_vel_damping = 0.1
-        self._world.air_fric_coeff = 0.8
-        self._world.ang_vel_damping = 0.1
         self._world.damping_ena = True
+        self._world._linear_vel_damping = 0.1
+        self._world.ang_vel_damping = 0.1
+        self._world.air_fric_coeff = 0.8
         self._world.pos_iter = 8
         self._world.vel_iter = 6
 
         # camera init settings
         self._cam.viewport = Camera.Viewport(Matrix([0.0, height], 'vec'),
                                              Matrix([width, 0.0], 'vec'))
-        self._cam.aabb_visible = True
-        # self._cam.axis_visible = True
         self._cam.body_visible = True
         self._cam.center_visible = True
         self._cam.rot_line_visible = True
         self._cam._world = self._world
         self._cam._dbvt = self._dbvt
 
+        self._fps = 40
+        self._dt = 1 / self._fps
         self._mouse_pos: Matrix = Matrix([0.0, 0.0], 'vec')
         # the right-mouse btn drag move flag(change viewport)
         self._mouse_viewport_move: bool = False
 
     def physics_sim(self) -> None:
-        pass
+        for elem in self._world._body_list:
+            self._dbvt.update(elem)
+
+        self._world.step_velocity(self._dt)
+
+        pot_list: List[Tuple[Body, Body]] = self._dbvt.generate()
+        for pot in pot_list:
+            print('hello')
+            res: Collsion = Detector.detect(pot[0], pot[1])
+            if res._is_colliding:
+                print('collid')
+                self._maintainer.add(res)
+
+        self._maintainer.clear_inactive_points()
+        self._world.prepare_velocity_constraint(self._dt)
+
+        for i in range(self._world.vel_iter):
+            self._world.solve_velocity_constraint(self._dt)
+            self._maintainer.solve_velocity(self._dt)
+
+        self._world.step_position(self._dt)
+
+        for i in range(self._world.pos_iter):
+            self._maintainer.solve_position(self._dt)
+            self._world.solve_position_constraint(self._dt)
+
+        self._maintainer.deactivate_all_points()
 
     def render(self) -> None:
         self._cam.render(self._gui)
@@ -134,13 +165,37 @@ class Scene():
 
                 elif e.key == ti.GUI.RIGHT:
                     print("press right key")
-                elif e.key == 'a':
-                    pass
-                elif e.key == 'd':
-                    pass
-                elif e.key == 's':
-                    pass
-                elif e.key == 'w':
-                    pass
+                elif e.key == 'q' and e.type == GUI.PRESS:
+                    self._cam.visible = not self._cam.visible
+
+                elif e.key == 'w' and e.type == GUI.PRESS:
+                    self._cam.aabb_visible = not self._cam.aabb_visible
+
+                elif e.key == 'e' and e.type == GUI.PRESS:
+                    self._cam.joint_visible = not self._cam.joint_visible
+
+                elif e.key == 'r' and e.type == GUI.PRESS:
+                    self._cam.body_visible = not self._cam.body_visible
+
+                elif e.key == 't' and e.type == GUI.PRESS:
+                    self._cam.axis_visible = not self._cam.axis_visible
+
+                elif e.key == 'a' and e.type == GUI.PRESS:
+                    self._cam.dbvh_visible = not self._cam.dbvh_visible
+
+                elif e.key == 's' and e.type == GUI.PRESS:
+                    self._cam.dbvt_visible = not self._cam.dbvt_visible
+
+                elif e.key == 'd' and e.type == GUI.PRESS:
+                    self._cam.grid_visible = not self._cam.grid_visible
+
+                elif e.key == 'f' and e.type == GUI.PRESS:
+                    self._cam.rot_line_visible = not self._cam.rot_line_visible
+
+                elif e.key == 'g' and e.type == GUI.PRESS:
+                    self._cam.center_visible = not self._cam.center_visible
+
+                elif e.key == 'z' and e.type == GUI.PRESS:
+                    self._cam.contact_visible = not self._cam.contact_visible
 
             self._gui.show()
