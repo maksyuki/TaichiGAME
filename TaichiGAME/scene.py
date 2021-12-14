@@ -14,7 +14,7 @@ import numpy as np
 
 from .common.camera import Camera
 from .dynamics.phy_world import PhysicsWorld
-from .collision.broad_phase.tree import Tree
+from .collision.broad_phase.dbvt import DBVT
 from .math.matrix import Matrix
 
 
@@ -26,7 +26,7 @@ class Scene():
                                  [50 / 255.0, 50 / 255.0, 50 / 255.0]))
         # the physics world, all sim is run in physics world
         self._world: PhysicsWorld = PhysicsWorld()
-        self._dbvt: Tree = Tree()
+        self._dbvt: DBVT = DBVT()
         # the view camera, all viewport scale is in camera
         self._cam: Camera = Camera()
 

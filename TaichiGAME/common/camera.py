@@ -17,7 +17,7 @@ from ..dynamics.phy_world import PhysicsWorld
 from ..dynamics.body import Body
 from ..dynamics.constraint.contact import ContactMaintainer
 from ..collision.broad_phase.dbvh import DBVH
-from ..collision.broad_phase.tree import Tree
+from ..collision.broad_phase.dbvt import DBVT
 from ..geometry.shape import ShapePrimitive
 
 
@@ -83,7 +83,7 @@ class Camera():
         self._world: Optional[PhysicsWorld] = None
         self._target_body: Optional[Body] = None
         self._dbvh: Optional[DBVH] = None
-        self._dbvt: Optional[Tree] = None
+        self._dbvt: Optional[DBVT] = None
         self._maintainer: Optional[ContactMaintainer] = None
 
         self._zoom_factor: float = 1.0
@@ -329,12 +329,12 @@ class Camera():
         self._dbvh = dbvh
 
     @property
-    def dbvt(self) -> Tree:
+    def dbvt(self) -> DBVT:
         assert self._dbvt is not None
         return self._dbvt
 
     @dbvt.setter
-    def dbvt(self, dbvt: Tree):
+    def dbvt(self, dbvt: DBVT):
         self._dbvt = dbvt
 
     @property

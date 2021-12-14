@@ -6,10 +6,10 @@ import numpy as np
 from ...math.matrix import Matrix
 from ...common.config import Config
 from ...dynamics.body import Body
-from ..broad_phase.aabb import AABB
+from .aabb import AABB
 
 
-class Tree():
+class DBVT():
     '''Dynamic Bounding Volume Tree
     This is implemented by dynamic array-arranged.
     '''
@@ -45,7 +45,7 @@ class Tree():
     def __init__(self):
         self._fat_expansion_factor: float = 0.5
         self._root_idx: int = -1
-        self._tree: List[Tree.Node] = []
+        self._tree: List[DBVT.Node] = []
         self._empty_list: List[int] = []
         self._body_table: Dict[Body, int] = {}
 
@@ -526,7 +526,7 @@ class Tree():
         if len(self._empty_list) > 0:
             return self._empty_list.pop()
 
-        self._tree.append(Tree.Node())
+        self._tree.append(DBVT.Node())
         return len(self._tree) - 1
 
     def _height(self, target_idx: int) -> int:
