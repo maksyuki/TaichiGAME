@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Union
+from typing import Tuple, Union, List
 
 import taichi as ti
 
@@ -13,9 +13,13 @@ except ImportError:
 import numpy as np
 
 from .common.camera import Camera
-from .dynamics.phy_world import PhysicsWorld
+
 from .collision.broad_phase.dbvt import DBVT
 from .math.matrix import Matrix
+from .collision.detector import Collsion, Detector
+from .dynamics.body import Body
+from .dynamics.phy_world import PhysicsWorld
+from .dynamics.constraint.contact import ContactMaintainer
 
 
 class Scene():
@@ -27,6 +31,7 @@ class Scene():
         # the physics world, all sim is run in physics world
         self._world: PhysicsWorld = PhysicsWorld()
         self._dbvt: DBVT = DBVT()
+        self._maintainer: ContactMaintainer = ContactMaintainer()
         # the view camera, all viewport scale is in camera
         self._cam: Camera = Camera()
 
@@ -59,7 +64,29 @@ class Scene():
             self._dbvt.update(elem)
 
         self._world.step_velocity(self._dt)
+
+        pot_list: List[Tuple[Body, Body]] = self._dbvt.generate()
+        for pot in pot_list:
+            print('hello')
+            res: Collsion = Detector.detect(pot[0], pot[1])
+            if res._is_colliding:
+                print('collid')
+                self._maintainer.add(res)
+
+        self._maintainer.clear_inactive_points()
+        self._world.prepare_velocity_constraint(self._dt)
+
+        for i in range(self._world.vel_iter):
+            self._world.solve_velocity_constraint(self._dt)
+            self._maintainer.solve_velocity(self._dt)
+
         self._world.step_position(self._dt)
+
+        for i in range(self._world.pos_iter):
+            self._maintainer.solve_position(self._dt)
+            self._world.solve_position_constraint(self._dt)
+
+        self._maintainer.deactivate_all_points()
 
     def render(self) -> None:
         self._cam.render(self._gui)
