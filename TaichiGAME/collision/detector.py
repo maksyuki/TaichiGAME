@@ -1,5 +1,7 @@
 from typing import List, Optional
 
+import numpy as np
+
 from ..math.matrix import Matrix
 from ..dynamics.body import Body
 from .algorithm.clip import ContactGenerator
@@ -93,7 +95,7 @@ class Detector():
             val_pass: bool = False
             for elem in pair_list:
                 tmp_val: float = (elem._pa - elem._pb).len_square()
-                if tmp_val == res._penetration * res._penetration:
+                if np.isclose(tmp_val, res._penetration * res._penetration):
                     val_pass = True
 
                 # if fail, there must be a deeper contact point, use it:
