@@ -1,18 +1,19 @@
-name: test
+name: unit-test
 
 on:
   push:
-    branches: [ feature-2d-physics ]
+    branches: [ main, dev, feature-2d-physics ]
   pull_request:
     branches: [ main ]
 
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest, macos-latest, macos-11, windows-latest, windows-2022]
         python-version: ["3.7", "3.8", "3.9"]
 
     steps:
@@ -24,8 +25,8 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
     - name: Test with pytest
       run: |
         pytest

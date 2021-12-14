@@ -75,7 +75,7 @@ class PhysicsWorld():
             if joint.active:
                 joint.solve_velocity(dt)
 
-    def stepPosition(self, dt: float) -> None:
+    def step_position(self, dt: float) -> None:
         for body in self._body_list:
             if body.type == Body.Type.Static:
                 pass
