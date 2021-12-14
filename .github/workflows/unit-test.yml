@@ -15,7 +15,9 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, macos-11, windows-latest, windows-2022]
         python-version: ["3.7", "3.8", "3.9"]
-
+    env:
+      OS: ${{ matrix.os }}
+      PYTHON: ${{ matrix.python-version }}
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
@@ -30,3 +32,17 @@ jobs:
     - name: Test with pytest
       run: |
         pytest
+     - name: Generate coverage report
+      run: |
+        pytest --cov=./ --cov-report=xml
+     - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v2
+      with:
+        directory: ./coverage/reports/
+        env_vars: os,PYTHON
+        fail_ci_if_error: true
+        files: ./coverage1.xml,./coverage2.xml
+        flags: unit-test
+        name: TaichiGAME
+        path_to_write_report: ./coverage/codecov_report.txt
+        verbose: true
