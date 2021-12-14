@@ -32,10 +32,10 @@ class Scene():
 
         # physics init settings
         self._world.grav = Matrix([0.0, -9.8], 'vec')
-        self._world._linear_vel_damping = 0.1
-        self._world.air_fric_coeff = 0.8
-        self._world.ang_vel_damping = 0.1
         self._world.damping_ena = True
+        self._world._linear_vel_damping = 0.1
+        self._world.ang_vel_damping = 0.1
+        self._world.air_fric_coeff = 0.8
         self._world.pos_iter = 8
         self._world.vel_iter = 6
 
@@ -48,12 +48,18 @@ class Scene():
         self._cam._world = self._world
         self._cam._dbvt = self._dbvt
 
+        self._fps = 40
+        self._dt = 1 / self._fps
         self._mouse_pos: Matrix = Matrix([0.0, 0.0], 'vec')
         # the right-mouse btn drag move flag(change viewport)
         self._mouse_viewport_move: bool = False
 
     def physics_sim(self) -> None:
-        pass
+        for elem in self._world._body_list:
+            self._dbvt.update(elem)
+
+        self._world.step_velocity(self._dt)
+        self._world.step_position(self._dt)
 
     def render(self) -> None:
         self._cam.render(self._gui)
