@@ -148,7 +148,7 @@ class GJK():
             if len(simplex._vertices) == 3:
                 simplex._vertices.append(simplex._vertices[0])
                 # for v in simplex._vertices:
-                    # print(f'vertice res: {v._res}')
+                # print(f'vertice res: {v._res}')
 
             if simplex.last_vertex().dot(dirn) <= 0:
                 break
@@ -285,10 +285,9 @@ class GJK():
         for i in range(vert_len - 1):
             a: Matrix = simplex._vertices[i]._res
             b: Matrix = simplex._vertices[i + 1]._res
-            p: Optional[Matrix] = GeomAlgo2D.point_to_line_segment(
+            p: Matrix = GeomAlgo2D.point_to_line_segment(
                 a, b, Matrix([0.0, 0.0], 'vec'))
 
-            assert p is not None
             proj: float = p.len()
 
             if dist_min > proj:
