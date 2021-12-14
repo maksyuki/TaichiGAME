@@ -18,6 +18,7 @@ from ..dynamics.body import Body
 from ..dynamics.constraint.contact import ContactMaintainer
 from ..collision.broad_phase.dbvh import DBVH
 from ..collision.broad_phase.dbvt import DBVT
+from ..collision.broad_phase.aabb import AABB
 from ..geometry.shape import ShapePrimitive
 
 
@@ -63,8 +64,8 @@ class Camera():
         self._body_visible: bool = False
         self._axis_visible: bool = False
         self._dbvh_visible: bool = False
-        self._tree_visible: bool = False
-        self._grid_scale_line_visible: bool = False
+        self._dbvt_visible: bool = False
+        self._grid_visible: bool = False
         self._rotation_line_visible: bool = False
         self._center_visible: bool = False
         self._contact_visible: bool = False
@@ -117,15 +118,20 @@ class Camera():
                 self.render_axis(gui)
 
             if self.aabb_visible:
-                self.render_aabb(gui)
+                assert self._dbvt is not None
+
+                for elem in self._dbvt.tree():
+                    if elem._body is not None:
+                        self.render_aabb(gui, elem._aabb)
 
             if self.dbvh_visible:
                 raise NotImplementedError
 
-            if self.tree_visible:
-                raise NotImplementedError
+            if self.dbvt_visible:
+                assert self._dbvt is not None
+                self.render_dbvt(gui, self._dbvt.root_index())
 
-            if self.grid_scale_line_visible:
+            if self.grid_visible:
                 self.render_grid_scale_line(gui)
 
             if self.contact_visible:
@@ -180,20 +186,20 @@ class Camera():
         self._dbvh_visible = visible
 
     @property
-    def tree_visible(self) -> bool:
-        return self._tree_visible
+    def dbvt_visible(self) -> bool:
+        return self._dbvt_visible
 
-    @tree_visible.setter
-    def tree_visible(self, visible: bool) -> None:
-        self._tree_visible = visible
+    @dbvt_visible.setter
+    def dbvt_visible(self, visible: bool) -> None:
+        self._dbvt_visible = visible
 
     @property
-    def grid_scale_line_visible(self) -> bool:
-        return self._grid_scale_line_visible
+    def grid_visible(self) -> bool:
+        return self._grid_visible
 
-    @grid_scale_line_visible.setter
-    def grid_scale_line_visible(self, visible: bool) -> None:
-        self._grid_scale_line_visible = visible
+    @grid_visible.setter
+    def grid_visible(self, visible: bool) -> None:
+        self._grid_visible = visible
 
     @property
     def rot_line_visible(self) -> bool:
@@ -395,17 +401,22 @@ class Camera():
                        axis_points[-1],
                        color=Config.AxisLineColor)
 
-    def render_aabb(self, gui: GUI) -> None:
+    def render_aabb(self, gui: GUI, aabb: AABB) -> None:
+        tmp1: Matrix = self.world_to_screen(aabb.top_left)
+        tmp2: Matrix = self.world_to_screen(aabb.bot_right)
+        Render.rd_rect(gui, tmp1, tmp2, Config.AABBLineColor)
+
+    def render_dbvt(self, gui: GUI, node_idx: int) -> None:
+        if node_idx == -1:
+            return
+
         assert self._dbvt is not None
+        self.render_dbvt(gui, self._dbvt.tree()[node_idx]._left_idx)
+        self.render_dbvt(gui, self._dbvt.tree()[node_idx]._right_idx)
 
-        for elem in self._dbvt.tree():
-            if elem._body is not None:
-                tmp1: Matrix = self.world_to_screen(elem._aabb.top_left)
-                tmp2: Matrix = self.world_to_screen(elem._aabb.bot_right)
-                Render.rd_rect(gui, tmp1, tmp2, Config.AABBLineColor)
-
-    def render_tree(self, gui: GUI, node_idx: int) -> None:
-        raise NotImplementedError
+        aabb: AABB = self._dbvt.tree()[node_idx]._aabb
+        if not self._dbvt.tree()[node_idx].is_leaf():
+            self.render_aabb(gui, aabb)
 
     def render_contact(self, gui: GUI) -> None:
         raise NotImplementedError
