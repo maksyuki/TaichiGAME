@@ -1,5 +1,8 @@
-pytest
-pytest-cov
+# lint
 pylint
 yapf
 mypy
+
+# test
+pytest
+pytest-cov
