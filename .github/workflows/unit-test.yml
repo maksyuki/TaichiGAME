@@ -33,9 +33,9 @@ jobs:
         pytest --cov=./ --cov-report=xml
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v2
-      with:
-        env_vars: OS,PYTHON
-        fail_ci_if_error: true
-        flags: unit-test
-        name: TaichiGAME
-        verbose: true
+      # with:
+      #   env_vars: OS,PYTHON
+      #   fail_ci_if_error: true
+      #   flags: unit-test
+      #   name: TaichiGAME
+      #   verbose: true
