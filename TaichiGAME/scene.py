@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Tuple, Union, List
+from typing import Callable, Tuple, Union, List
 
 import taichi as ti
 
@@ -63,30 +63,35 @@ class Scene():
         for elem in self._world._body_list:
             self._dbvt.update(elem)
 
-        self._world.step_velocity(self._dt)
+        # self._world.step_velocity(self._dt)
 
-        pot_list: List[Tuple[Body, Body]] = self._dbvt.generate()
-        for pot in pot_list:
-            print('hello')
-            res: Collsion = Detector.detect(pot[0], pot[1])
-            if res._is_colliding:
-                print('collid')
-                self._maintainer.add(res)
+        # pot_list: List[Tuple[Body, Body]] = self._dbvt.generate()
+        # for pot in pot_list:
+        # print('hello')
+        # print(f'bodya pos: {pot[0].pos.x}, {pot[0].pos.y}')
+        # print(f'bodya rot: {pot[0].rot}')
+        # print(f'bodyb pos: {pot[1].pos.x}, {pot[1].pos.y}')
+        # print(f'bodyb rot: {pot[1].rot}')
 
-        self._maintainer.clear_inactive_points()
-        self._world.prepare_velocity_constraint(self._dt)
+        # res: Collsion = Detector.detect(pot[0], pot[1])
+        # if res._is_colliding:
+        # print('collid')
+        # self._maintainer.add(res)
 
-        for i in range(self._world.vel_iter):
-            self._world.solve_velocity_constraint(self._dt)
-            self._maintainer.solve_velocity(self._dt)
+        # self._maintainer.clear_inactive_points()
+        # self._world.prepare_velocity_constraint(self._dt)
+
+        # for i in range(self._world.vel_iter):
+        # self._world.solve_velocity_constraint(self._dt)
+        # self._maintainer.solve_velocity(self._dt)
 
         self._world.step_position(self._dt)
 
-        for i in range(self._world.pos_iter):
-            self._maintainer.solve_position(self._dt)
-            self._world.solve_position_constraint(self._dt)
+        # for i in range(self._world.pos_iter):
+        # self._maintainer.solve_position(self._dt)
+        # self._world.solve_position_constraint(self._dt)
 
-        self._maintainer.deactivate_all_points()
+        # self._maintainer.deactivate_all_points()
 
     def render(self) -> None:
         self._cam.render(self._gui)
@@ -133,10 +138,11 @@ class Scene():
         else:
             self._cam.meter_to_pixel -= self._cam.meter_to_pixel / 4
 
-    def show(self) -> None:
+    def show(self, extern_render: Callable[[], None]) -> None:
         while self._gui.running:
             self.physics_sim()
             self.render()
+            extern_render()
 
             for e in self._gui.get_events():
                 if e.key == ti.GUI.ESCAPE:
