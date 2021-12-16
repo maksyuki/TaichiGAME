@@ -268,17 +268,18 @@ class Render():
 
     @staticmethod
     def rd_rect(gui: GUI,
-                p1: Matrix,
-                p2: Matrix,
+                top_left: Matrix,
+                bot_right: Matrix,
                 color: int = ti.rgb_to_hex([1.0, 1.0, 1.0]),
                 radius: float = 1.0) -> None:
         assert gui is not None
-        assert 0 <= p1.x <= 1.0
-        assert 0 <= p1.y <= 1.0
-        assert 0 <= p2.x <= 1.0
-        assert 0 <= p2.y <= 1.0
+        assert 0 <= top_left.x <= 1.0
+        assert 0 <= top_left.y <= 1.0
+        assert 0 <= bot_right.x <= 1.0
+        assert 0 <= bot_right.y <= 1.0
 
-        gui.rect([p1.x, p1.y], [p2.x, p2.y], radius, color)
+        gui.rect([top_left.x, top_left.y], [bot_right.x, bot_right.y], radius,
+                 color)
 
     @staticmethod
     def rd_joint(gui, joint: Joint) -> None:

@@ -20,6 +20,7 @@ class Config():
     BodyCenterColor: int = 0x660066
     AngleLineXColor: int = 0x0000FF
     AngleLineYColor: int = 0xFF0000
+    QueryRectLineColor: int = 0xFF0000
 
     @staticmethod
     def clamp(num: float, low: float, high: float) -> float:
