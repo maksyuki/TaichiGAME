@@ -355,6 +355,7 @@ class GJK():
             cap: Capsule = cast(Capsule, prim._shape)
             target = GeomAlgo2D.calc_capsule_project_on_point(
                 cap.width, cap.height, rot_dir)
+            # print(f'capsule target: {target.x}, {target.y}')
 
         elif prim._shape.type == Shape.Type.Sector:
             sec: Sector = cast(Sector, prim._shape)

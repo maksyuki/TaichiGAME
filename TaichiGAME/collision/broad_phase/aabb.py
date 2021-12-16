@@ -9,6 +9,7 @@ from ...geometry.geom_algo import GeomAlgo2D
 from ...geometry.shape import Circle, Edge, Ellipse
 from ...geometry.shape import Polygon, Shape, ShapePrimitive
 from ...dynamics.body import Body
+from ..algorithm.gjk import GJK
 
 
 class AABB():
@@ -203,7 +204,15 @@ class AABB():
             res._height = 1.0
 
         elif prim._shape.type == Shape.Type.Capsule:
-            pass
+            p1: Matrix = GJK.find_farthest_point(prim, Matrix([1.0, 0.0],
+                                                              'vec'))
+            p2: Matrix = GJK.find_farthest_point(prim, Matrix([0.0, 1.0],
+                                                              'vec'))
+
+            p1 -= prim._xform
+            p2 -= prim._xform
+            res._width = p1.x * 2.0
+            res._height = p2.y * 2.0
         elif prim._shape.type == Shape.Type.Sector:
             pass
 
