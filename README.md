@@ -1,6 +1,11 @@
 <div align="center">
 <!-- Title: -->
-  <h1><a href="https://github.com/maksyuki/TaichiGAME">TaichiGAME</a></h1>
+  <h2>
+    <h2>TaichiGAME <h2>
+    <h3>A Light 2d Rigid Body Physics Engine Based on Taichi Lang - python</h3>
+  </h2>
+  <!-- <h3>A Light 2d Rigid Body Physics Engine Based on Taichi Lang - python</h3> -->
+
 <!-- Labels: -->
   <!-- First row: -->
 
@@ -35,16 +40,22 @@
     <img src="https://img.shields.io/badge/contribution-welcome-brightgreen?style=flat-square">
   </a>
 <!-- Short description: -->
-  <h3>A Light 2d Rigid Body Physics Engine Based on Taichi Lang - python</h3>
+
+  <h1></h1>
 </div>
 
 
 ### Overview
-TaichiGAME(**Taichi Graphics Acceleate Motion Engine**) now is a simple 2d rigid body physics simulation engine powered by [taichi lang](https://github.com/taichi-dev/taichi).
+TaichiGAME(**Taichi GPU Acceleate Motion Engine**) now is a simple 2d rigid body physics simulation engine powered by [taichi lang](https://github.com/taichi-dev/taichi).
+
+### Motivation
+### Why TaichiGAME
 
 ### Feature
 
-### Requirement
+### What is missing
+
+### Requirements
 1. python3.7+
     1. use the 'from __future__ import annotations' to make type hints in class **(python3.7+ intro)**
     2. support type hints
@@ -52,7 +63,18 @@ TaichiGAME(**Taichi Graphics Acceleate Motion Engine**) now is a simple 2d rigid
 2. taichi0.7+
     1. now TaichiGAME don't use the new GGUI **(taichi0.8+ intro)**, so maybe low version taichi can work well
 
+### Install
+
 ### Development
+
+### Contribution
+
+### Reference
+
+### License
+
 ### Credit
-### Contributing
+
+### Acknowledgement
+
 
