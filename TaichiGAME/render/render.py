@@ -227,14 +227,10 @@ class Render():
         # render inner rectangle
         capw: float = cap.width
         caph: float = cap.height
-        rectp1: Matrix = Matrix.rotate_mat(prim._rot) * Matrix(
-            [-capw / 2.0, -caph / 2.0], 'vec') + prim._xform
-        rectp2: Matrix = Matrix.rotate_mat(prim._rot) * Matrix(
-            [capw / 2.0, -caph / 2.0], 'vec') + prim._xform
-        rectp3: Matrix = Matrix.rotate_mat(prim._rot) * Matrix(
-            [capw / 2.0, caph / 2.0], 'vec') + prim._xform
-        rectp4: Matrix = Matrix.rotate_mat(prim._rot) * Matrix(
-            [-capw / 2.0, caph / 2.0], 'vec') + prim._xform
+        rectp1: Matrix = Matrix([-capw / 2.0, -caph / 2.0], 'vec')
+        rectp2: Matrix = Matrix([capw / 2.0, -caph / 2.0], 'vec')
+        rectp3: Matrix = Matrix([capw / 2.0, caph / 2.0], 'vec')
+        rectp4: Matrix = Matrix([-capw / 2.0, caph / 2.0], 'vec')
 
         if capw > caph:
             rectp1.x += offset
@@ -246,6 +242,11 @@ class Render():
             rectp2.y += offset
             rectp3.y -= offset
             rectp4.y -= offset
+
+        rectp1 = Matrix.rotate_mat(prim._rot) * rectp1 + prim._xform
+        rectp2 = Matrix.rotate_mat(prim._rot) * rectp2 + prim._xform
+        rectp3 = Matrix.rotate_mat(prim._rot) * rectp3 + prim._xform
+        rectp4 = Matrix.rotate_mat(prim._rot) * rectp4 + prim._xform
 
         rectp1 = world_to_screen(rectp1)
         rectp2 = world_to_screen(rectp2)
@@ -286,8 +287,8 @@ class Render():
     @staticmethod
     def rd_angle_line(gui: GUI, prim: ShapePrimitive,
                       world_to_screen: Callable[[Matrix], Matrix]) -> None:
-        xpos: Matrix = Matrix([0.3, 0.0], 'vec')
-        ypos: Matrix = Matrix([0.0, 0.3], 'vec')
+        xpos: Matrix = Matrix([0.2, 0.0], 'vec')
+        ypos: Matrix = Matrix([0.0, 0.2], 'vec')
 
         assert prim._shape is not None
         mc: Matrix = Matrix.rotate_mat(prim._rot) * prim._shape.center()
