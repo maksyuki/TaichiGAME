@@ -8,7 +8,8 @@ except ImportError:
     from taichi.misc.gui import GUI
 
 from ..math.matrix import Matrix
-from ..geometry.shape import Circle, Edge, Polygon, Shape, ShapePrimitive
+from ..geometry.shape import Capsule, Circle, Edge
+from ..geometry.shape import Polygon, Shape, ShapePrimitive
 from ..dynamics.joint.joint import Joint
 from ..common.config import Config
 
@@ -70,77 +71,13 @@ class Render():
         assert prim._shape is not None
 
         if prim._shape.type == Shape.Type.Polygon:
-            # [trick] draw polygon by draw multi triangle
-            poly: Polygon = cast(Polygon, prim._shape)
-            assert len(poly.vertices) >= 3
-
-            outer_line_st: Optional[np.ndarray] = None
-            outer_line_ed: Optional[np.ndarray] = None
-            fill_tri_pa: Optional[np.ndarray] = None
-            fill_tri_pb: Optional[np.ndarray] = None
-            fill_tri_pc: Optional[np.ndarray] = None
-
-            is_first: bool = True
-
-            # NOTE: the vertices can form a close shape,
-            # so the first vertex and last vertex are same
-            # print('render poly')
-            vert_len: int = len(poly.vertices)
-            for i in range(vert_len - 1):
-                wordpa: Matrix = Matrix.rotate_mat(
-                    prim._rot) * poly.vertices[i] + prim._xform
-                scrnpa: Matrix = world_to_screen(wordpa)
-
-                wordpb: Matrix = Matrix.rotate_mat(
-                    prim._rot) * poly.vertices[i + 1] + prim._xform
-                scrnpb: Matrix = world_to_screen(wordpb)
-
-                if is_first:
-                    is_first = False
-                    outer_line_st = np.array([[scrnpa.x, scrnpa.y]])
-                    outer_line_ed = np.array([[scrnpb.x, scrnpb.y]])
-                else:
-                    tmpa = np.array([[scrnpa.x, scrnpa.y]])
-                    tmpb = np.array([[scrnpb.x, scrnpb.y]])
-                    outer_line_st = np.concatenate((outer_line_st, tmpa))
-                    outer_line_ed = np.concatenate((outer_line_ed, tmpb))
-
-            assert outer_line_st is not None
-            assert outer_line_ed is not None
-
-            fill_tri_pa = np.repeat(np.array([outer_line_st[0]]),
-                                    vert_len - 3,
-                                    axis=0)
-            fill_tri_pb = outer_line_st[1:-1]
-            fill_tri_pc = outer_line_st[2:]
-
-            # print('poly ver:')
-            # for v in poly.vertices:
-            # print(v)
-            # print('end')
-
-            # print(f'line_len: {len(outer_line_st)}')
-            # for v in outer_line_st:
-            # print(v)
-
-            gui.lines(outer_line_st,
-                      outer_line_ed,
-                      radius=2.0,
-                      color=Config.OuterLineColor)
-            gui.triangles(fill_tri_pa,
-                          fill_tri_pb,
-                          fill_tri_pc,
-                          color=Config.FillColor)
+            Render.rd_polygon(gui, prim, world_to_screen)
 
         elif prim._shape.type == Shape.Type.Ellipse:
-            raise NotImplementedError
+            Render.rd_ellipse()
 
         elif prim._shape.type == Shape.Type.Circle:
-            cir: Circle = cast(Circle, prim._shape)
-            scrnp: Matrix = world_to_screen(prim._xform)
-            gui.circle([scrnp.x, scrnp.y],
-                       color,
-                       radius=cir.radius * meter_to_pixel)
+            Render.rd_circle(gui, prim, world_to_screen, meter_to_pixel, color)
 
         elif prim._shape.type == Shape.Type.Curve:
             raise NotImplementedError
@@ -160,10 +97,93 @@ class Render():
                            Config.AxisLineColor)
 
         elif prim._shape.type == Shape.Type.Capsule:
-            raise NotImplementedError
+            cap: Capsule = cast(Capsule, prim._shape)
 
         elif prim._shape.type == Shape.Type.Sector:
             raise NotImplementedError
+
+    @staticmethod
+    def rd_polygon(gui: GUI, prim: ShapePrimitive,
+                   world_to_screen: Callable[[Matrix], Matrix]) -> None:
+
+        # [trick] draw polygon by draw multi triangle
+        poly: Polygon = cast(Polygon, prim._shape)
+        assert len(poly.vertices) >= 3
+
+        outer_line_st: Optional[np.ndarray] = None
+        outer_line_ed: Optional[np.ndarray] = None
+        fill_tri_pa: Optional[np.ndarray] = None
+        fill_tri_pb: Optional[np.ndarray] = None
+        fill_tri_pc: Optional[np.ndarray] = None
+
+        is_first: bool = True
+
+        # NOTE: the vertices can form a close shape,
+        # so the first vertex and last vertex are same
+        # print('render poly')
+        vert_len: int = len(poly.vertices)
+        for i in range(vert_len - 1):
+            wordpa: Matrix = Matrix.rotate_mat(
+                prim._rot) * poly.vertices[i] + prim._xform
+            scrnpa: Matrix = world_to_screen(wordpa)
+
+            wordpb: Matrix = Matrix.rotate_mat(
+                prim._rot) * poly.vertices[i + 1] + prim._xform
+            scrnpb: Matrix = world_to_screen(wordpb)
+
+            if is_first:
+                is_first = False
+                outer_line_st = np.array([[scrnpa.x, scrnpa.y]])
+                outer_line_ed = np.array([[scrnpb.x, scrnpb.y]])
+            else:
+                tmpa = np.array([[scrnpa.x, scrnpa.y]])
+                tmpb = np.array([[scrnpb.x, scrnpb.y]])
+                outer_line_st = np.concatenate((outer_line_st, tmpa))
+                outer_line_ed = np.concatenate((outer_line_ed, tmpb))
+
+        assert outer_line_st is not None
+        assert outer_line_ed is not None
+
+        fill_tri_pa = np.repeat(np.array([outer_line_st[0]]),
+                                vert_len - 3,
+                                axis=0)
+        fill_tri_pb = outer_line_st[1:-1]
+        fill_tri_pc = outer_line_st[2:]
+
+        # print('poly ver:')
+        # for v in poly.vertices:
+        # print(v)
+        # print('end')
+        # print(f'line_len: {len(outer_line_st)}')
+        # for v in outer_line_st:
+        # print(v)
+
+        gui.lines(outer_line_st,
+                  outer_line_ed,
+                  radius=2.0,
+                  color=Config.OuterLineColor)
+        gui.triangles(fill_tri_pa,
+                      fill_tri_pb,
+                      fill_tri_pc,
+                      color=Config.FillColor)
+
+    @staticmethod
+    def rd_ellipse() -> None:
+        raise NotImplementedError
+
+    @staticmethod
+    def rd_circle(
+        gui: GUI,
+        prim: ShapePrimitive,
+        world_to_screen: Callable[[Matrix], Matrix],
+        meter_to_pixel: float,
+        color: int = ti.rgb_to_hex([1.0, 1.0, 1.0])
+    ) -> None:
+        cir: Circle = cast(Circle, prim._shape)
+        scrnp: Matrix = world_to_screen(prim._xform)
+        gui.circle([scrnp.x, scrnp.y],
+                   color,
+                   radius=cir.radius * meter_to_pixel)
 
     @staticmethod
     def rd_rect(gui: GUI,
