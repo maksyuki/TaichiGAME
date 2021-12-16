@@ -49,6 +49,9 @@ def tb_collision():
     tri: sp.Polygon = sp.Polygon()
     tri.vertices = tri_data
 
+    cap: sp.Capsule = sp.Capsule(2.0, 1.5)
+
+    # set the body config
     grd: Body = scene._world.create_body()
     grd.shape = edg
     grd.pos = Matrix([0.0, 0.0], 'vec')
@@ -58,14 +61,14 @@ def tb_collision():
     grd.restit = 1.0
     scene._dbvt.insert(grd)
 
-    # bd1: Body = scene._world.create_body()
-    # bd1.shape = cir
-    # bd1.pos = Matrix([4.0, 3.0], 'vec')
-    # bd1.mass = 1
-    # bd1.type = Body.Type.Dynamic
-    # bd1.fric = 0.4
-    # bd1.restit = 0.0
-    # scene._dbvt.insert(bd1)
+    bd1: Body = scene._world.create_body()
+    bd1.shape = cir
+    bd1.pos = Matrix([4.0, 3.0], 'vec')
+    bd1.mass = 1
+    bd1.type = Body.Type.Dynamic
+    bd1.fric = 0.4
+    bd1.restit = 0.0
+    scene._dbvt.insert(bd1)
 
     bd2: Body = scene._world.create_body()
     bd2.shape = poly
@@ -88,6 +91,17 @@ def tb_collision():
     bd3.fric = 0.4
     bd3.restit = 0.0
     scene._dbvt.insert(bd3)
+
+    bd4: Body = scene._world.create_body()
+    bd4.shape = cap
+    bd4.pos = Matrix([-3.0, 4.0], 'vec')
+    # bd4.rot = 3.14 / 3
+    bd4.mass = 1
+    # bd4.torques = 60
+    bd4.type = Body.Type.Dynamic
+    bd4.fric = 0.4
+    bd4.restit = 0.0
+    scene._dbvt.insert(bd4)
 
 
 tb_collision()

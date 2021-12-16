@@ -80,24 +80,14 @@ class Render():
             Render.rd_circle(gui, prim, world_to_screen, meter_to_pixel, color)
 
         elif prim._shape.type == Shape.Type.Curve:
-            raise NotImplementedError
+            Render.rd_curve()
 
         elif prim._shape.type == Shape.Type.Edge:
-            edg: Edge = cast(Edge, prim._shape)
-            tmp1: Matrix = world_to_screen(edg.start + prim._xform)
-            tmp2: Matrix = world_to_screen(edg.end + prim._xform)
-            Render.rd_point(gui, tmp1, Config.AxisPointColor)
-            Render.rd_point(gui, tmp2, Config.AxisPointColor)
-            Render.rd_line(gui, tmp1, tmp2, Config.AxisLineColor)
-
-            center: Matrix = edg.center()
-            center += prim._xform
-            Render.rd_line(gui, world_to_screen(center),
-                           world_to_screen(center + edg.normal * 0.1),
-                           Config.AxisLineColor)
+            Render.rd_edge(gui, prim, world_to_screen)
 
         elif prim._shape.type == Shape.Type.Capsule:
-            cap: Capsule = cast(Capsule, prim._shape)
+            Render.rd_capsule(gui, prim, world_to_screen, meter_to_pixel,
+                              color)
 
         elif prim._shape.type == Shape.Type.Sector:
             raise NotImplementedError
@@ -184,6 +174,56 @@ class Render():
         gui.circle([scrnp.x, scrnp.y],
                    color,
                    radius=cir.radius * meter_to_pixel)
+
+    @staticmethod
+    def rd_curve() -> None:
+        raise NotImplementedError
+
+    @staticmethod
+    def rd_edge(gui: GUI, prim: ShapePrimitive,
+                world_to_screen: Callable[[Matrix], Matrix]) -> None:
+        edg: Edge = cast(Edge, prim._shape)
+        tmp1: Matrix = world_to_screen(edg.start + prim._xform)
+        tmp2: Matrix = world_to_screen(edg.end + prim._xform)
+        Render.rd_point(gui, tmp1, Config.AxisPointColor)
+        Render.rd_point(gui, tmp2, Config.AxisPointColor)
+        Render.rd_line(gui, tmp1, tmp2, Config.AxisLineColor)
+
+        center: Matrix = edg.center()
+        center += prim._xform
+        Render.rd_line(gui, world_to_screen(center),
+                       world_to_screen(center + edg.normal * 0.1),
+                       Config.AxisLineColor)
+
+    @staticmethod
+    def rd_capsule(
+        gui: GUI,
+        prim: ShapePrimitive,
+        world_to_screen: Callable[[Matrix], Matrix],
+        meter_to_pixel: float,
+        color: int = ti.rgb_to_hex([1.0, 1.0, 1.0])
+    ) -> None:
+        cap: Capsule = cast(Capsule, prim._shape)
+
+        # Render.rd_polygon(gui, prim, world_to_screen)
+        offset: float = np.fmin(cap.width, cap.height) / 2.0
+        tmp1: Matrix = Matrix([0.0, 0.0], 'vec')
+        tmp2: Matrix = Matrix([0.0, 0.0], 'vec')
+        if cap.width > cap.height:
+            tmp1.x = prim._xform.x - offset
+            tmp1.y = prim._xform.y
+            tmp2.x = prim._xform.x + offset
+            tmp2.y = prim._xform.y
+        else:
+            tmp1.x = prim._xform.x
+            tmp1.y = prim._xform.y - offset
+            tmp2.x = prim._xform.x
+            tmp2.y = prim._xform.y + offset
+
+        tmp1 = world_to_screen(tmp1)
+        tmp2 = world_to_screen(tmp2)
+        gui.circle([tmp1.x, tmp1.y], color, radius=offset * meter_to_pixel)
+        gui.circle([tmp2.x, tmp2.y], color, radius=offset * meter_to_pixel)
 
     @staticmethod
     def rd_rect(gui: GUI,
