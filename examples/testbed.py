@@ -17,49 +17,78 @@ ti.init(arch=ti.cpu)
 
 scene = Scene()
 
-data: List[Matrix] = [
-    Matrix([4.0, 4.0], 'vec'),
-    Matrix([3.0, 3.0], 'vec'),
-    Matrix([3.0, 1.0], 'vec'),
-    Matrix([6.0, 2.0], 'vec'),
-    Matrix([4.0, 4.0], 'vec')
-]
 
-edg: sp.Edge = sp.Edge()
-edg.set_value(Matrix([-10.0, 0.0], 'vec'), Matrix([10.0, 0.0], 'vec'))
+def tb_broad_phase():
+    pass
 
-cir: sp.Circle = sp.Circle(1)
 
-poly: sp.Polygon = sp.Polygon()
-poly.vertices = data
+def tb_collision():
+    tri_data: List[Matrix] = [
+        Matrix([4.0, 4.0], 'vec'),
+        Matrix([3.0, 3.0], 'vec'),
+        Matrix([3.0, 1.0], 'vec'),
+        Matrix([4.0, 4.0], 'vec')
+    ]
 
-grd: Body = scene._world.create_body()
-grd.shape = edg
-grd.pos = Matrix([0.0, 0.0], 'vec')
-grd.mass = Config.Max
-grd.type = Body.Type.Static
-grd.fric = 0.7
-grd.restit = 1.0
-scene._dbvt.insert(grd)
+    poly_data: List[Matrix] = [
+        Matrix([4.0, 4.0], 'vec'),
+        Matrix([3.0, 3.0], 'vec'),
+        Matrix([3.0, 1.0], 'vec'),
+        Matrix([6.0, 2.0], 'vec'),
+        Matrix([4.0, 4.0], 'vec')
+    ]
 
-# bd1: Body = scene._world.create_body()
-# bd1.shape = cir
-# bd1.pos = Matrix([4.0, 3.0], 'vec')
-# bd1.mass = 1
-# bd1.type = Body.Type.Dynamic
-# bd1.fric = 0.4
-# bd1.restit = 0.0
-# scene._dbvt.insert(bd1)
+    edg: sp.Edge = sp.Edge()
+    edg.set_value(Matrix([-10.0, 0.0], 'vec'), Matrix([10.0, 0.0], 'vec'))
 
-bd2: Body = scene._world.create_body()
-bd2.shape = poly
-bd2.pos = Matrix([0.0, 4.0], 'vec')
-# bd2.rot = 3.14 / 3
-bd2.mass = 1
-# bd2.torques = 60
-bd2.type = Body.Type.Dynamic
-bd2.fric = 0.4
-bd2.restit = 0.0
-scene._dbvt.insert(bd2)
+    cir: sp.Circle = sp.Circle(1)
 
+    poly: sp.Polygon = sp.Polygon()
+    poly.vertices = poly_data
+
+    tri: sp.Polygon = sp.Polygon()
+    tri.vertices = tri_data
+
+    grd: Body = scene._world.create_body()
+    grd.shape = edg
+    grd.pos = Matrix([0.0, 0.0], 'vec')
+    grd.mass = Config.Max
+    grd.type = Body.Type.Static
+    grd.fric = 0.7
+    grd.restit = 1.0
+    scene._dbvt.insert(grd)
+
+    # bd1: Body = scene._world.create_body()
+    # bd1.shape = cir
+    # bd1.pos = Matrix([4.0, 3.0], 'vec')
+    # bd1.mass = 1
+    # bd1.type = Body.Type.Dynamic
+    # bd1.fric = 0.4
+    # bd1.restit = 0.0
+    # scene._dbvt.insert(bd1)
+
+    bd2: Body = scene._world.create_body()
+    bd2.shape = poly
+    bd2.pos = Matrix([0.0, 4.0], 'vec')
+    # bd2.rot = 3.14 / 3
+    bd2.mass = 1
+    # bd2.torques = 60
+    bd2.type = Body.Type.Dynamic
+    bd2.fric = 0.4
+    bd2.restit = 0.0
+    scene._dbvt.insert(bd2)
+
+    bd3: Body = scene._world.create_body()
+    bd3.shape = tri
+    bd3.pos = Matrix([3.0, 4.0], 'vec')
+    # bd3.rot = 3.14 / 3
+    bd3.mass = 1
+    # bd3.torques = 60
+    bd3.type = Body.Type.Dynamic
+    bd3.fric = 0.4
+    bd3.restit = 0.0
+    scene._dbvt.insert(bd3)
+
+
+tb_collision()
 scene.show()
