@@ -205,25 +205,65 @@ class Render():
     ) -> None:
         cap: Capsule = cast(Capsule, prim._shape)
 
-        # Render.rd_polygon(gui, prim, world_to_screen)
+        # render two tangent circle
         offset: float = np.fmin(cap.width, cap.height) / 2.0
         tmp1: Matrix = Matrix([0.0, 0.0], 'vec')
         tmp2: Matrix = Matrix([0.0, 0.0], 'vec')
         if cap.width > cap.height:
-            tmp1.x = prim._xform.x - offset
-            tmp1.y = prim._xform.y
-            tmp2.x = prim._xform.x + offset
-            tmp2.y = prim._xform.y
+            tmp1.x = -(cap.width / 2.0 - offset)
+            tmp2.x = cap.width / 2.0 - offset
         else:
-            tmp1.x = prim._xform.x
-            tmp1.y = prim._xform.y - offset
-            tmp2.x = prim._xform.x
-            tmp2.y = prim._xform.y + offset
+            tmp1.y = -(cap.height / 2.0 - offset)
+            tmp2.y = cap.height / 2.0 - offset
 
+        tmp1 = Matrix.rotate_mat(prim._rot) * tmp1 + prim._xform
+        tmp2 = Matrix.rotate_mat(prim._rot) * tmp2 + prim._xform
         tmp1 = world_to_screen(tmp1)
         tmp2 = world_to_screen(tmp2)
+
         gui.circle([tmp1.x, tmp1.y], color, radius=offset * meter_to_pixel)
         gui.circle([tmp2.x, tmp2.y], color, radius=offset * meter_to_pixel)
+
+        # render inner rectangle
+        capw: float = cap.width
+        caph: float = cap.height
+        rectp1: Matrix = Matrix.rotate_mat(prim._rot) * Matrix(
+            [-capw / 2.0, -caph / 2.0], 'vec') + prim._xform
+        rectp2: Matrix = Matrix.rotate_mat(prim._rot) * Matrix(
+            [capw / 2.0, -caph / 2.0], 'vec') + prim._xform
+        rectp3: Matrix = Matrix.rotate_mat(prim._rot) * Matrix(
+            [capw / 2.0, caph / 2.0], 'vec') + prim._xform
+        rectp4: Matrix = Matrix.rotate_mat(prim._rot) * Matrix(
+            [-capw / 2.0, caph / 2.0], 'vec') + prim._xform
+
+        if capw > caph:
+            rectp1.x += offset
+            rectp2.x -= offset
+            rectp3.x -= offset
+            rectp4.x += offset
+        else:
+            rectp1.y += offset
+            rectp2.y += offset
+            rectp3.y -= offset
+            rectp4.y -= offset
+
+        rectp1 = world_to_screen(rectp1)
+        rectp2 = world_to_screen(rectp2)
+        rectp3 = world_to_screen(rectp3)
+        rectp4 = world_to_screen(rectp4)
+
+        # render the center rectangle
+        fill_tri_pa: np.ndarray = np.array([[rectp1.x, rectp1.y],
+                                            [rectp1.x, rectp1.y]])
+        fill_tri_pb: np.ndarray = np.array([[rectp2.x, rectp2.y],
+                                            [rectp3.x, rectp3.y]])
+        fill_tri_pc: np.ndarray = np.array([[rectp3.x, rectp3.y],
+                                            [rectp4.x, rectp4.y]])
+
+        gui.triangles(fill_tri_pa,
+                      fill_tri_pb,
+                      fill_tri_pc,
+                      color=Config.FillColor)
 
     @staticmethod
     def rd_rect(gui: GUI,
