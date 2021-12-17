@@ -1,7 +1,8 @@
 <div align="center">
 <!-- Title: -->
-  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/logo.png">
-
+  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/logo.png" />
+  <br />
+  <br />
 <!-- Labels: -->
   <!-- First row: -->
 
@@ -43,9 +44,10 @@
 
 ## Overview
 TaichiGAME is aim to become a light simulation engine specific for **robot motion planning and control**. I hope to design powered by [taichi lang](https://github.com/taichi-dev/taichi).
+> NOTE: due to the final exam approaching, 
 
 ## Motivation
-postgraduate project. Provide a python based, easy-to-use framework
+postgraduate project. Provide a python based, easy-to-use framework. 
 ## Why TaichiGAME
 
 ## Feature
@@ -101,9 +103,11 @@ The TaichiGAME project strives to abide by generally accepted best practices in 
 All of the TaichiGAME codes are release under the [MIT License](LICENSE).
 
 ## Acknowledgement
-1. Thanks to [yuanming-hu](https://github.com/yuanming-hu) and [taichi-team](https://github.com/taichi-dev) to create and maintain [taichi](https://github.com/taichi-dev/taichi)
-2. Thanks to [ACRL](https://github.com/AngryAccelerated) and his engine project [Physics2D](https://github.com/AngryAccelerated/Physics2D), which I learn a tons of konwledges from his [zhihu post](https://www.zhihu.com/people/acrl/posts).
-3. Use [Inkscape 1.1.1 (3bf5ae0d25, 2021-09-20, window x64 version, GPL-3.0)](https://inkscape.org/) to draw the logo, flow and architecture diagrams. You can find all resources in [TaichiGAME-res repo](https://github.com/maksyuki/TaichiGAME-res)
+1. Thank [yuanming-hu](https://github.com/yuanming-hu) and [taichi-team](https://github.com/taichi-dev) for creating and maintaining [taichi](https://github.com/taichi-dev/taichi), such an excellent programming language.
+2. Thanks to [ACRL](https://github.com/AngryAccelerated) and his engine project [Physics2D](https://github.com/AngryAccelerated/Physics2D) which is with detailed introduction and relevant contents in [zhihu post](https://www.zhihu.com/people/acrl/posts). Due to him, I learned a tons of konwledges about graphics and physics engine from sratch.
+3. Use [Inkscape 1.1.1 (3bf5ae0d25, 2021-09-20, window x64 version, GPL-3.0)](https://inkscape.org/) to draw the logo, flow and architecture diagrams. You can get all of resources in [TaichiGAME-res repo](https://github.com/maksyuki/TaichiGAME-res)
+
+4. Use [GeoGebra (online, GPL-3.0)](https://www.geogebra.org/) to draw shapes to help debug computer geometry algorithm in TaichiGAME.
 
 use it to draw this project logo
 
@@ -111,6 +115,7 @@ use it to draw this project logo
 
 ## Reference
 
-[^1]: _Real-time High-Quality Rendering of Non-Rotating Black Holes_ Eric Bruneton arXiv:2010.08735
+[^1]: _Foundations of Physically Based Modeling and Animation_ By Donald H. House, John C. Keyser
+[^2]:
 
 
