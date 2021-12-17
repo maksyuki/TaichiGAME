@@ -56,10 +56,12 @@ postgraduate project. Provide a python based, easy-to-use framework
 
 ## What is missing
 
+> Text that is a quote
+
 ## Requirements
-1. python>=3.7, <=3.9
-    1. use the 'from __future__ import annotations' to make type hints in class **(python3.7+ intro)**
-    2. support type hints
+1. python>=3.7, <=3.9, because:
+   > - use `from __future__ import annotations` to make type hints in python class **(python3.7+ intro)**
+   > - support type hints
 
 2. taichi>=0.8.0
     1. now TaichiGAME don't use the new GGUI **(taichi0.8+ intro)**, so maybe low version taichi can work well
@@ -71,6 +73,18 @@ $ python3 -m pip install TaichiGAME
 ```
 
 ## Development
+<details><summary>example code</summary>
+<p>
+
+#### We can hide anything, even code!
+
+    ```ruby
+      puts "Hello World"
+    ```
+
+</p>
+</details>
+
 ### Structure
 ### Algorithm
 ### Implement
@@ -97,5 +111,6 @@ use it to draw this project logo
 
 ## Reference
 
-[1] _Real-time High-Quality Rendering of Non-Rotating Black Holes_ Eric Bruneton arXiv:2010.08735
+[^1]: _Real-time High-Quality Rendering of Non-Rotating Black Holes_ Eric Bruneton arXiv:2010.08735
+
 
