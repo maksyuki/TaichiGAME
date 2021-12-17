@@ -1,10 +1,6 @@
 <div align="center">
 <!-- Title: -->
-  <h2>
-    <h2>TaichiGAME <h2>
-    <h3>A Light 2d Rigid Body Physics Engine Based on Taichi Lang - python</h3>
-  </h2>
-  <!-- <h3>A Light 2d Rigid Body Physics Engine Based on Taichi Lang - python</h3> -->
+  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/logo.png">
 
 <!-- Labels: -->
   <!-- First row: -->
@@ -45,36 +41,61 @@
 </div>
 
 
-### Overview
-TaichiGAME(**Taichi GPU Acceleate Motion Engine**) now is a simple 2d rigid body physics simulation engine powered by [taichi lang](https://github.com/taichi-dev/taichi).
+## Overview
+TaichiGAME is aim to become a light simulation engine specific for **robot motion planning and control**. I hope to design powered by [taichi lang](https://github.com/taichi-dev/taichi).
 
-### Motivation
-### Why TaichiGAME
+## Motivation
+postgraduate project. Provide a python based, easy-to-use framework
+## Why TaichiGAME
 
-### Feature
+## Feature
 
-### What is missing
+1. Minkowski[^1]
+2. collision detection
+  2.1
 
-### Requirements
-1. python3.7+
+## What is missing
+
+## Requirements
+1. python>=3.7, <=3.9
     1. use the 'from __future__ import annotations' to make type hints in class **(python3.7+ intro)**
     2. support type hints
 
-2. taichi0.7+
+2. taichi>=0.8.0
     1. now TaichiGAME don't use the new GGUI **(taichi0.8+ intro)**, so maybe low version taichi can work well
 
-### Install
+## Install
 
-### Development
+```shell
+$ python3 -m pip install TaichiGAME
+```
 
-### Contribution
+## Development
+### Structure
+### Algorithm
+### Implement
+## Contribution
+If you want to contribute to TaichiGAME, be sure to review the [guidelines](CONTRIBUTING.md). This project adheres to TaichiGAME's [code_of_conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
 
-### Reference
+We use GitHub issues for tracking requests and bugs, so please direct specific questions to [issues panel](https://github.com/maksyuki/TaichiGAME/issues).
 
-### License
+The TaichiGAME project strives to abide by generally accepted best practices in open-source software development, so feel free to raise a issues :smile:
 
-### Credit
+## Reference
 
-### Acknowledgement
+## License
+All of the TaichiGAME codes are release under the [MIT License](LICENSE).
 
+## Acknowledgement
+1. Thanks to [yuanming-hu](https://github.com/yuanming-hu) and [taichi-team](https://github.com/taichi-dev) to create and maintain [taichi](https://github.com/taichi-dev/taichi)
+2. Thanks to [ACRL](https://github.com/AngryAccelerated) and his engine project [Physics2D](https://github.com/AngryAccelerated/Physics2D), which I learn a tons of konwledges from his [zhihu post](https://www.zhihu.com/people/acrl/posts).
+3. Use [Inkscape 1.1.1 (3bf5ae0d25, 2021-09-20, window x64 version, GPL-3.0)](https://inkscape.org/) to draw the logo, flow and architecture diagrams. You can find all resources in [TaichiGAME-res repo](https://github.com/maksyuki/TaichiGAME-res)
+
+use it to draw this project logo
+
+
+
+## Reference
+
+[1] _Real-time High-Quality Rendering of Non-Rotating Black Holes_ Eric Bruneton arXiv:2010.08735
 
