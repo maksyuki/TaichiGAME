@@ -55,7 +55,9 @@ class Scene():
 
         self._fps = 40
         self._dt = 1 / self._fps
-        self._mouse_pos: Matrix = Matrix([0.0, 0.0], 'vec')
+        # NOTE: some algorithm need to cacluate the pos's len
+        # in init state
+        self._mouse_pos: Matrix = Matrix([1.0, 1.0], 'vec')
         # the right-mouse btn drag move flag(change viewport)
         self._mouse_viewport_move: bool = False
 
