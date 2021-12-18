@@ -304,8 +304,8 @@ class Camera():
         tmpx: float = (orign.x + pos.x * self._meter_to_pixel) / view_width
         tmpy: float = (orign.y + pos.y * self._meter_to_pixel) / view_height
         # print(f'({tmpx}, {tmpy})')
-        tmpx = Config.clamp(tmpx, 0.0, 1.0)
-        tmpy = Config.clamp(tmpy, 0.0, 1.0)
+        # tmpx = Config.clamp(tmpx, 0.0, 1.0)
+        # tmpy = Config.clamp(tmpy, 0.0, 1.0)
         return Matrix([tmpx, tmpy], 'vec')
 
     def screen_to_world(self, pos: Matrix) -> Matrix:
