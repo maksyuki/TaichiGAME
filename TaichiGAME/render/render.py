@@ -288,8 +288,8 @@ class Render():
     @staticmethod
     def rd_angle_line(gui: GUI, prim: ShapePrimitive,
                       world_to_screen: Callable[[Matrix], Matrix]) -> None:
-        xpos: Matrix = Matrix([0.2, 0.0], 'vec')
-        ypos: Matrix = Matrix([0.0, 0.2], 'vec')
+        xpos: Matrix = Matrix([0.15, 0.0], 'vec')
+        ypos: Matrix = Matrix([0.0, 0.15], 'vec')
 
         assert prim._shape is not None
         mc: Matrix = Matrix.rotate_mat(prim._rot) * prim._shape.center()
