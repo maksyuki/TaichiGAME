@@ -164,7 +164,7 @@ class FrameRaycast(Frame):
 
         Render.rd_line(scene._gui,
                        scene._cam.world_to_screen(st),
-                       scene._cam.world_to_screen(dirn * 8.0),
+                       scene._cam.world_to_screen(dirn * 10.0),
                        color=0xFF0000)
         query_body_list: List[Body] = scene._dbvt.raycast(st, dirn)
 
@@ -179,102 +179,76 @@ class FrameRaycast(Frame):
                             Config.QueryRaycasOutLineColor)
 
 
-def tb_collision():
-    tri_data: List[Matrix] = [
-        Matrix([4.0, 4.0], 'vec'),
-        Matrix([3.0, 3.0], 'vec'),
-        Matrix([3.0, 1.0], 'vec'),
-        Matrix([4.0, 4.0], 'vec')
-    ]
+class FrameBitmask(Frame):
+    def load(self) -> None:
+        rect: sp.Rectangle = sp.Rectangle(1.0, 1.0)
+        edg: sp.Edge = sp.Edge()
+        edg.set_value(Matrix([-10.0, 0.0], 'vec'), Matrix([10.0, 0.0], 'vec'))
 
-    poly_data: List[Matrix] = [
-        Matrix([4.0, 4.0], 'vec'),
-        Matrix([3.0, 3.0], 'vec'),
-        Matrix([3.0, 1.0], 'vec'),
-        Matrix([6.0, 2.0], 'vec'),
-        Matrix([4.0, 4.0], 'vec')
-    ]
+        mask: int = 0x01
+        for i in range(3):
+            grd: Body = scene._world.create_body()
+            grd.shape = edg
+            grd.pos = Matrix([0.0, -3.0 + i * 3.0], 'vec')
+            grd.fric = 0.9
+            grd.bitmask = mask
+            grd.restit = 0
+            grd.mass = Config.Max
+            grd.type = Body.Type.Static
+            mask <<= 1
+            scene._dbvt.insert(grd)
 
-    edg: sp.Edge = sp.Edge()
-    edg.set_value(Matrix([-10.0, 0.0], 'vec'), Matrix([10.0, 0.0], 'vec'))
+        mask = 0x01
+        for i in range(3):
+            bd: Body = scene._world.create_body()
+            bd.shape = rect
+            bd.pos = Matrix([i * 3.0, 6.0], 'vec')
+            bd.fric = 0.9
+            bd.bitmask = mask
+            bd.mass = 1
+            bd.type = Body.Type.Static
+            mask <<= 1
+            scene._dbvt.insert(bd)
 
-    cir: sp.Circle = sp.Circle(1)
+    def render(self) -> None:
+        pass
 
-    poly: sp.Polygon = sp.Polygon()
-    poly.vertices = poly_data
 
-    tri: sp.Polygon = sp.Polygon()
-    tri.vertices = tri_data
+class FrameCollision(Frame):
+    def load(self) -> None:
+        edg: sp.Edge = sp.Edge()
+        edg.set_value(Matrix([-10.0, 0.0], 'vec'), Matrix([10.0, 0.0], 'vec'))
+        cap: sp.Capsule = sp.Capsule(2.0, 1.0)
 
-    cap: sp.Capsule = sp.Capsule(3.5, 1.5)
-    rec: sp.Rectangle = sp.Rectangle(4.0, 2.0)
+        grd: Body = scene._world.create_body()
+        grd.shape = edg
+        grd.pos = Matrix([0.0, 0.0], 'vec')
+        grd.mass = Config.Max
+        grd.type = Body.Type.Static
+        grd.fric = 0.7
+        grd.restit = 1.0
+        scene._dbvt.insert(grd)
 
-    # set the body config
-    grd: Body = scene._world.create_body()
-    grd.shape = edg
-    grd.pos = Matrix([0.0, 0.0], 'vec')
-    grd.mass = Config.Max
-    grd.type = Body.Type.Static
-    grd.fric = 0.7
-    grd.restit = 1.0
-    scene._dbvt.insert(grd)
+        bd: Body = scene._world.create_body()
+        bd.shape = cap
+        bd.pos = Matrix([0.0, 6.0], 'vec')
+        bd.rot = np.pi / 4
+        bd.mass = 1
+        bd.type = Body.Type.Dynamic
+        bd.fric = 0.4
+        bd.restit = 0.0
+        scene._dbvt.insert(bd)
 
-    bd1: Body = scene._world.create_body()
-    bd1.shape = cir
-    bd1.pos = Matrix([4.0, 3.0], 'vec')
-    bd1.mass = 1
-    bd1.type = Body.Type.Dynamic
-    bd1.fric = 0.4
-    bd1.restit = 0.0
-    scene._dbvt.insert(bd1)
-
-    bd2: Body = scene._world.create_body()
-    bd2.shape = poly
-    bd2.pos = Matrix([0.0, 4.0], 'vec')
-    # bd2.rot = 3.14 / 3
-    bd2.mass = 1
-    # bd2.torques = 60
-    bd2.type = Body.Type.Dynamic
-    bd2.fric = 0.4
-    bd2.restit = 0.0
-    scene._dbvt.insert(bd2)
-
-    bd3: Body = scene._world.create_body()
-    bd3.shape = tri
-    bd3.pos = Matrix([3.0, 4.0], 'vec')
-    # bd3.rot = 3.14 / 3
-    bd3.mass = 1
-    # bd3.torques = 60
-    bd3.type = Body.Type.Dynamic
-    bd3.fric = 0.4
-    bd3.restit = 0.0
-    scene._dbvt.insert(bd3)
-
-    bd4: Body = scene._world.create_body()
-    bd4.shape = cap
-    bd4.pos = Matrix([-3.0, 4.0], 'vec')
-    # bd4.rot = 3.14 / 3
-    bd4.mass = 1
-    # bd4.torques = 60
-    bd4.type = Body.Type.Dynamic
-    bd4.fric = 0.4
-    bd4.restit = 0.0
-    scene._dbvt.insert(bd4)
-
-    bd5: Body = scene._world.create_body()
-    bd5.shape = rec
-    bd5.pos = Matrix([-3.0, -2.0], 'vec')
-    bd4.rot = 3.14 / 3
-    bd5.mass = 1
-    # bd4.torques = 60
-    bd5.type = Body.Type.Dynamic
-    bd5.fric = 0.4
-    bd5.restit = 0.0
-    scene._dbvt.insert(bd5)
+    def render(self) -> None:
+        pass
 
 
 frame_broad_phase: FrameBroadPhaseDetect = FrameBroadPhaseDetect()
 frame_raycast: FrameRaycast = FrameRaycast()
+frame_bitmask: FrameBitmask = FrameBitmask()
+frame_collision: FrameCollision = FrameCollision()
 # frame_broad_phase.load()
-frame_raycast.load()
-scene.show(frame_raycast.render)
+# frame_raycast.load()
+# frame_bitmask.load()
+frame_collision.load()
+scene.show(frame_collision.render)
