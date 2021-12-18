@@ -205,8 +205,9 @@ class FrameBitmask(Frame):
             bd.pos = Matrix([i * 3.0, 6.0], 'vec')
             bd.fric = 0.9
             bd.bitmask = mask
+            bd.restit = 0.0
             bd.mass = 1
-            bd.type = Body.Type.Static
+            bd.type = Body.Type.Dynamic
             mask <<= 1
             scene._dbvt.insert(bd)
 
@@ -249,6 +250,6 @@ frame_bitmask: FrameBitmask = FrameBitmask()
 frame_collision: FrameCollision = FrameCollision()
 # frame_broad_phase.load()
 # frame_raycast.load()
-# frame_bitmask.load()
-frame_collision.load()
-scene.show(frame_collision.render)
+frame_bitmask.load()
+# frame_collision.load()
+scene.show(frame_bitmask.render)
