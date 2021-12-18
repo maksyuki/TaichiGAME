@@ -60,24 +60,25 @@ class Render():
             Render.rd_line(gui, lin[0], lin[1], color, radius)
 
     @staticmethod
-    def rd_shape(
-        gui: GUI,
-        prim: ShapePrimitive,
-        world_to_screen: Callable[[Matrix], Matrix],
-        meter_to_pixel: float,
-        color: int = ti.rgb_to_hex([1.0, 1.0, 1.0])
-    ) -> None:
+    def rd_shape(gui: GUI,
+                 prim: ShapePrimitive,
+                 world_to_screen: Callable[[Matrix], Matrix],
+                 meter_to_pixel: float,
+                 fill_color: int = Config.FillColor,
+                 outline_color: int = Config.OuterLineColor) -> None:
         assert gui is not None
         assert prim._shape is not None
 
         if prim._shape.type == Shape.Type.Polygon:
-            Render.rd_polygon(gui, prim, world_to_screen)
+            Render.rd_polygon(gui, prim, world_to_screen, fill_color,
+                              outline_color)
 
         elif prim._shape.type == Shape.Type.Ellipse:
             Render.rd_ellipse()
 
         elif prim._shape.type == Shape.Type.Circle:
-            Render.rd_circle(gui, prim, world_to_screen, meter_to_pixel, color)
+            Render.rd_circle(gui, prim, world_to_screen, meter_to_pixel,
+                             fill_color)
 
         elif prim._shape.type == Shape.Type.Curve:
             Render.rd_curve()
@@ -87,14 +88,17 @@ class Render():
 
         elif prim._shape.type == Shape.Type.Capsule:
             Render.rd_capsule(gui, prim, world_to_screen, meter_to_pixel,
-                              color)
+                              fill_color)
 
         elif prim._shape.type == Shape.Type.Sector:
             raise NotImplementedError
 
     @staticmethod
-    def rd_polygon(gui: GUI, prim: ShapePrimitive,
-                   world_to_screen: Callable[[Matrix], Matrix]) -> None:
+    def rd_polygon(gui: GUI,
+                   prim: ShapePrimitive,
+                   world_to_screen: Callable[[Matrix], Matrix],
+                   fill_color: int = Config.FillColor,
+                   outline_color: int = Config.OuterLineColor) -> None:
 
         # [trick] draw polygon by draw multi triangle
         poly: Polygon = cast(Polygon, prim._shape)
@@ -148,27 +152,19 @@ class Render():
         # for v in outer_line_st:
         # print(v)
 
-        gui.lines(outer_line_st,
-                  outer_line_ed,
-                  radius=2.0,
-                  color=Config.OuterLineColor)
-        gui.triangles(fill_tri_pa,
-                      fill_tri_pb,
-                      fill_tri_pc,
-                      color=Config.FillColor)
+        gui.lines(outer_line_st, outer_line_ed, 2.0, outline_color)
+        gui.triangles(fill_tri_pa, fill_tri_pb, fill_tri_pc, fill_color)
 
     @staticmethod
     def rd_ellipse() -> None:
         raise NotImplementedError
 
     @staticmethod
-    def rd_circle(
-        gui: GUI,
-        prim: ShapePrimitive,
-        world_to_screen: Callable[[Matrix], Matrix],
-        meter_to_pixel: float,
-        color: int = ti.rgb_to_hex([1.0, 1.0, 1.0])
-    ) -> None:
+    def rd_circle(gui: GUI,
+                  prim: ShapePrimitive,
+                  world_to_screen: Callable[[Matrix], Matrix],
+                  meter_to_pixel: float,
+                  color: int = Config.FillColor) -> None:
         cir: Circle = cast(Circle, prim._shape)
         scrnp: Matrix = world_to_screen(prim._xform)
         gui.circle([scrnp.x, scrnp.y],
@@ -196,13 +192,11 @@ class Render():
                        Config.AxisLineColor)
 
     @staticmethod
-    def rd_capsule(
-        gui: GUI,
-        prim: ShapePrimitive,
-        world_to_screen: Callable[[Matrix], Matrix],
-        meter_to_pixel: float,
-        color: int = ti.rgb_to_hex([1.0, 1.0, 1.0])
-    ) -> None:
+    def rd_capsule(gui: GUI,
+                   prim: ShapePrimitive,
+                   world_to_screen: Callable[[Matrix], Matrix],
+                   meter_to_pixel: float,
+                   color: int = Config.FillColor) -> None:
         cap: Capsule = cast(Capsule, prim._shape)
 
         # render two tangent circle
@@ -261,10 +255,7 @@ class Render():
         fill_tri_pc: np.ndarray = np.array([[rectp3.x, rectp3.y],
                                             [rectp4.x, rectp4.y]])
 
-        gui.triangles(fill_tri_pa,
-                      fill_tri_pb,
-                      fill_tri_pc,
-                      color=Config.FillColor)
+        gui.triangles(fill_tri_pa, fill_tri_pb, fill_tri_pc, color)
 
     @staticmethod
     def rd_rect(gui: GUI,
