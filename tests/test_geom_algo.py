@@ -218,7 +218,7 @@ class TestGeomAlgo2D():
             [-1.0, 1.0], 'vec'), TestGeomAlgo2D.pa1,
                                   TestGeomAlgo2D.pb1) is None
 
-    def test_raycastAABB(self):
+    def test_raycast_aabb(self):
         assert 1  # FIXME: need to modify
 
     def test_is_point_on_AABB(self):

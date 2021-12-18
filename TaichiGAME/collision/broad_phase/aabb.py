@@ -342,7 +342,7 @@ class AABB():
 
     @staticmethod
     def _raycast(aabb: AABB, start: Matrix, dirn: Matrix) -> bool:
-        res: Optional[Tuple[Matrix, Matrix]] = GeomAlgo2D.raycastAABB(
+        res: Optional[Tuple[Matrix, Matrix]] = GeomAlgo2D.raycast_aabb(
             start, dirn, aabb.top_left, aabb.bot_right)
 
         if res is None:
