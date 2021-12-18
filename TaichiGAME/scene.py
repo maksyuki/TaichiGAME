@@ -48,11 +48,13 @@ class Scene():
                                              Matrix([width, 0.0], 'vec'))
         self._cam.body_visible = True
         self._cam.center_visible = True
+        self._cam.aabb_visible = True
+        self._cam.dbvt_visible = True
         self._cam.rot_line_visible = True
         self._cam._world = self._world
         self._cam._dbvt = self._dbvt
 
-        self._fps = 40
+        self._fps = 120
         self._dt = 1 / self._fps
         # NOTE: some algorithm need to cacluate the pos's len
         # in init state
@@ -64,35 +66,35 @@ class Scene():
         for elem in self._world._body_list:
             self._dbvt.update(elem)
 
-        # self._world.step_velocity(self._dt)
+        self._world.step_velocity(self._dt)
 
-        # pot_list: List[Tuple[Body, Body]] = self._dbvt.generate()
-        # for pot in pot_list:
-        # print('hello')
-        # print(f'bodya pos: {pot[0].pos.x}, {pot[0].pos.y}')
-        # print(f'bodya rot: {pot[0].rot}')
-        # print(f'bodyb pos: {pot[1].pos.x}, {pot[1].pos.y}')
-        # print(f'bodyb rot: {pot[1].rot}')
+        pot_list: List[Tuple[Body, Body]] = self._dbvt.generate()
+        # print('sim')
+        for pot in pot_list:
+            # print('pot')
+            # print(f'bodya: ({pot[0].pos.x}, {pot[0].pos.y}), {pot[0].rot}')
+            # print(f'bodyb: ({pot[1].pos.x}, {pot[1].pos.y}), {pot[1].rot}')
 
-        # res: Collsion = Detector.detect(pot[0], pot[1])
-        # if res._is_colliding:
-        # print('collid')
-        # self._maintainer.add(res)
+            res: Collsion = Detector.detect(pot[0], pot[1])
+            if res._is_colliding:
+                # print('collid')
+                # print(f'contact list len: {len(res._contact_list)}')
+                self._maintainer.add(res)
 
-        # self._maintainer.clear_inactive_points()
-        # self._world.prepare_velocity_constraint(self._dt)
+        self._maintainer.clear_inactive_points()
+        self._world.prepare_velocity_constraint(self._dt)
 
-        # for i in range(self._world.vel_iter):
-        # self._world.solve_velocity_constraint(self._dt)
-        # self._maintainer.solve_velocity(self._dt)
+        for i in range(self._world.vel_iter):
+            self._world.solve_velocity_constraint(self._dt)
+            self._maintainer.solve_velocity(self._dt)
 
         self._world.step_position(self._dt)
 
-        # for i in range(self._world.pos_iter):
-        # self._maintainer.solve_position(self._dt)
-        # self._world.solve_position_constraint(self._dt)
+        for i in range(self._world.pos_iter):
+            self._maintainer.solve_position(self._dt)
+            self._world.solve_position_constraint(self._dt)
 
-        # self._maintainer.deactivate_all_points()
+        self._maintainer.deactivate_all_points()
 
     def render(self) -> None:
         self._cam.render(self._gui)
@@ -165,13 +167,14 @@ class Scene():
                     print("press up key")
 
                 elif e.key == ti.GUI.DOWN:
-                    print("press down key start")
+                    pass
 
                 elif e.key == ti.GUI.LEFT:
-                    print("press LEFT key restart")
+                    pass
 
                 elif e.key == ti.GUI.RIGHT:
-                    print("press right key")
+                    pass
+
                 elif e.key == 'q' and e.type == GUI.PRESS:
                     self._cam.visible = not self._cam.visible
 
