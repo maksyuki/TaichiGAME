@@ -13,7 +13,7 @@ except ImportError:
 import numpy as np
 
 from .common.camera import Camera
-
+from .common.config import Config
 from .collision.broad_phase.dbvt import DBVT
 from .math.matrix import Matrix
 from .collision.detector import Collsion, Detector
@@ -26,8 +26,7 @@ class Scene():
     def __init__(self, width: int = 1280, height: int = 720):
         self._gui: GUI = GUI('TaichiGAME',
                              res=(width, height),
-                             background_color=ti.rgb_to_hex(
-                                 [50 / 255.0, 50 / 255.0, 50 / 255.0]))
+                             background_color=Config.BackgroundColor)
         # the physics world, all sim is run in physics world
         self._world: PhysicsWorld = PhysicsWorld()
         self._dbvt: DBVT = DBVT()
