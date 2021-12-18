@@ -52,9 +52,9 @@ postgraduate project. Provide a python based, easy-to-use framework.
 
 ## Feature
 
-1. Minkowski[^1]
-2. collision detection
-  2.1
+- collision detection
+  - broad phase
+  - narrow phase
 
 ## What is missing
 
@@ -62,14 +62,17 @@ postgraduate project. Provide a python based, easy-to-use framework.
 
 ## Requirements
 1. python>=3.7, <=3.9, because:
-   > - use `from __future__ import annotations` to make type hints in python class **(python3.7+ intro)**
-   > - support type hints
+   > - use `from __future__ import annotations` to postpone evaluation of annotations `(python3.7+ intro)`
+   > - taichi now support the highest version of `python` is `python3.9`
 
 2. taichi>=0.8.0
-    1. now TaichiGAME don't use the new GGUI **(taichi0.8+ intro)**, so maybe low version taichi can work well
+    > - for support taichi's new features
+    > - now `TaichiGAME` don't use the new GGUI `(taichi0.8+ intro)`, so you maybe can use lower version taichi(such as `taichi0.7+`).
+    > - **NOTE**: In views of the rapid development of `taichi`, we don't have much enery and time to maintain `TaichiGAME` to multiply different main version. So we decide to only maintain one current main verion plus one latest previous main verion. For now, that mean we develop and test all features of `taichiGAME` in `taichi0.8+` , and **only** maintain a latest previous `taichi0.7.32`.
 
 ## Install
 
+installation is simple, you can just type the following command in `shell` or `cmd` terminal.
 ```shell
 $ python3 -m pip install TaichiGAME
 ```
@@ -88,6 +91,7 @@ $ python3 -m pip install TaichiGAME
 </details>
 
 ### Structure
+insert a class diagram/chart
 ### Algorithm
 ### Implement
 ## Contribution
@@ -96,8 +100,6 @@ If you want to contribute to TaichiGAME, be sure to review the [guidelines](CONT
 We use GitHub issues for tracking requests and bugs, so please direct specific questions to [issues panel](https://github.com/maksyuki/TaichiGAME/issues).
 
 The TaichiGAME project strives to abide by generally accepted best practices in open-source software development, so feel free to raise a issues :smile:
-
-## Reference
 
 ## License
 All of the TaichiGAME codes are release under the [MIT License](LICENSE).
@@ -111,9 +113,6 @@ All of the TaichiGAME codes are release under the [MIT License](LICENSE).
 
 use it to draw this project logo
 
-
-
-## Reference
 
 [^1]: _Foundations of Physically Based Modeling and Animation_ By Donald H. House, John C. Keyser
 [^2]:
