@@ -1,6 +1,6 @@
-from typing import Generator, List, Sequence
-
+from typing import List
 import sys
+
 import numpy as np
 import taichi as ti
 
@@ -9,6 +9,7 @@ import taichi as ti
 sys.path.append('../')
 
 from TaichiGAME.scene import Scene
+from TaichiGAME.frame import Frame
 from TaichiGAME.math.matrix import Matrix
 from TaichiGAME.dynamics.body import Body
 from TaichiGAME.common.config import Config
@@ -21,79 +22,79 @@ ti.init(arch=ti.cpu)
 scene = Scene()
 
 
-def tb_broad_phase():
-    tri_data: List[Matrix] = [
-        Matrix([-1.0, 1.0], 'vec'),
-        Matrix([0.0, -2.0], 'vec'),
-        Matrix([1.0, -1.0], 'vec'),
-        Matrix([-1.0, 1.0], 'vec'),
-    ]
+class BroadPhaseDetect(Frame):
+    def load(self) -> None:
+        tri_data: List[Matrix] = [
+            Matrix([-1.0, 1.0], 'vec'),
+            Matrix([0.0, -2.0], 'vec'),
+            Matrix([1.0, -1.0], 'vec'),
+            Matrix([-1.0, 1.0], 'vec'),
+        ]
 
-    poly_data: List[Matrix] = [
-        Matrix([0.0, 4.0], 'vec'),
-        Matrix([-3.0, 3.0], 'vec'),
-        Matrix([-4.0, 0.0], 'vec'),
-        Matrix([-3.0, -3.0], 'vec'),
-        Matrix([0.0, -4.0], 'vec'),
-        Matrix([3.0, -3.0], 'vec'),
-        Matrix([4.0, 0.0], 'vec'),
-        Matrix([3.0, 3.0], 'vec'),
-        Matrix([0.0, 4.0], 'vec')
-    ]
+        poly_data: List[Matrix] = [
+            Matrix([0.0, 4.0], 'vec'),
+            Matrix([-3.0, 3.0], 'vec'),
+            Matrix([-4.0, 0.0], 'vec'),
+            Matrix([-3.0, -3.0], 'vec'),
+            Matrix([0.0, -4.0], 'vec'),
+            Matrix([3.0, -3.0], 'vec'),
+            Matrix([4.0, 0.0], 'vec'),
+            Matrix([3.0, 3.0], 'vec'),
+            Matrix([0.0, 4.0], 'vec')
+        ]
 
-    rect: sp.Rectangle = sp.Rectangle(0.5, 0.5)
-    cir: sp.Circle = sp.Circle(0.5)
-    cap: sp.Capsule = sp.Capsule(1.5, 0.5)
-    tri: sp.Polygon = sp.Polygon()
-    tri.vertices = tri_data
-    poly: sp.Polygon = sp.Polygon()
-    poly.vertices = poly_data
+        rect: sp.Rectangle = sp.Rectangle(0.5, 0.5)
+        cir: sp.Circle = sp.Circle(0.5)
+        cap: sp.Capsule = sp.Capsule(1.5, 0.5)
+        tri: sp.Polygon = sp.Polygon()
+        tri.vertices = tri_data
+        poly: sp.Polygon = sp.Polygon()
+        poly.vertices = poly_data
 
-    tri.scale(0.5)
-    poly.scale(0.1)
+        tri.scale(0.5)
+        poly.scale(0.1)
 
-    rng: Generator = np.random.default_rng(seed=6)
+        rng: np.random._generator.Generator = np.random.default_rng(seed=6)
 
-    bd: Body = Body()
-    tmpx: float = 0.0
-    tmpy: float = 0.0
-    cnt: int = 0
-    for i in range(101):
-        bd = scene._world.create_body()
-        tmpx = -10 + rng.random() * 20.0
-        tmpy = -6 + rng.random() * 12.0
-        bd.pos = Matrix([tmpx, tmpy], 'vec')
+        bd: Body = Body()
+        tmpx: float = 0.0
+        tmpy: float = 0.0
+        cnt: np.ndarray = np.array([])
+        for i in range(101):
+            bd = scene._world.create_body()
+            tmpx = -10 + rng.random() * 20.0
+            tmpy = -6 + rng.random() * 12.0
+            bd.pos = Matrix([tmpx, tmpy], 'vec')
 
-        cnt: np.ndarray = rng.integers(low=0, high=5, size=1)
-        if cnt[0] == 0:
-            bd.shape = rect
-        elif cnt[0] == 1:
-            bd.shape = cir
-        elif cnt[0] == 2:
-            bd.shape = tri
-        elif cnt[0] == 3:
-            bd.shape = poly
-        elif cnt[0] == 4:
-            bd.shape = cap
+            cnt = rng.integers(low=0, high=5, size=1)
+            if cnt[0] == 0:
+                bd.shape = rect
+            elif cnt[0] == 1:
+                bd.shape = cir
+            elif cnt[0] == 2:
+                bd.shape = tri
+            elif cnt[0] == 3:
+                bd.shape = poly
+            elif cnt[0] == 4:
+                bd.shape = cap
 
-        bd.rot = -np.pi + rng.random() * np.pi
-        bd.mass = 1
-        bd.type = Body.Type.Static
-        scene._dbvt.insert(bd)
+            bd.rot = -np.pi + rng.random() * np.pi
+            bd.mass = 1
+            bd.type = Body.Type.Static
+            scene._dbvt.insert(bd)
 
+    def render(self) -> None:
+        # render the query rectangle range
+        Render.rd_rect(scene._gui,
+                       scene._cam.world_to_screen(Matrix([-4.0, 4.0], 'vec')),
+                       scene._cam.world_to_screen(Matrix([4.0, -4.0], 'vec')),
+                       color=Config.QueryRectLineColor)
 
-def extern_render() -> None:
-    # render the query rectangle range
-    Render.rd_rect(scene._gui,
-                   scene._cam.world_to_screen(Matrix([-4.0, 4.0], 'vec')),
-                   scene._cam.world_to_screen(Matrix([4.0, -4.0], 'vec')),
-                   color=Config.QueryRectLineColor)
+        query_region: AABB = AABB(8, 8)
+        query_body_list: List[Body] = scene._dbvt.query(query_region)
 
-    query_region: AABB = AABB(8, 8)
-    query_body_list: List[Body] = scene._dbvt.query(query_region)
-
-    for bd in query_body_list:
-        scene._cam.render_aabb(scene._gui, AABB.from_body(bd))
+        for bd in query_body_list:
+            scene._cam.render_aabb(scene._gui, AABB.from_body(bd))
 
 
 def tb_collision():
@@ -190,6 +191,6 @@ def tb_collision():
     scene._dbvt.insert(bd5)
 
 
-tb_broad_phase()
-# tb_collision()
-scene.show(extern_render)
+broad_phase: BroadPhaseDetect = BroadPhaseDetect()
+broad_phase.load()
+scene.show(broad_phase.render)
