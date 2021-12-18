@@ -152,15 +152,15 @@ class ContactMaintainer():
             contact_list = self._contact_table[relation]
 
         for elem in collision._contact_list:
-            print(f'pa: ({elem._pa.x},{elem._pa.y})')
-            print(f'pb: ({elem._pb.x},{elem._pb.y})')
+            # print(f'pa: ({elem._pa.x},{elem._pa.y})')
+            # print(f'pb: ({elem._pb.x},{elem._pb.y})')
 
             existed: bool = False
             locala: Matrix = bodya.to_local_point(elem._pa)
             localb: Matrix = bodyb.to_local_point(elem._pb)
 
             for contact in contact_list:
-                print('x')
+                # print('x')
                 is_pointa: bool = np.isclose(contact._locala._val,
                                              locala._val).all()
                 is_pointb: bool = np.isclose(contact._localb._val,
@@ -185,7 +185,7 @@ class ContactMaintainer():
             ccp._relation = relation
             self.prepare(ccp, elem, collision)
             contact_list.append(ccp)
-            print(f'ct len: {len(self._contact_table[relation])}')
+            # print(f'ct len: {len(self._contact_table[relation])}')
 
     def prepare(self, ccp: ContactConstraintPoint, pair: PointPair,
                 collision: Collsion) -> None:
