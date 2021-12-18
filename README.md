@@ -70,13 +70,12 @@ postgraduate project. Provide a python based, easy-to-use framework.
 ## Requirements
 1. python>=3.7, <=3.9, because:
    - use `from __future__ import annotations` to postpone evaluation of annotations `(python3.7+ intro)`
-   - taichi now support the highest version of `python` is `python3.9`
+   - taichi now support the highest version of python is `python3.9`
 
 2. taichi>=0.8.0, because:
     - for support taichi's new features
-    - now `TaichiGAME` don't use the new GGUI `(taichi0.8+ intro)`, so you maybe can use lower version taichi(such as `taichi0.7+`).
-    - **NOTE:** some `TaichiGAME`'s API is based on specific `taichi` features. In views of the rapid development of `taichi`, we don't have much enery and time to maintain `TaichiGAME` to adapt or be compatiable to multiple different major version of `taichi`. It can make `TaichiGAME` too verbose. So we decide to **only maintain TaichiGAME to adapt to current major verion plus one latest previous major verion of taichi**. For now, because a major version of `taichi` has not been released yet, we decide to **CHANGE** the '`major version`' of previous policy into '`minor version`'. Specifically, we develop and test all features of `TaichiGAME` in `taichi0.8+` , and **ONLY** maintain compatible version of `TaichiGAME` to `taichi0.7+`, the `TaichiGAME` based on `taichi<0.7+` will no longer be maintained.
-      > **ATTENTION: This policy maybe be modified according to `taichi`'s development.**
+    - now TaichiGAME don't use the new GGUI `(taichi0.8+ intro)`, so you maybe can use lower version taichi(such as `taichi0.7+`).
+    - **NOTE:** some TaichiGAME's API is based on specific taichi features. In views of the rapid development of taichi, we don't have much enery and time to maintain TaichiGAME to adapt or be compatiable to multiple different major version of taichi. It can make TaichiGAME too verbose. So we decide to **only maintain TaichiGAME to adapt to current major verion plus one latest previous major verion of taichi**. For now, because a major version of taichi has not been released yet, we decide to **CHANGE** the 'major version' of previous policy into 'minor version'. Specifically, we develop and test all features of TaichiGAME in `taichi0.8+` , and **ONLY** maintain compatible version of TaichiGAME to `taichi0.7+`, the TaichiGAME based on `taichi<0.7+` will no longer be maintained.
 
 ## Install
 
