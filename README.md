@@ -75,7 +75,8 @@ postgraduate project. Provide a python based, easy-to-use framework.
 2. taichi>=0.8.0, because:
     - for support taichi's new features
     - now `TaichiGAME` don't use the new GGUI `(taichi0.8+ intro)`, so you maybe can use lower version taichi(such as `taichi0.7+`).
-    > - **NOTE:** some `TaichiGAME`'s API is based on specific `taichi` features. In views of the rapid development of `taichi`, we don't have much enery and time to maintain `TaichiGAME` to adapt or be compatiable to multiple different major version of `taichi`. It can make `TaichiGAME` too verbose. So we decide to **only maintain TaichiGAME to adapt to current major verion plus one latest previous major verion of taichi**. For now, because a major version of `taichi` has not been released yet, we decide to **CHANGE** the '`major version`' of previous policy into '`minor version`'. Specifically, we develop and test all features of `TaichiGAME` in `taichi0.8+` , and **ONLY** maintain compatible version of `TaichiGAME` to `taichi0.7+`, the `TaichiGAME` based on `taichi<0.7+` will no longer be maintained. **ATTENTION: This policy maybe be modified according to `taichi`'s development.**
+    - **NOTE:** some `TaichiGAME`'s API is based on specific `taichi` features. In views of the rapid development of `taichi`, we don't have much enery and time to maintain `TaichiGAME` to adapt or be compatiable to multiple different major version of `taichi`. It can make `TaichiGAME` too verbose. So we decide to **only maintain TaichiGAME to adapt to current major verion plus one latest previous major verion of taichi**. For now, because a major version of `taichi` has not been released yet, we decide to **CHANGE** the '`major version`' of previous policy into '`minor version`'. Specifically, we develop and test all features of `TaichiGAME` in `taichi0.8+` , and **ONLY** maintain compatible version of `TaichiGAME` to `taichi0.7+`, the `TaichiGAME` based on `taichi<0.7+` will no longer be maintained.
+      > **ATTENTION: This policy maybe be modified according to `taichi`'s development.**
 
 ## Install
 
@@ -124,6 +125,7 @@ All of the TaichiGAME codes are release under the [MIT License](LICENSE).
 1. Thank [yuanming-hu](https://github.com/yuanming-hu) and [taichi-team](https://github.com/taichi-dev) for creating and maintaining [taichi](https://github.com/taichi-dev/taichi), such an excellent programming language. Meanwile, express thanks for [taichi-team](https://github.com/taichi-dev) to provide free and high-quality [taichi course](https://github.com/taichiCourse01).
 
 2. Thanks to [ACRL](https://github.com/AngryAccelerated) and his engine project [Physics2D](https://github.com/AngryAccelerated/Physics2D). In addition, His [series posts](https://www.zhihu.com/people/acrl/posts) is full of detailed and understandable contents about graphcs and physics engine. Due to him, I learned a tons of konwledges from sratch.
+
 3. Use [Inkscape 1.1.1 (3bf5ae0d25, 2021-09-20, window x64 version, GPL-3.0)](https://inkscape.org/) to draw the logo, flow and architecture diagrams. You can get all of resources in [TaichiGAME-res repo](https://github.com/maksyuki/TaichiGAME-res).
 
 4. Use [GeoGebra (online, GPL-3.0)](https://www.geogebra.org/) to draw shapes to help debug computer geometry algorithm in TaichiGAME.
