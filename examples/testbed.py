@@ -22,7 +22,7 @@ ti.init(arch=ti.cpu)
 scene = Scene()
 
 
-class BroadPhaseDetect(Frame):
+class FrameBroadPhaseDetect(Frame):
     def load(self) -> None:
         tri_data: List[Matrix] = [
             Matrix([-1.0, 1.0], 'vec'),
@@ -95,6 +95,88 @@ class BroadPhaseDetect(Frame):
 
         for bd in query_body_list:
             scene._cam.render_aabb(scene._gui, AABB.from_body(bd))
+
+
+class FrameRaycast(Frame):
+    def load(self) -> None:
+        tri_data: List[Matrix] = [
+            Matrix([-1.0, 1.0], 'vec'),
+            Matrix([0.0, -2.0], 'vec'),
+            Matrix([1.0, -1.0], 'vec'),
+            Matrix([-1.0, 1.0], 'vec')
+        ]
+
+        poly_data: List[Matrix] = [
+            Matrix([0.0, 4.0], 'vec'),
+            Matrix([-3.0, 3.0], 'vec'),
+            Matrix([-4.0, 0.0], 'vec'),
+            Matrix([-3.0, -3.0], 'vec'),
+            Matrix([0.0, -4.0], 'vec'),
+            Matrix([3.0, -3.0], 'vec'),
+            Matrix([4.0, 0.0], 'vec'),
+            Matrix([3.0, 3.0], 'vec'),
+            Matrix([0.0, 4.0], 'vec')
+        ]
+
+        rect: sp.Rectangle = sp.Rectangle(0.5, 0.5)
+        cir: sp.Circle = sp.Circle(0.5)
+        cap: sp.Capsule = sp.Capsule(1.5, 0.5)
+        tri: sp.Polygon = sp.Polygon()
+        tri.vertices = tri_data
+        poly: sp.Polygon = sp.Polygon()
+        poly.vertices = poly_data
+
+        tri.scale(0.5)
+        poly.scale(0.1)
+
+        rng: np.random._generator.Generator = np.random.default_rng(seed=6)
+
+        bd: Body = Body()
+        tmpx: float = 0.0
+        tmpy: float = 0.0
+        cnt: np.ndarray = np.array([])
+        for i in range(101):
+            bd = scene._world.create_body()
+            tmpx = -10 + rng.random() * 20.0
+            tmpy = -6 + rng.random() * 12.0
+            bd.pos = Matrix([tmpx, tmpy], 'vec')
+
+            cnt = rng.integers(low=0, high=5, size=1)
+            if cnt[0] == 0:
+                bd.shape = rect
+            elif cnt[0] == 1:
+                bd.shape = cir
+            elif cnt[0] == 2:
+                bd.shape = tri
+            elif cnt[0] == 3:
+                bd.shape = poly
+            elif cnt[0] == 4:
+                bd.shape = cap
+
+            bd.rot = -np.pi + rng.random() * np.pi
+            bd.mass = 1
+            bd.type = Body.Type.Static
+            scene._dbvt.insert(bd)
+
+    def render(self) -> None:
+        st: Matrix = Matrix([0.0, 0.0], 'vec')
+        dirn: Matrix = scene._mouse_pos.normal()
+
+        Render.rd_line(scene._gui,
+                       scene._cam.world_to_screen(st),
+                       scene._cam.world_to_screen(dirn * 8.0),
+                       color=0xFF0000)
+        query_body_list: List[Body] = scene._dbvt.raycast(st, dirn)
+
+        prim: sp.ShapePrimitive = sp.ShapePrimitive()
+        for bd in query_body_list:
+            prim._rot = bd.rot
+            prim._xform = bd.pos
+            prim._shape = bd.shape
+            Render.rd_shape(scene._gui, prim, scene._cam.world_to_screen,
+                            scene._cam.meter_to_pixel,
+                            Config.QueryRaycasFillColor,
+                            Config.QueryRaycasOutLineColor)
 
 
 def tb_collision():
@@ -191,6 +273,8 @@ def tb_collision():
     scene._dbvt.insert(bd5)
 
 
-broad_phase: BroadPhaseDetect = BroadPhaseDetect()
-broad_phase.load()
-scene.show(broad_phase.render)
+frame_broad_phase: FrameBroadPhaseDetect = FrameBroadPhaseDetect()
+frame_raycast: FrameRaycast = FrameRaycast()
+# frame_broad_phase.load()
+frame_raycast.load()
+scene.show(frame_raycast.render)
