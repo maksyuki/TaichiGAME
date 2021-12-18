@@ -84,6 +84,15 @@ installation is simple, you can just type the following command in `shell` or `c
 $ python3 -m pip install TaichiGAME
 ```
 
+another method is `git clone` this repo and `pip install` dependencies.
+```shell
+$ git clone https://github.com/maksyuki/TaichiGAME.git
+$ python3 -m pip install -r requirements.txt
+```
+
+> NOTE: Recommand use `venv` to isolate test environment from system directories, you can get more details from [Creation of virtual environments](https://docs.python.org/3/library/venv.html).
+
+After installation, 
 ## Development
 <details><summary>example code</summary>
 <p>
