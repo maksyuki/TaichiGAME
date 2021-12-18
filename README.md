@@ -59,6 +59,15 @@ postgraduate project. Provide a python based, easy-to-use framework.
 
 ## Feature
 
+- geometry algorithm
+
+
+- viewport system
+  - zoom in/out
+  - dragged move
+
+- raycast
+
 - collision detection
   - broad phase
   - narrow phase
@@ -75,18 +84,19 @@ postgraduate project. Provide a python based, easy-to-use framework.
 2. taichi>=0.8.0, because:
     - for support taichi's new features
     - now TaichiGAME don't use the new GGUI `(taichi0.8+ intro)`, so you maybe can use lower version taichi(such as `taichi0.7+`).
-    - **NOTE:** some TaichiGAME's API is based on specific taichi features. In views of the rapid development of taichi, we don't have much enery and time to maintain TaichiGAME to adapt or be compatiable to multiple different major version of taichi. It can make TaichiGAME too verbose. So we decide to **only maintain TaichiGAME to adapt to current major verion plus one latest previous major verion of taichi**. For now, because a major version of taichi has not been released yet, we decide to **CHANGE** the 'major version' of previous policy into 'minor version'. Specifically, we develop and test all features of TaichiGAME in `taichi0.8+` , and **ONLY** maintain compatible version of TaichiGAME to `taichi0.7+`, the TaichiGAME based on `taichi<0.7+` will no longer be maintained.
+    - **NOTE:** some TaichiGAME's API is based on specific taichi features. In views of the rapid development of taichi, we don't have much enery and time to maintain TaichiGAME to adapt or be compatiable to multiple different major version of taichi. It can make TaichiGAME too verbose. So we decide to **ONLY maintain TaichiGAME to adapt to current major verion plus one latest previous major verion of taichi**. For now, because a major version of taichi has not been released yet, we decide to **CHANGE** the 'major version' of previous policy into 'minor version'. Specifically, we develop and test all features of TaichiGAME in `taichi0.8+` , and **ONLY** maintain compatible version of TaichiGAME to `taichi0.7+`, the TaichiGAME based on `taichi<0.7+` will no longer be maintained.
 
 ## Install
 
-installation is simple, you can just type the following command in `shell` or `cmd` terminal.
+Installation is simple, you can just type the following command in `shell` or `cmd` terminal.
 ```shell
 $ python3 -m pip install TaichiGAME
 ```
 
-another method is `git clone` this repo and `pip install` dependencies.
+Another method is `git clone` this repo and `pip install` dependencies.
 ```shell
 $ git clone https://github.com/maksyuki/TaichiGAME.git
+$ cd TaichiGAME
 $ python3 -m pip install -r requirements.txt
 ```
 
