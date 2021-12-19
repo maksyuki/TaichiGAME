@@ -244,12 +244,46 @@ class FrameCollision(Frame):
         pass
 
 
+# BUG: some restit will lead to some enormous bias
+class FrameRestitution(Frame):
+    def load(self) -> None:
+        cir: sp.Circle = sp.Circle(1.0)
+        edg: sp.Edge = sp.Edge()
+        edg.set_value(Matrix([-100.0, 0.0], 'vec'), Matrix([100.0, 0.0],
+                                                           'vec'))
+
+        grd: Body = scene._world.create_body()
+        grd.shape = edg
+        grd.mass = Config.Max
+        grd.restit = 1.0
+        grd.fric = 0.9
+        grd.pos = Matrix([0.0, 0.0], 'vec')
+        grd.type = Body.Type.Static
+        scene._dbvt.insert(grd)
+
+        for i in range(10):
+            bd: Body = scene._world.create_body()
+            bd.shape = cir
+            bd.mass = 10
+            bd.fric = 0.1
+            bd.restit = i / 10.0
+            bd.pos = Matrix([i * 2.5 - 10.0, 10.0], 'vec')
+            bd.type = Body.Type.Dynamic
+            scene._dbvt.insert(bd)
+
+    def render(self) -> None:
+        pass
+
+
 frame_broad_phase: FrameBroadPhaseDetect = FrameBroadPhaseDetect()
 frame_raycast: FrameRaycast = FrameRaycast()
 frame_bitmask: FrameBitmask = FrameBitmask()
 frame_collision: FrameCollision = FrameCollision()
+frame_restitution: FrameRestitution = FrameRestitution()
+
 # frame_broad_phase.load()
 # frame_raycast.load()
-frame_bitmask.load()
+# frame_bitmask.load()
 # frame_collision.load()
-scene.show(frame_bitmask.render)
+frame_restitution.load()
+scene.show(frame_restitution.render)
