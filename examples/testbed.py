@@ -15,6 +15,8 @@ from TaichiGAME.dynamics.body import Body
 from TaichiGAME.common.config import Config
 from TaichiGAME.render.render import Render
 from TaichiGAME.collision.broad_phase.aabb import AABB
+from TaichiGAME.dynamics.joint.point import PointJointPrimitive
+from TaichiGAME.dynamics.joint.revolute import RevoluteJointPrimitive
 import TaichiGAME.geometry.shape as sp
 
 ti.init(arch=ti.cpu)
@@ -351,18 +353,90 @@ class FrameStack(Frame):
         pass
 
 
-frame_broad_phase: FrameBroadPhaseDetect = FrameBroadPhaseDetect()
-frame_raycast: FrameRaycast = FrameRaycast()
-frame_bitmask: FrameBitmask = FrameBitmask()
-frame_collision: FrameCollision = FrameCollision()
-frame_restitution: FrameRestitution = FrameRestitution()
-frame_fricitoin: FrameFriction = FrameFriction()
-frame_stack: FrameStack = FrameStack()
+class FrameBridge(Frame):
+    def load(self) -> None:
+        brick: sp.Rectangle = sp.Rectangle(1.5, 0.5)
+        edg: sp.Edge = sp.Edge()
+        edg.set_value(Matrix([-100.0, 0.0], 'vec'), Matrix([100.0, 0], 'vec'))
+
+        rect: Body = scene._world.create_body()
+        rect.shape = brick
+        rect.pos = Matrix([-15.0, 0.0], 'vec')
+        rect.rot = 0.0
+        rect.mass = 1.0
+        rect.restit = 0.2
+        rect.fric = 0.01
+        rect.type = Body.Type.Dynamic
+
+        grd: Body = scene._world.create_body()
+        grd.shape = edg
+        grd.pos = Matrix([0.0, -15.0], 'vec')
+        grd.mass = Config.Max
+        grd.type = Body.Type.Static
+        scene._dbvt.insert(grd)
+
+        ppm: PointJointPrimitive = PointJointPrimitive()
+        revol: RevoluteJointPrimitive = RevoluteJointPrimitive()
+
+        half: float = brick.width / 2.0
+        ppm._bodya = rect
+        ppm._local_pointa.set_value([-half, 0.0])
+        ppm._target_point.set_value([-15.0 - half, 0.0])
+        ppm._damping_radio = 0.1
+        ppm._freq = 1000
+        ppm._force_max = 10000
+        scene._world.create_joint(ppm)
+
+        cnt: int = 20
+        scene._dbvt.insert(rect)
+
+        for i in range(1, cnt):
+            rect2: Body = scene._world.create_body()
+            rect2.shape = brick
+            rect2.pos = Matrix([-15.0 + i * brick.width * 1.2, 0.0], 'vec')
+            rect2.rot = 0.0
+            rect2.mass = 1.0
+            rect2.fric = 0.01
+            rect2.type = Body.Type.Dynamic
+
+            scene._dbvt.insert(rect2)
+            revol._bodya = rect
+            revol._bodyb = rect2
+            revol._local_pointa.set_value([half + brick.width * 0.1, 0.0])
+            revol._local_pointb.set_value([-half - brick.width * 0.1, 0.0])
+            revol._damping_radio = 0.8
+            revol._freq = 10.0
+            revol._force_max = 10000
+            scene._world.create_joint(revol)
+            rect = rect2
+
+        ppm._bodya = rect2
+        ppm._local_pointa.set_value([0.75, 0.0])
+        ppm._target_point.set_value(
+            rect2.to_world_point(Matrix([0.75, 0.0], 'vec')))
+        ppm._damping_radio = 0.1
+        ppm._freq = 1000.0
+        ppm._force_max = 10000.0
+        scene._world.create_joint(ppm)
+
+    def render(self) -> None:
+        pass
+
+
+# frame_broad_phase: FrameBroadPhaseDetect = FrameBroadPhaseDetect()
+# frame_raycast: FrameRaycast = FrameRaycast()
+# frame_bitmask: FrameBitmask = FrameBitmask()
+# frame_collision: FrameCollision = FrameCollision()
+# frame_restitution: FrameRestitution = FrameRestitution()
+# frame_fricitoin: FrameFriction = FrameFriction()
+# frame_stack: FrameStack = FrameStack()
+frame_bridge: FrameBridge = FrameBridge()
 # frame_broad_phase.load()
 # frame_raycast.load()
 # frame_bitmask.load()
 # frame_collision.load()
 # frame_restitution.load()
 # frame_fricitoin.load()
-frame_stack.load()
-scene.show(frame_stack.render)
+# frame_stack.load()
+frame_bridge.load()
+scene.show(frame_bridge.render)
