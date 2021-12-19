@@ -275,15 +275,94 @@ class FrameRestitution(Frame):
         pass
 
 
+class FrameFriction(Frame):
+    def load(self) -> None:
+        edg: sp.Edge = sp.Edge()
+        edg.set_value(Matrix([0.0, 0.0], 'vec'), Matrix([10.0, 0.0], 'vec'))
+        ramp: sp.Edge = sp.Edge()
+        ramp.set_value(Matrix([-10.0, 4.0], 'vec'), Matrix([0.0, 0.0], 'vec'))
+        rect: sp.Rectangle = sp.Rectangle(0.5, 0.5)
+
+        for i in range(3):
+            grd: Body = scene._world.create_body()
+            grd.shape = edg
+            grd.fric = 0.1
+            grd.mass = Config.Max
+            grd.pos = Matrix([0, i * 3.0], 'vec')
+            grd.restit = 0.0
+            grd.type = Body.Type.Static
+
+            ram_grd: Body = scene._world.create_body()
+            ram_grd.shape = ramp
+            ram_grd.fric = 0.1
+            ram_grd.mass = Config.Max
+            ram_grd.pos = Matrix([0, i * 3.0], 'vec')
+            ram_grd.restit = 0.0
+            ram_grd.type = Body.Type.Static
+
+            scene._dbvt.insert(grd)
+            scene._dbvt.insert(ram_grd)
+
+        for i in range(1, 4):
+            cube: Body = scene._world.create_body()
+            cube.shape = rect
+            cube.fric = i * 0.3
+            cube.mass = 1
+            cube.pos = Matrix([-5.0, i * 3.5], 'vec')
+            cube.restit = 0.0
+            cube.type = Body.Type.Dynamic
+            scene._dbvt.insert(cube)
+
+    def render(self) -> None:
+        pass
+
+
+class FrameStack(Frame):
+    def load(self) -> None:
+        edg: sp.Edge = sp.Edge()
+        edg.set_value(Matrix([-100.0, 0.0], 'vec'), Matrix([100.0, 0.0],
+                                                           'vec'))
+        rect: sp.Rectangle = sp.Rectangle(1.0, 1.0)
+        grd: Body = scene._world.create_body()
+        grd.shape = edg
+        grd.pos = Matrix([0.0, 0.0], 'vec')
+        grd.mass = Config.Max
+        grd.type = Body.Type.Static
+        scene._dbvt.insert(grd)
+
+        offset: float = 0.0
+        max: int = 4
+        for i in range(max):
+            for j in range(max - i):
+                bd: Body = scene._world.create_body()
+                bd.pos = Matrix([-10.0 + j * 1.1 + offset, i * 1.8 + 2.0],
+                                'vec')
+                bd.shape = rect
+                bd.rot = 0.0
+                bd.mass = 0.2
+                bd.type = Body.Type.Dynamic
+                bd.fric = 0.8
+                bd.restit = 0.0
+                scene._dbvt.insert(bd)
+
+            offset += 0.5
+
+    def render(self) -> None:
+        pass
+
+
 frame_broad_phase: FrameBroadPhaseDetect = FrameBroadPhaseDetect()
 frame_raycast: FrameRaycast = FrameRaycast()
 frame_bitmask: FrameBitmask = FrameBitmask()
 frame_collision: FrameCollision = FrameCollision()
 frame_restitution: FrameRestitution = FrameRestitution()
-
+frame_fricitoin: FrameFriction = FrameFriction()
+frame_stack: FrameStack = FrameStack()
 # frame_broad_phase.load()
 # frame_raycast.load()
 # frame_bitmask.load()
 # frame_collision.load()
-frame_restitution.load()
-scene.show(frame_restitution.render)
+# frame_restitution.load()
+# frame_fricitoin.load()
+frame_stack.load()
+scene.show(frame_stack.render)
