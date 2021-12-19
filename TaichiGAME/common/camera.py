@@ -380,7 +380,10 @@ class Camera():
                 Render.rd_angle_line(gui, prim, self.world_to_screen)
 
     def render_joint(self, gui: GUI) -> None:
-        raise NotImplementedError
+        assert self._world is not None
+        for jt in self._world._joint_list:
+            if jt.active:
+                Render.rd_joint(gui, jt, self.world_to_screen)
 
     def render_axis(self, gui: GUI) -> None:
         axis_points: List[Matrix] = []
