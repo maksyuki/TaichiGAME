@@ -2,15 +2,21 @@ from typing import Callable, List, Optional, Tuple, cast
 import numpy as np
 
 import taichi as ti
+
+from TaichiGAME.dynamics.joint.point import PointJoint
+from TaichiGAME.dynamics.joint.revolute import RevoluteJoint
+from TaichiGAME.dynamics.joint.revolute import RevoluteJointPrimitive
+
 try:
     from taichi.ui.gui import GUI
 except ImportError:
     from taichi.misc.gui import GUI
 
 from ..math.matrix import Matrix
-from ..geometry.shape import Capsule, Circle, Edge
+from ..geometry.shape import Capsule, Circle, Edge, Point
 from ..geometry.shape import Polygon, Shape, ShapePrimitive
-from ..dynamics.joint.joint import Joint
+from ..dynamics.joint.joint import Joint, JointType
+from ..dynamics.joint.distance import DistanceJoint
 from ..common.config import Config
 
 
@@ -273,8 +279,116 @@ class Render():
                  color)
 
     @staticmethod
-    def rd_joint(gui, joint: Joint) -> None:
-        raise NotImplementedError
+    def rd_joint(gui: GUI, joint: Joint,
+                 world_to_screen: Callable[[Matrix], Matrix]) -> None:
+        jt_type: JointType = joint.type()
+        if jt_type == JointType.Rotation:
+            Render.rd_rotation_joint()
+
+        elif jt_type == JointType.Distance:
+            Render.rd_distance_joint(gui, joint, world_to_screen)
+
+        elif jt_type == JointType.Point:
+            Render.rd_point_joint(gui, joint, world_to_screen)
+
+        elif jt_type == JointType.Orientation:
+            Render.rd_orient_joint(gui, joint, world_to_screen)
+
+        elif jt_type == JointType.Pulley:
+            Render.rd_pulley_joint()
+
+        elif jt_type == JointType.Prismatic:
+            Render.rd_prismatic_joint()
+
+        elif jt_type == JointType.Revolute:
+            Render.rd_revolute_joint(gui, joint, world_to_screen)
+
+        elif jt_type == JointType.Wheel:
+            Render.rd_wheel_joint()
+
+    @staticmethod
+    def rd_rotation_joint() -> None:
+        pass
+
+    @staticmethod
+    def rd_distance_joint(gui: GUI, joint: Joint,
+                          world_to_screen: Callable[[Matrix], Matrix]) -> None:
+        assert joint is not None
+
+        dis_jt: DistanceJoint = cast(DistanceJoint, joint)
+
+        assert dis_jt.prim._bodya is not None
+        pa: Matrix = dis_jt.prim._bodya.to_world_point(
+            dis_jt.prim._local_pointa)
+        pb: Matrix = dis_jt.prim._target_point
+
+        n: Matrix = (pa - pb).normal()
+        point_min: Matrix = n * dis_jt.prim._dist_min + pb
+        point_max: Matrix = n * dis_jt.prim._dist_max + pb
+
+        Render.rd_point(gui, world_to_screen(pa), Config.JointPointColor)
+        Render.rd_point(gui, world_to_screen(pb), Config.JointPointColor)
+        Render.rd_point(gui, world_to_screen(point_min), 0x448AFF)
+        Render.rd_point(gui, world_to_screen(point_max), 0xF44336)
+        Render.rd_line(gui, world_to_screen(pa), world_to_screen(pb),
+                       Config.JointLineColor)
+
+    @staticmethod
+    def rd_point_joint(gui: GUI, joint: Joint,
+                       world_to_screen: Callable[[Matrix], Matrix]) -> None:
+        assert joint is not None
+
+        point_jt: PointJoint = cast(PointJoint, joint)
+        pa: Matrix = point_jt.prim()._bodya.to_world_point(
+            point_jt.prim()._local_pointa)
+        pb: Matrix = point_jt.prim()._target_point
+
+        Render.rd_point(gui, world_to_screen(pa), Config.JointPointColor)
+        Render.rd_point(gui, world_to_screen(pb), Config.JointPointColor)
+        Render.rd_line(gui, world_to_screen(pa), world_to_screen(pb),
+                       Config.JointLineColor)
+
+    @staticmethod
+    def rd_orient_joint(gui: GUI, joint: Joint,
+                        world_to_screen: Callable[[Matrix], Matrix]) -> None:
+        assert joint is not None
+        point_jt: PointJoint = cast(PointJoint, joint)
+        pa: Matrix = point_jt.prim()._bodya.pos
+        pb: Matrix = point_jt.prim()._target_point
+
+        Render.rd_point(gui, world_to_screen(pa), Config.JointPointColor)
+        Render.rd_point(gui, world_to_screen(pb), Config.JointPointColor)
+        Render.rd_line(gui, world_to_screen(pa), world_to_screen(pb),
+                       Config.JointLineColor)
+
+    @staticmethod
+    def rd_pulley_joint() -> None:
+        pass
+
+    @staticmethod
+    def rd_prismatic_joint() -> None:
+        pass
+
+    @staticmethod
+    def rd_revolute_joint(gui: GUI, joint: Joint,
+                          world_to_screen: Callable[[Matrix], Matrix]) -> None:
+        assert joint is not None
+        revol: RevoluteJoint = cast(RevoluteJoint, joint)
+
+        tmp: RevoluteJointPrimitive = revol.prim()
+        assert tmp._bodya is not None
+        assert tmp._bodyb is not None
+        pa: Matrix = tmp._bodya.to_world_point(tmp._local_pointa)
+        pb: Matrix = tmp._bodyb.to_world_point(tmp._local_pointb)
+
+        Render.rd_point(gui, world_to_screen(pa), Config.JointPointColor)
+        Render.rd_point(gui, world_to_screen(pb), Config.JointPointColor)
+        Render.rd_line(gui, world_to_screen(pa), world_to_screen(pb),
+                       Config.JointLineColor)
+
+    @staticmethod
+    def rd_wheel_joint() -> None:
+        pass
 
     @staticmethod
     def rd_angle_line(gui: GUI, prim: ShapePrimitive,
