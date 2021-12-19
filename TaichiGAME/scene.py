@@ -10,8 +10,6 @@ except ImportError:
     print('so feel free for this import error')
     from taichi.misc._gui import GUI
 
-import numpy as np
-
 from .common.camera import Camera
 from .common.config import Config
 from .collision.broad_phase.dbvt import DBVT
