@@ -192,6 +192,7 @@ class ContactMaintainer():
         assert collision._bodya is not None
         assert collision._bodyb is not None
 
+        # NOTE: return val by ccp params
         ccp._bodya = collision._bodya
         ccp._bodyb = collision._bodyb
         ccp._active = True
