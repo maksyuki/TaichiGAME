@@ -108,6 +108,8 @@ class Camera():
                 self._meter_to_pixel -= (1.0 -
                                          np.exp(self._restit * inv_dt)) * scale
 
+            self._pixel_to_meter = 1.0 / self._meter_to_pixel  # NOTE: don't forget
+
             if self.body_visible:
                 self.render_body(gui)
 
