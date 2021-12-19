@@ -24,6 +24,8 @@ class Config():
     QueryRectLineColor: int = 0xFF0000
     QueryRaycasFillColor: int = 0x00CCCC
     QueryRaycasOutLineColor: int = 0x33FFFF
+    JointPointColor: int = 0xFF0000
+    JointLineColor: int = 0x0000FF
 
     @staticmethod
     def clamp(num: float, low: float, high: float) -> float:
