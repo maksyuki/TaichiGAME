@@ -1,7 +1,10 @@
 from __future__ import annotations
-from typing import Callable, Tuple, Union, List
+from typing import Callable, Tuple, Union, List, cast, Optional
 
 import taichi as ti
+
+from TaichiGAME.dynamics.joint.point import PointJoint, PointJointPrimitive
+from TaichiGAME.collision.broad_phase.aabb import AABB
 
 try:
     from taichi.ui.gui import GUI  # for taichi >= 0.8.7
@@ -60,6 +63,15 @@ class Scene():
         # the right-mouse btn drag move flag(change viewport)
         self._mouse_viewport_move: bool = False
 
+        # mouse joint
+        self._mouse_joint_prim: PointJointPrimitive = PointJointPrimitive()
+        self._mouse_joint_prim._bodya = Body()
+        self._mouse_joint: PointJoint = cast(
+            PointJoint, self._world.create_joint(self._mouse_joint_prim))
+        self._mouse_joint.active = False
+
+        self._mouse_select_body: Optional[Body] = None
+
     def physics_sim(self) -> None:
         for elem in self._world._body_list:
             self._dbvt.update(elem)
@@ -102,9 +114,29 @@ class Scene():
 
         self._mouse_pos = self._cam.screen_to_world(Matrix([x, y], 'vec'))
         if state == GUI.PRESS:
-            pass
+            if self._mouse_joint is None:
+                return
+
+            mouse_box: AABB = AABB(0.01, 0.01)
+            mouse_box.pos = self._mouse_pos
+            bd_list: List[Body] = self._dbvt.query(mouse_box)
+            for bd in bd_list:
+                point: Matrix = self._mouse_pos - bd.pos
+                point = Matrix.rotate_mat(-bd.rot) * point
+
+                if bd.shape.contains(
+                        point) and self._mouse_select_body is None:
+                    self._mouse_select_body = bd
+                    prim: PointJointPrimitive = self._mouse_joint.prim()
+                    prim._local_pointa = bd.to_local_point(self._mouse_pos)
+                    prim._bodya = bd
+                    prim._target_point = self._mouse_pos
+                    self._mouse_joint.active = True
+                    self._mouse_joint.set_value(prim)
+                    break
         else:
-            pass
+            self._mouse_joint.active = False
+            self._mouse_select_body = None
 
     def handle_right_mouse_event(self, state: Union[GUI.PRESS,
                                                     GUI.RELEASE]) -> None:
@@ -125,11 +157,15 @@ class Scene():
             # 33.0 is init meter_to_pixel value
             self._cam.transform += delta_pos * 0.5 * (33.0 /
                                                       self._cam.meter_to_pixel)
-        else:
-            pass
 
         self._mouse_pos = cur_pos
         # print(f'({self._mouse_pos.x}, {self._mouse_pos.y}')
+        if self._mouse_joint is None:
+            return
+
+        prim: PointJointPrimitive = self._mouse_joint.prim()
+        prim._target_point = self._mouse_pos
+        self._mouse_joint.set_value(prim)
 
     def handle_wheel_event(self, y: float) -> None:
         # NOTE: need to set the sef._cam  the value scale
