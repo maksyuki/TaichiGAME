@@ -102,8 +102,7 @@ class PointJoint(Joint):
         self._prim._bodya.apply_impulse(J, ra)
 
     def solve_position(self, dt: float) -> None:
-        raise NotImplementedError(
-            'point joint have not solve_position impl')
+        pass
 
     def prim(self) -> PointJointPrimitive:
         return self._prim
