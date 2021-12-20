@@ -107,8 +107,7 @@ class DistanceJoint(Joint):
         self._prim._bodya.apply_impulse(impulse, ra)
 
     def solve_position(self, dt: float) -> None:
-        raise NotImplementedError(
-            'distance joint have not solve_position impl')
+        pass
 
     @property
     def prim(self) -> DistanceJointPrimitive:
@@ -184,8 +183,7 @@ class DistanceConstraint(Joint):
         self._prim._nearest_pb = pb
 
     def solve_position(self, dt: float) -> None:
-        raise NotImplementedError(
-            'distance constrain have not solve_position impl')
+        pass
 
     def prim(self) -> DistanceConstraintPrimitive:
         return self._prim

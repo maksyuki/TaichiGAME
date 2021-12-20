@@ -55,7 +55,7 @@ class RotationJoint(Joint):
         self._prim._bodyb.ang_vel -= self._prim._bodyb.inv_inertia * impulse
 
     def solve_position(self, dt: float) -> None:
-        raise NotImplementedError('rot joint have not solve_position impl')
+        pass
 
     def prim(self) -> RotationJointPrimitive:
         return self._prim
@@ -97,8 +97,7 @@ class OrientationJoint(Joint):
         self._prim._bodya.ang_vel += self._prim._bodya.inv_inertia * impulse
 
     def solve_position(self, dt: float) -> None:
-        raise NotImplementedError(
-            'orient-rot joint have not solve_position impl')
+        pass
 
     def prim(self) -> OrientationJointPrimitive:
         return self._prim
