@@ -17,6 +17,8 @@ from TaichiGAME.render.render import Render
 from TaichiGAME.collision.broad_phase.aabb import AABB
 from TaichiGAME.dynamics.joint.point import PointJointPrimitive
 from TaichiGAME.dynamics.joint.revolute import RevoluteJointPrimitive
+from TaichiGAME.dynamics.joint.distance import DistanceJointPrimitive
+from TaichiGAME.dynamics.joint.rotation import OrientationJointPrimitive
 import TaichiGAME.geometry.shape as sp
 
 ti.init(arch=ti.cpu)
@@ -353,6 +355,7 @@ class FrameStack(Frame):
         pass
 
 
+# BUG: some impl error
 class FrameBridge(Frame):
     def load(self) -> None:
         brick: sp.Rectangle = sp.Rectangle(1.5, 0.5)
@@ -423,20 +426,107 @@ class FrameBridge(Frame):
         pass
 
 
+class FrameDomino(Frame):
+    def load(self) -> None:
+        floor: sp.Rectangle = sp.Rectangle(15.0, 0.5)
+        rect: sp.Rectangle = sp.Rectangle(0.5, 0.5)
+        brick: sp.Rectangle = sp.Rectangle(0.3, 3.0)
+        edg: sp.Edge = sp.Edge()
+        edg.set_value(Matrix([-100.0, 0.0], 'vec'), Matrix([100.0, 0.0],
+                                                           'vec'))
+
+        grd: Body = scene._world.create_body()
+        grd.shape = edg
+        grd.type = Body.Type.Static
+        grd.mass = Config.Max
+        grd.pos = Matrix([0.0, 0.0], 'vec')
+        grd.fric = 0.1
+        grd.restit = 0.0
+        scene._dbvt.insert(grd)
+
+        tile: Body = scene._world.create_body()
+        tile.shape = floor
+        tile.type = Body.Type.Static
+        tile.mass = Config.Max
+        tile.fric = 0.1
+        tile.restit = 0.0
+        tile.rot = np.pi / 180 * 15
+        tile.pos = Matrix([4.0, 8.0], 'vec')
+        scene._dbvt.insert(tile)
+
+        tile = scene._world.create_body()
+        tile.shape = floor
+        tile.type = Body.Type.Static
+        tile.mass = Config.Max
+        tile.fric = 0.1
+        tile.restit = 0.0
+        tile.rot = np.pi / 180 * -15
+        tile.pos = Matrix([-4.0, 4.0], 'vec')
+        scene._dbvt.insert(tile)
+
+        tile = scene._world.create_body()
+        tile.shape = floor
+        tile.type = Body.Type.Static
+        tile.mass = Config.Max
+        tile.fric = 0.1
+        tile.restit = 0.0
+        tile.rot = 0.0
+        tile.pos = Matrix([-5.0, 10.0], 'vec')
+        scene._dbvt.insert(tile)
+
+        for i in range(9):
+            card: Body = scene._world.create_body()
+            card.shape = brick
+            card.mass = 10
+            card.fric = 0.1
+            card.restit = 0.0
+            card.type = Body.Type.Dynamic
+            card.pos = Matrix([-10.0 + i * 1.2, 12.0], 'vec')
+            scene._dbvt.insert(card)
+
+        pendulum: Body = scene._world.create_body()
+        pendulum.shape = rect
+        pendulum.mass = 2.0
+        pendulum.fric = 0.1
+        pendulum.type = Body.Type.Dynamic
+        pendulum.pos = Matrix([-16.0, 16.0], 'vec')
+        scene._dbvt.insert(pendulum)
+
+        djp: DistanceJointPrimitive = DistanceJointPrimitive()
+        djp._bodya = pendulum
+        djp._local_pointa.set_value([0.0, 0.0])
+        djp._dist_min = 1.0
+        djp._dist_max = 4.0
+        djp._target_point.set_value([-12.0, 16.0])
+        scene._world.create_joint(djp)
+
+        ojp: OrientationJointPrimitive = OrientationJointPrimitive()
+        ojp._target_point.set_value([-12.0, 16.0])
+        ojp._bodya = pendulum
+        ojp._ref_rot = 0.0
+        scene._world.create_joint(ojp)
+
+    def render(self) -> None:
+        pass
+
+
 # frame_broad_phase: FrameBroadPhaseDetect = FrameBroadPhaseDetect()
 # frame_raycast: FrameRaycast = FrameRaycast()
 # frame_bitmask: FrameBitmask = FrameBitmask()
-# frame_collision: FrameCollision = FrameCollision()
+frame_collision: FrameCollision = FrameCollision()
 # frame_restitution: FrameRestitution = FrameRestitution()
 # frame_fricitoin: FrameFriction = FrameFriction()
 # frame_stack: FrameStack = FrameStack()
-frame_bridge: FrameBridge = FrameBridge()
+# frame_bridge: FrameBridge = FrameBridge()
+# frame_domino: FrameDomino = FrameDomino()
+
 # frame_broad_phase.load()
 # frame_raycast.load()
 # frame_bitmask.load()
-# frame_collision.load()
+frame_collision.load()
 # frame_restitution.load()
 # frame_fricitoin.load()
 # frame_stack.load()
-frame_bridge.load()
-scene.show(frame_bridge.render)
+# frame_bridge.load()
+# frame_domino.load()
+scene.show(frame_collision.render)
