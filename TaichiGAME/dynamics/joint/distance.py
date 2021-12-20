@@ -85,15 +85,15 @@ class DistanceJoint(Joint):
         self._prim._bias = self._prim._bias_factor * c / dt
 
     def solve_velocity(self, dt: float) -> None:
-        if self._prim._bias == 0:
+        if np.isclose(self._prim._bias, 0):
             return
 
         assert self._prim._bodya is not None
 
         ra: Matrix = self._prim._bodya.to_world_point(
             self._prim._local_pointa) - self._prim._bodya.pos
-        va: Matrix = self._prim._bodya.vel + Matrix.cross_product(
-            Matrix([self._prim._bodya.ang_vel, 0.0], 'vec'), ra)
+        va: Matrix = self._prim._bodya.vel + Matrix.cross_product2(
+            self._prim._bodya.ang_vel, ra)
         dv: Matrix = va
         jv: float = self._prim._normal.dot(dv)
         jvb: float = -jv + self._prim._bias
@@ -126,7 +126,7 @@ class DistanceConstraint(Joint):
         if self._prim._bodya is None or self._prim._bodyb is None:
             return
 
-        bodya: Body = self._prim._bodyb
+        bodya: Body = self._prim._bodya
         bodyb: Body = self._prim._bodyb
 
         im_a: float = bodya.inv_mass
@@ -155,10 +155,10 @@ class DistanceConstraint(Joint):
         if self._prim._bodya is None or self._prim._bodyb is None:
             return
 
-        va: Matrix = self._prim._bodya.vel + Matrix.cross_product(
-            Matrix([self._prim._bodya.ang_vel, 0.0], 'vec'), self._prim._ra)
-        vb: Matrix = self._prim._bodyb.vel + Matrix.cross_product(
-            Matrix([self._prim._bodyb.ang_vel, 0.0], 'vec'), self._prim._rb)
+        va: Matrix = self._prim._bodya.vel + Matrix.cross_product2(
+            self._prim._bodya.ang_vel, self._prim._ra)
+        vb: Matrix = self._prim._bodyb.vel + Matrix.cross_product2(
+            self._prim._bodyb.ang_vel, self._prim._rb)
 
         jvb: Matrix = va - vb
         jvb += self._prim._bias

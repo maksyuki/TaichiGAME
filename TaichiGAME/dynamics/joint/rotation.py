@@ -88,6 +88,7 @@ class OrientationJoint(Joint):
         if np.isclose(c, 2.0 * np.pi) or np.isclose(c, -2.0 * np.pi):
             c = 0
             bodya.rot = target_rot
+            return
 
         self._prim._bias = self._factor * inv_dt * c
 

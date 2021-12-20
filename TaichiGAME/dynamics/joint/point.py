@@ -81,8 +81,8 @@ class PointJoint(Joint):
 
         ra: Matrix = self._prim._bodya.to_world_point(
             self._prim._local_pointa) - self._prim._bodya.pos
-        va: Matrix = self._prim._bodya.vel + Matrix.cross_product(
-            Matrix([self._prim._bodya.ang_vel, 0.0], 'vec'), ra)
+        va: Matrix = self._prim._bodya.vel + Matrix.cross_product2(
+            self._prim._bodya.ang_vel, ra)
 
         jvb: Matrix = va
         jvb += self._prim._bias
