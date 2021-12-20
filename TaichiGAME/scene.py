@@ -5,6 +5,7 @@ import taichi as ti
 
 from TaichiGAME.dynamics.joint.point import PointJoint, PointJointPrimitive
 from TaichiGAME.collision.broad_phase.aabb import AABB
+from TaichiGAME.frame import Frame
 
 try:
     from taichi.ui.gui import GUI  # for taichi >= 0.8.7
@@ -52,9 +53,15 @@ class Scene():
         self._cam.aabb_visible = True
         self._cam.dbvt_visible = True
         self._cam.rot_line_visible = True
+        self._cam.joint_visible = True
         self._cam._world = self._world
         self._cam._dbvt = self._dbvt
 
+        # extern frame table
+        self._ext_frame_list: List[Frame] = []
+        self._ext_frame_idx: int = 0
+
+        # calcuate step
         self._fps = 120
         self._dt = 1 / self._fps
         # NOTE: some algorithm need to cacluate the pos's len
@@ -63,14 +70,46 @@ class Scene():
         # the right-mouse btn drag move flag(change viewport)
         self._mouse_viewport_move: bool = False
 
-        # mouse joint
+        # mouse joint oper
         self._mouse_joint_prim: PointJointPrimitive = PointJointPrimitive()
         self._mouse_joint_prim._bodya = Body()
         self._mouse_joint: PointJoint = cast(
             PointJoint, self._world.create_joint(self._mouse_joint_prim))
         self._mouse_joint.active = False
-
         self._mouse_select_body: Optional[Body] = None
+
+    def register_frame(self, frame: Frame) -> None:
+        self._ext_frame_list.append(frame)
+
+    def remove_frame(self, frame: Frame) -> None:
+        # NOTE: need to check if exist first
+        self._ext_frame_list.remove(frame)
+
+    def clear_all(self) -> None:
+        self._world.clear_all_bodies()
+        self._world.clear_all_joints()
+        self._maintainer.clear_all()
+        self._dbvt.clear_all()
+        self._mouse_joint_prim._bodya = Body()
+        self._mouse_joint = cast(
+            PointJoint, self._world.create_joint(self._mouse_joint_prim))
+        self._mouse_joint.active = False
+
+    def calc_nxt_frame(self, delta: int) -> None:
+        ext_len: int = len(self._ext_frame_list)
+        assert -ext_len <= delta <= ext_len
+
+        self._ext_frame_idx = Config.clamp(self._ext_frame_idx, 0, ext_len - 1)
+        # NOTE: the sign of mod in python depend on dividend
+        self._ext_frame_idx = (self._ext_frame_idx + delta) % ext_len
+
+    def init_frame(self) -> None:
+        self.change_frame(0)
+
+    def change_frame(self, delta: int) -> None:
+        self.clear_all()
+        self.calc_nxt_frame(delta)
+        self._ext_frame_list[self._ext_frame_idx].load()
 
     def physics_sim(self) -> None:
         for elem in self._world._body_list:
@@ -108,6 +147,7 @@ class Scene():
 
     def render(self) -> None:
         self._cam.render(self._gui)
+        self._ext_frame_list[self._ext_frame_idx].render()
 
     def handle_left_mouse_event(self, state: Union[GUI.PRESS, GUI.RELEASE],
                                 x: float, y: float) -> None:
@@ -121,6 +161,7 @@ class Scene():
             mouse_box.pos = self._mouse_pos
             bd_list: List[Body] = self._dbvt.query(mouse_box)
             for bd in bd_list:
+                print(bd.id)
                 point: Matrix = self._mouse_pos - bd.pos
                 point = Matrix.rotate_mat(-bd.rot) * point
 
@@ -175,11 +216,10 @@ class Scene():
         else:
             self._cam.meter_to_pixel -= self._cam.meter_to_pixel / 4
 
-    def show(self, extern_render: Callable[[], None]) -> None:
+    def show(self) -> None:
         while self._gui.running:
             self.physics_sim()
             self.render()
-            extern_render()
 
             for e in self._gui.get_events():
                 if e.key == ti.GUI.ESCAPE:
@@ -203,11 +243,11 @@ class Scene():
                 elif e.key == ti.GUI.DOWN:
                     pass
 
-                elif e.key == ti.GUI.LEFT:
-                    pass
+                elif e.key == ti.GUI.LEFT and e.type == GUI.RELEASE:
+                    self.change_frame(-1)
 
-                elif e.key == ti.GUI.RIGHT:
-                    pass
+                elif e.key == ti.GUI.RIGHT and e.type == GUI.RELEASE:
+                    self.change_frame(1)
 
                 elif e.key == 'q' and e.type == GUI.PRESS:
                     self._cam.visible = not self._cam.visible
