@@ -500,11 +500,11 @@ class FrameDomino(Frame):
         djp._target_point.set_value([-12.0, 16.0])
         scene._world.create_joint(djp)
 
-        ojp: OrientationJointPrimitive = OrientationJointPrimitive()
-        ojp._target_point.set_value([-12.0, 16.0])
-        ojp._bodya = pendulum
-        ojp._ref_rot = 0.0
-        scene._world.create_joint(ojp)
+        # ojp: OrientationJointPrimitive = OrientationJointPrimitive()
+        # ojp._target_point.set_value([-12.0, 16.0])
+        # ojp._bodya = pendulum
+        # ojp._ref_rot = 0.0
+        # scene._world.create_joint(ojp)
 
     def render(self) -> None:
         pass

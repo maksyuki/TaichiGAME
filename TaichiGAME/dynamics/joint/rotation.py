@@ -94,6 +94,7 @@ class OrientationJoint(Joint):
 
     def solve_velocity(self, dt: float) -> None:
         dw: float = self._prim._bodya.ang_vel
+        print(f'rotation joint dw: {dw}')
         impulse: float = self._prim._eff_mass * (-dw * self._prim._bias)
         self._prim._bodya.ang_vel += self._prim._bodya.inv_inertia * impulse
 
