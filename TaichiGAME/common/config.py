@@ -1,3 +1,6 @@
+from typing import TypeVar
+
+
 class Config():
     SimplexMax: int = 8
     Epsilon: float = 1e-5
@@ -27,8 +30,10 @@ class Config():
     JointPointColor: int = 0xFF0000
     JointLineColor: int = 0x0000FF
 
+    T = TypeVar('T', float, int)
+
     @staticmethod
-    def clamp(num: float, low: float, high: float) -> float:
+    def clamp(num: T, low: T, high: T) -> T:
         assert low <= high
 
         if num < low:
