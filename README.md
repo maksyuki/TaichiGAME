@@ -28,7 +28,7 @@
     <img src="https://img.shields.io/tokei/lines/github/maksyuki/TaichiGAME?style=flat-square">
   </a>
   <a href="https://github.com/google/yapf">
-    <img src="https://img.shields.io/badge/code%20style-yapf-red?style=flat-square">
+    <img src="https://img.shields.io/badge/code%20style-yapf%20mypy-red?style=flat-square">
   </a>
   <a href="https://github.com/PyCQA">
     <img src="https://img.shields.io/badge/static%20checker-pylint%20pycodestyle-red?style=flat-square">
@@ -43,19 +43,18 @@
 
 
 ## Overview
-TaichiGAME is aim to become a light simulation engine specific for **robot motion planning and control**. I hope to design powered by [taichi lang](https://github.com/taichi-dev/taichi).
-> NOTE: due to the final exam approaching, 
+TaichiGAME is aim to become a lightweight simulation engine in **motion planning and control research fields**. And it is written in python and [taichi](https://github.com/taichi-dev/taichi), which combines the traditional numerical methods for solving rigid dynamcis equations, model parameters derivation, with parallel implementation capabilites in order to maximize scientists' productivity.
 
 ## Motivation
 I am a postgraduate in school of astronautics and major in aerospace robot guidance, navigation and control. During my first year, I took a class on _advanced control theory_ and was taught many different control algorithms for estimating dynamic model, fitting state curves and so on.
 
-When I carried out a research on asteroid rover's motion planning supported by NFSC(**National Natural Science Foundation of China**), I spent lots of time on learning c++ for writing parallel program to solve complex rigid body dynamics equations. To be honest, achieving all of the details, especially some c++ advanced features, made me thoroughly exhausted. I could not just focus on the algorithms and built rapid prototype to verify it. I searched online and found it have no open source, scientific-oriented, out-of-the-box tools or framework to execute such high performance rigid body motion computing. In that case, why not I built one?
+When I carried out a research on asteroid rover motion planning supported by NFSC(**National Natural Science Foundation of China**), I spent lots of time on learning c++ for writing parallel program to solve complex rigid body dynamics equations. To be honest, achieving all of the details, especially some c++ advanced features, made me thoroughly exhausted. I could not just focus on the algorithms and built rapid prototype to verify it. I thought others feel the same way. After that, I searched online and found no open source, scientific-oriented, out-of-the-box tools or framework to execute such high performance rigid body motion computing. In that case, why not build one? The result of that desire is this project.
 
-
-When I ,
 
 ## Why TaichiGAME
 postgraduate project. Provide a python based, easy-to-use framework. 
+
+> NOTE: due to our research is still under review and revisioning, We could not release all of research results publicly now.
 
 ## Feature
 
