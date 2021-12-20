@@ -96,19 +96,7 @@ class Camera():
     def render(self, gui: GUI) -> None:
         if self.visible:
             # assert self.world is not None
-
-            # calc the 'meter to pixel' scale according
-            # to the 'target meter to pixel' set from
-            # the wheel event smooth animation
-            inv_dt: float = 1.0 / self._delta_time
-            scale: float = self._target_meter_to_pixel - self._meter_to_pixel
-            if np.fabs(scale) < 0.1 or self._meter_to_pixel < 1.0:
-                self._meter_to_pixel = self._target_meter_to_pixel
-            else:
-                self._meter_to_pixel -= (1.0 -
-                                         np.exp(self._restit * inv_dt)) * scale
-
-            self._pixel_to_meter = 1.0 / self._meter_to_pixel  # NOTE: don't forget
+            self.smooth_scale()
 
             if self.body_visible:
                 self.render_body(gui)
@@ -292,6 +280,20 @@ class Camera():
         tmp.append(
             (self._viewport._top_left.y + self._viewport._bot_right.y) * 0.5)
         self._origin.set_value(tmp)
+
+    def smooth_scale(self) -> None:
+        # calc the 'meter to pixel' scale according
+        # to the 'target meter to pixel' set from
+        # the wheel event smooth animation
+        inv_dt: float = 1.0 / self._delta_time
+        scale: float = self._target_meter_to_pixel - self._meter_to_pixel
+        if np.fabs(scale) < 0.1 or self._meter_to_pixel < 1.0:
+            self._meter_to_pixel = self._target_meter_to_pixel
+        else:
+            self._meter_to_pixel -= (1.0 -
+                                     np.exp(self._restit * inv_dt)) * scale
+
+        self._pixel_to_meter = 1.0 / self._meter_to_pixel
 
     def world_to_screen(self, pos: Matrix) -> Matrix:
         orign: Matrix = Matrix([
