@@ -97,7 +97,13 @@ After installation, type following command to run the build-in example.
 ```shell
 $ python3 testbed.py
 ```
-use `key left` to 
+
+> NOTE: When running code, you maybe notice terminal print some informations like `[Taichi] version 0.8.7, llvm 10.0.0, commit 1c3c705a, osx, python 3.8.8`. We have tested TaichiGAME under `taichi>=0.7`. Your output maybe different from ours, but it doesn't matter.
+
+### Testbed control
+ - Press `left arrow` or `right arrow` key to switch different frames.
+ - Press and hold `right mouse button` to move viewport position. Move `mouse wheel` to zoom in or out the viewport.
+ - Press and hold `left mouse button` to apply a mouse joint constraint to selected shape from the start point(mouse press position) to end point(current mouse hold position).
 
 If you want to customize the . 
 ## Technical details
