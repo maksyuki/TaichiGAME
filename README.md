@@ -57,31 +57,14 @@ When I carried out a research on asteroid rover motion planning supported by NFS
 To implement the physics engines, we refer to the [Physics2D (c++, MIT License)](https://github.com/AngryAccelerated/Physics2D) project, and rewrite entire module of it in python with taichi and add more unit tests. The following architecture diagram illustrates the basic features:
 
 <p align="center">
- <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/arch.drawio.png"/>
+ <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/arch.drawio.svg"/>
  <p align="center">
-  <em>This basic features for physics components of TaichiGAME.</em>
+  <em>This basic features of physics components in TaichiGAME.</em>
  </p>
 </p>
 
-- geometry algorithm
-
-
-- viewport system
-  - zoom in/out
-  - dragged move
-
-- raycast
-
-- collision detection
-  - broad phase
-    - aabb
-    - dynamics bound volume tree
-  - narrow phase
-    - GJK
-    - SAT
-
 ## What is missing
-First, the physics engine components is under alpha development phase, so it is lack of stability and reliability. Second, 
+First,  the physics engine components is under alpha phase, so it is lack of stability and reliability. Second, to narrow the development period, we use the easy-to-implement numberical methods, that makes the performance suffer a bit.
 
 ## Requirements
 1. python>=3.7, <=3.9, because:
