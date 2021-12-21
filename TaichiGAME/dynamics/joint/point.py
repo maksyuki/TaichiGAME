@@ -81,8 +81,8 @@ class PointJoint(Joint):
 
         ra: Matrix = self._prim._bodya.to_world_point(
             self._prim._local_pointa) - self._prim._bodya.pos
-        va: Matrix = self._prim._bodya.vel + Matrix.cross_product(
-            Matrix([self._prim._bodya.ang_vel, 0.0], 'vec'), ra)
+        va: Matrix = self._prim._bodya.vel + Matrix.cross_product2(
+            self._prim._bodya.ang_vel, ra)
 
         jvb: Matrix = va
         jvb += self._prim._bias
@@ -102,8 +102,7 @@ class PointJoint(Joint):
         self._prim._bodya.apply_impulse(J, ra)
 
     def solve_position(self, dt: float) -> None:
-        raise NotImplementedError(
-            'point joint have not solve_position impl')
+        pass
 
     def prim(self) -> PointJointPrimitive:
         return self._prim

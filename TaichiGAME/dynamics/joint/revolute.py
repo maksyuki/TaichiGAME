@@ -71,7 +71,7 @@ class RevoluteJoint(Joint):
         k: Matrix = Matrix([0.0, 0.0, 0.0, 0.0])
 
         data_arr: List[float] = []
-        data_arr.append(im_a + ra.y * ra.y * ii_a + rb.y * rb.y * ii_b)
+        data_arr.append(im_a + ra.y * ra.y * ii_a + im_b + rb.y * rb.y * ii_b)
         data_arr.append(-ra.x * ra.y * ii_a - rb.x * rb.y * ii_b)
         data_arr.append(data_arr[1])
         data_arr.append(im_a + ra.x * ra.x * ii_a + im_b + rb.x * rb.x * ii_b)
@@ -91,12 +91,12 @@ class RevoluteJoint(Joint):
 
         ra: Matrix = self._prim._bodya.to_world_point(
             self._prim._local_pointa) - self._prim._bodya.pos
-        va: Matrix = self._prim._bodya.vel + Matrix.cross_product(
-            Matrix([self._prim._bodya.ang_vel, 0.0], 'vec'), ra)
+        va: Matrix = self._prim._bodya.vel + Matrix.cross_product2(
+            self._prim._bodya.ang_vel, ra)
         rb: Matrix = self._prim._bodyb.to_world_point(
             self._prim._local_pointb) - self._prim._bodyb.pos
-        vb: Matrix = self._prim._bodyb.vel + Matrix.cross_product(
-            Matrix([self._prim._bodyb.ang_vel, 0.0], 'vec'), rb)
+        vb: Matrix = self._prim._bodyb.vel + Matrix.cross_product2(
+            self._prim._bodyb.ang_vel, rb)
 
         jvb: Matrix = va - vb
         jvb += self._prim._bias

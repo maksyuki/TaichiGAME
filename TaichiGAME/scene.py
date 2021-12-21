@@ -1,7 +1,11 @@
 from __future__ import annotations
-from typing import Tuple, Union, List
+from typing import Callable, Tuple, Union, List, cast, Optional
 
 import taichi as ti
+
+from TaichiGAME.dynamics.joint.point import PointJoint, PointJointPrimitive
+from TaichiGAME.collision.broad_phase.aabb import AABB
+from TaichiGAME.frame import Frame
 
 try:
     from taichi.ui.gui import GUI  # for taichi >= 0.8.7
@@ -10,10 +14,8 @@ except ImportError:
     print('so feel free for this import error')
     from taichi.misc._gui import GUI
 
-import numpy as np
-
 from .common.camera import Camera
-
+from .common.config import Config
 from .collision.broad_phase.dbvt import DBVT
 from .math.matrix import Matrix
 from .collision.detector import Collsion, Detector
@@ -26,8 +28,7 @@ class Scene():
     def __init__(self, width: int = 1280, height: int = 720):
         self._gui: GUI = GUI('TaichiGAME',
                              res=(width, height),
-                             background_color=ti.rgb_to_hex(
-                                 [50 / 255.0, 50 / 255.0, 50 / 255.0]))
+                             background_color=Config.BackgroundColor)
         # the physics world, all sim is run in physics world
         self._world: PhysicsWorld = PhysicsWorld()
         self._dbvt: DBVT = DBVT()
@@ -49,15 +50,66 @@ class Scene():
                                              Matrix([width, 0.0], 'vec'))
         self._cam.body_visible = True
         self._cam.center_visible = True
+        self._cam.aabb_visible = True
+        self._cam.dbvt_visible = True
         self._cam.rot_line_visible = True
+        self._cam.joint_visible = True
         self._cam._world = self._world
         self._cam._dbvt = self._dbvt
 
-        self._fps = 40
+        # extern frame table
+        self._ext_frame_list: List[Frame] = []
+        self._ext_frame_idx: int = 0
+
+        # calcuate step
+        self._fps = 120
         self._dt = 1 / self._fps
-        self._mouse_pos: Matrix = Matrix([0.0, 0.0], 'vec')
+        # NOTE: some algorithm need to cacluate the pos's len
+        # in init state
+        self._mouse_pos: Matrix = Matrix([1.0, 1.0], 'vec')
         # the right-mouse btn drag move flag(change viewport)
         self._mouse_viewport_move: bool = False
+
+        # mouse joint oper
+        self._mouse_joint_prim: PointJointPrimitive = PointJointPrimitive()
+        self._mouse_joint_prim._bodya = Body()
+        self._mouse_joint: PointJoint = cast(
+            PointJoint, self._world.create_joint(self._mouse_joint_prim))
+        self._mouse_joint.active = False
+        self._mouse_select_body: Optional[Body] = None
+
+    def register_frame(self, frame: Frame) -> None:
+        self._ext_frame_list.append(frame)
+
+    def remove_frame(self, frame: Frame) -> None:
+        # NOTE: need to check if exist first
+        self._ext_frame_list.remove(frame)
+
+    def clear_all(self) -> None:
+        self._world.clear_all_bodies()
+        self._world.clear_all_joints()
+        self._maintainer.clear_all()
+        self._dbvt.clear_all()
+        self._mouse_joint_prim._bodya = Body()
+        self._mouse_joint = cast(
+            PointJoint, self._world.create_joint(self._mouse_joint_prim))
+        self._mouse_joint.active = False
+
+    def calc_nxt_frame(self, delta: int) -> None:
+        ext_len: int = len(self._ext_frame_list)
+        assert -ext_len <= delta <= ext_len
+
+        self._ext_frame_idx = Config.clamp(self._ext_frame_idx, 0, ext_len - 1)
+        # NOTE: the sign of mod in python depend on dividend
+        self._ext_frame_idx = (self._ext_frame_idx + delta) % ext_len
+
+    def init_frame(self) -> None:
+        self.change_frame(0)
+
+    def change_frame(self, delta: int) -> None:
+        self.clear_all()
+        self.calc_nxt_frame(delta)
+        self._ext_frame_list[self._ext_frame_idx].load()
 
     def physics_sim(self) -> None:
         for elem in self._world._body_list:
@@ -66,11 +118,16 @@ class Scene():
         self._world.step_velocity(self._dt)
 
         pot_list: List[Tuple[Body, Body]] = self._dbvt.generate()
+        # print('sim')
         for pot in pot_list:
-            print('hello')
+            # print('pot')
+            # print(f'bodya: ({pot[0].pos.x}, {pot[0].pos.y}), {pot[0].rot}')
+            # print(f'bodyb: ({pot[1].pos.x}, {pot[1].pos.y}), {pot[1].rot}')
+
             res: Collsion = Detector.detect(pot[0], pot[1])
             if res._is_colliding:
-                print('collid')
+                # print('collid')
+                # print(f'contact list len: {len(res._contact_list)}')
                 self._maintainer.add(res)
 
         self._maintainer.clear_inactive_points()
@@ -90,15 +147,37 @@ class Scene():
 
     def render(self) -> None:
         self._cam.render(self._gui)
+        self._ext_frame_list[self._ext_frame_idx].render()
 
     def handle_left_mouse_event(self, state: Union[GUI.PRESS, GUI.RELEASE],
                                 x: float, y: float) -> None:
 
         self._mouse_pos = self._cam.screen_to_world(Matrix([x, y], 'vec'))
         if state == GUI.PRESS:
-            pass
+            if self._mouse_joint is None:
+                return
+
+            mouse_box: AABB = AABB(0.01, 0.01)
+            mouse_box.pos = self._mouse_pos
+            bd_list: List[Body] = self._dbvt.query(mouse_box)
+            for bd in bd_list:
+                print(bd.id)
+                point: Matrix = self._mouse_pos - bd.pos
+                point = Matrix.rotate_mat(-bd.rot) * point
+
+                if bd.shape.contains(
+                        point) and self._mouse_select_body is None:
+                    self._mouse_select_body = bd
+                    prim: PointJointPrimitive = self._mouse_joint.prim()
+                    prim._local_pointa = bd.to_local_point(self._mouse_pos)
+                    prim._bodya = bd
+                    prim._target_point = self._mouse_pos
+                    self._mouse_joint.active = True
+                    self._mouse_joint.set_value(prim)
+                    break
         else:
-            pass
+            self._mouse_joint.active = False
+            self._mouse_select_body = None
 
     def handle_right_mouse_event(self, state: Union[GUI.PRESS,
                                                     GUI.RELEASE]) -> None:
@@ -119,11 +198,15 @@ class Scene():
             # 33.0 is init meter_to_pixel value
             self._cam.transform += delta_pos * 0.5 * (33.0 /
                                                       self._cam.meter_to_pixel)
-        else:
-            pass
 
         self._mouse_pos = cur_pos
         # print(f'({self._mouse_pos.x}, {self._mouse_pos.y}')
+        if self._mouse_joint is None:
+            return
+
+        prim: PointJointPrimitive = self._mouse_joint.prim()
+        prim._target_point = self._mouse_pos
+        self._mouse_joint.set_value(prim)
 
     def handle_wheel_event(self, y: float) -> None:
         # NOTE: need to set the sef._cam  the value scale
@@ -158,13 +241,14 @@ class Scene():
                     print("press up key")
 
                 elif e.key == ti.GUI.DOWN:
-                    print("press down key start")
+                    pass
 
-                elif e.key == ti.GUI.LEFT:
-                    print("press LEFT key restart")
+                elif e.key == ti.GUI.LEFT and e.type == GUI.RELEASE:
+                    self.change_frame(-1)
 
-                elif e.key == ti.GUI.RIGHT:
-                    print("press right key")
+                elif e.key == ti.GUI.RIGHT and e.type == GUI.RELEASE:
+                    self.change_frame(1)
+
                 elif e.key == 'q' and e.type == GUI.PRESS:
                     self._cam.visible = not self._cam.visible
 

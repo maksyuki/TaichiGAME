@@ -98,11 +98,11 @@ class Detector():
                 if np.isclose(tmp_val, res._penetration * res._penetration):
                     val_pass = True
 
-                # if fail, there must be a deeper contact point, use it:
-                if val_pass:
-                    res._contact_list = pair_list
-                else:
-                    res._contact_list.append(GJK.dump_points(source))
+            # if fail, there must be a deeper contact point, use it:
+            if val_pass:
+                res._contact_list = pair_list
+            else:
+                res._contact_list.append(GJK.dump_points(source))
 
         assert len(res._contact_list) != 3
         return res
