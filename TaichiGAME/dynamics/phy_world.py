@@ -197,7 +197,8 @@ class PhysicsWorld():
         self, prim: Union[RotationJointPrimitive, PointJointPrimitive,
                           DistanceJointPrimitive, PulleyJointPrimitive,
                           RevoluteJointPrimitive, OrientationJointPrimitive]
-    ) -> Joint:
+    ) -> Union[RotationJoint, PointJoint, DistanceJoint, PulleyJoint,
+               RevoluteJoint, OrientationJoint]:
 
         joint: Optional[Union[RotationJoint, PointJoint, DistanceJoint,
                               PulleyJoint, RevoluteJoint,

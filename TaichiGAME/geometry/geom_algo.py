@@ -791,8 +791,8 @@ class GeomAlgo2D():
         return None
 
     @staticmethod
-    def raycastAABB(pa: Matrix, dirn: Matrix, top_left: Matrix,
-                    bot_right: Matrix) -> Optional[Tuple[Matrix, Matrix]]:
+    def raycast_aabb(pa: Matrix, dirn: Matrix, top_left: Matrix,
+                     bot_right: Matrix) -> Optional[Tuple[Matrix, Matrix]]:
         '''calculate point on  AABB, if point 'pa' can cast ray in 'dirn'
         direction on AABB.
 
@@ -810,7 +810,8 @@ class GeomAlgo2D():
         Returns
         -------
         Optional[Matrix]
-            If exist, return raycast point, otherwise None
+            If exist, return two raycast point, one is incidence point, another
+        is emission point, otherwise None
         '''
 
         x_min: float = top_left.x

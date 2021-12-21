@@ -1,3 +1,6 @@
+from typing import TypeVar
+
+
 class Config():
     SimplexMax: int = 8
     Epsilon: float = 1e-5
@@ -12,6 +15,7 @@ class Config():
     MaxVelocity: float = 1000.0
     MaxAngularVelocity: float = 1000.0
     # render
+    BackgroundColor: int = 0x323232
     OuterLineColor: int = 0x00FF00
     FillColor: int = 0x008000
     AxisPointColor: int = 0x00FF00
@@ -20,9 +24,16 @@ class Config():
     BodyCenterColor: int = 0x660066
     AngleLineXColor: int = 0x0000FF
     AngleLineYColor: int = 0xFF0000
+    QueryRectLineColor: int = 0xFF0000
+    QueryRaycasFillColor: int = 0x00CCCC
+    QueryRaycasOutLineColor: int = 0x33FFFF
+    JointPointColor: int = 0xFF0000
+    JointLineColor: int = 0x0000FF
+
+    T = TypeVar('T', float, int)
 
     @staticmethod
-    def clamp(num: float, low: float, high: float) -> float:
+    def clamp(num: T, low: T, high: T) -> T:
         assert low <= high
 
         if num < low:

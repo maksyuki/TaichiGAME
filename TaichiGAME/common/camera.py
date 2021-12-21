@@ -96,17 +96,7 @@ class Camera():
     def render(self, gui: GUI) -> None:
         if self.visible:
             # assert self.world is not None
-
-            # calc the 'meter to pixel' scale according
-            # to the 'target meter to pixel' set from
-            # the wheel event smooth animation
-            inv_dt: float = 1.0 / self._delta_time
-            scale: float = self._target_meter_to_pixel - self._meter_to_pixel
-            if np.fabs(scale) < 0.1 or self._meter_to_pixel < 1.0:
-                self._meter_to_pixel = self._target_meter_to_pixel
-            else:
-                self._meter_to_pixel -= (1.0 -
-                                         np.exp(self._restit * inv_dt)) * scale
+            self.smooth_scale()
 
             if self.body_visible:
                 self.render_body(gui)
@@ -291,6 +281,20 @@ class Camera():
             (self._viewport._top_left.y + self._viewport._bot_right.y) * 0.5)
         self._origin.set_value(tmp)
 
+    def smooth_scale(self) -> None:
+        # calc the 'meter to pixel' scale according
+        # to the 'target meter to pixel' set from
+        # the wheel event smooth animation
+        inv_dt: float = 1.0 / self._delta_time
+        scale: float = self._target_meter_to_pixel - self._meter_to_pixel
+        if np.fabs(scale) < 0.1 or self._meter_to_pixel < 1.0:
+            self._meter_to_pixel = self._target_meter_to_pixel
+        else:
+            self._meter_to_pixel -= (1.0 -
+                                     np.exp(self._restit * inv_dt)) * scale
+
+        self._pixel_to_meter = 1.0 / self._meter_to_pixel
+
     def world_to_screen(self, pos: Matrix) -> Matrix:
         orign: Matrix = Matrix([
             self._origin.x + self._transform.x,
@@ -304,8 +308,8 @@ class Camera():
         tmpx: float = (orign.x + pos.x * self._meter_to_pixel) / view_width
         tmpy: float = (orign.y + pos.y * self._meter_to_pixel) / view_height
         # print(f'({tmpx}, {tmpy})')
-        tmpx = Config.clamp(tmpx, 0.0, 1.0)
-        tmpy = Config.clamp(tmpy, 0.0, 1.0)
+        # tmpx = Config.clamp(tmpx, 0.0, 1.0)
+        # tmpy = Config.clamp(tmpy, 0.0, 1.0)
         return Matrix([tmpx, tmpy], 'vec')
 
     def screen_to_world(self, pos: Matrix) -> Matrix:
@@ -380,7 +384,10 @@ class Camera():
                 Render.rd_angle_line(gui, prim, self.world_to_screen)
 
     def render_joint(self, gui: GUI) -> None:
-        raise NotImplementedError
+        assert self._world is not None
+        for jt in self._world._joint_list:
+            if jt.active:
+                Render.rd_joint(gui, jt, self.world_to_screen)
 
     def render_axis(self, gui: GUI) -> None:
         axis_points: List[Matrix] = []

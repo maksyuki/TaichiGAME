@@ -55,7 +55,7 @@ class RotationJoint(Joint):
         self._prim._bodyb.ang_vel -= self._prim._bodyb.inv_inertia * impulse
 
     def solve_position(self, dt: float) -> None:
-        raise NotImplementedError('rot joint have not solve_position impl')
+        pass
 
     def prim(self) -> RotationJointPrimitive:
         return self._prim
@@ -88,17 +88,18 @@ class OrientationJoint(Joint):
         if np.isclose(c, 2.0 * np.pi) or np.isclose(c, -2.0 * np.pi):
             c = 0
             bodya.rot = target_rot
+            return
 
         self._prim._bias = self._factor * inv_dt * c
 
     def solve_velocity(self, dt: float) -> None:
         dw: float = self._prim._bodya.ang_vel
+        print(f'rotation joint dw: {dw}')
         impulse: float = self._prim._eff_mass * (-dw * self._prim._bias)
         self._prim._bodya.ang_vel += self._prim._bodya.inv_inertia * impulse
 
     def solve_position(self, dt: float) -> None:
-        raise NotImplementedError(
-            'orient-rot joint have not solve_position impl')
+        pass
 
     def prim(self) -> OrientationJointPrimitive:
         return self._prim
