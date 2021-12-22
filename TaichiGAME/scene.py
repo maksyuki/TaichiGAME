@@ -25,8 +25,8 @@ from .dynamics.constraint.contact import ContactMaintainer
 
 
 class Scene():
-    def __init__(self, width: int = 1280, height: int = 720):
-        self._gui: GUI = GUI('TaichiGAME',
+    def __init__(self, name: str, width: int = 1280, height: int = 720):
+        self._gui: GUI = GUI(name,
                              res=(width, height),
                              background_color=Config.BackgroundColor)
         # the physics world, all sim is run in physics world
