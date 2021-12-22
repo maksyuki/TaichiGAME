@@ -92,7 +92,7 @@ $ python3 -m pip install -r requirements.txt
 
 > NOTE: Recommand use `venv` to isolate test environment from system directories, you can get more details from [Creation of virtual environments](https://docs.python.org/3/library/venv.html).
 
-After installation, type following command to run the build-in example.
+After installation, type following command to run the build-in example [`testbed.py`](./examples/testbed.py).
 
 ```shell
 $ python3 testbed.py
@@ -100,12 +100,34 @@ $ python3 testbed.py
 
 > NOTE: When running code, you maybe notice terminal print some informations like `[Taichi] version 0.8.7, llvm 10.0.0, commit 1c3c705a, osx, python 3.8.8`. I have tested TaichiGAME under `taichi>=0.7`. Your output maybe different from mine, but it doesn't matter.
 
-### Testbed control
- - Press `left arrow` or `right arrow` key to switch different frames.
+### Testbed keyborad and mouse control
+ - Press `esc` to exit the gui, press `left arrow` or `right arrow` key to switch different frames.
  - Press and hold `right mouse button` to move viewport position. Move `mouse wheel` to zoom in or out the viewport.
  - Press and hold `left mouse button` to apply a mouse joint constraint to selected shape from the start point(mouse press position) to end point(current mouse hold position).
+ - | keyboard button | function | keyboard button | function | keyboard button | function |
+   | :-------------: | :------: | :-------------: | :------: | :-------------: | :------: |
+   | `q` | toggle frame visibility | `w` | toggle AABB visibility | `e`|  toggle joint visibility|
+   | `r` | toggle body visibility | `t` | toggle axis visibility | `a` | toggle dbvh visibility |
+   | `s` | toggle visibility dbvt | `d` | toggle grid visibility | `f` | toggle rotation line visibility |
+   | `g` | toggle center visibility | `z` | toggle contact visibility |
 
-If you want to customize the . 
+### Quick Start
+If you want to use `TaichiGAME` to implement your own simulation. You need to import `TaichiGAME` package first:
+```python
+import TaichiGAME as tg
+```
+Then, you need to :
+1. define a `tg.Scene`
+2. define a frame and register it to the scene
+3. 
+follow step to step.
+### 1
+```python
+
+```
+
+If you want to know more details, you can refer to the official example [`testbed.py`](./examples/testbed.py). 
+
 ## Technical details
 
 ### Structure
@@ -129,8 +151,8 @@ All of the TaichiGAME codes are release under the [MIT License](LICENSE).
 
 3. Use [Inkscape 1.1.1 (3bf5ae0d25, 2021-09-20, window x64 version, GPL-3.0)](https://inkscape.org/) to draw the logo. Use [diagrams.net (online, Apache-2.0)](https://www.diagrams.net/) to draw flow and architecture diagrams. Use [GeoGebra (online, GPL-3.0)](https://www.geogebra.org/) to draw shapes to help debug computer geometry algorithm in TaichiGAME. You can get all of resources from [TaichiGAME-res repo](https://github.com/maksyuki/TaichiGAME-res).
 
-
-[^1]: _Foundations of Physically Based Modeling and Animation_ By Donald H. House, John C. Keyser
-[^2]:
+## Reference
+1.  _Foundations of Physically Based Modeling and Animation_ By Donald H. House, John C. Keyser
+2. 
 
 
