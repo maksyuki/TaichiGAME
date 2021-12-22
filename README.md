@@ -52,9 +52,9 @@ When I carried out a research on asteroid rover motion planning supported by NFS
 
 ## Feature
 
-> NOTE: Due to our research is still under review and revise, we could not release all results now. At present, we only release the initial physics engine components of TaichiGAME. So we only introduce physics engine components now. In the first half of 2022, we will release other components of TaichiGAME.
+> NOTE: Due to our research is still under review and revise, I could not release all results now. At present, I only release the initial physics engine components of TaichiGAME. So I only introduce physics engine components now. In the first half of 2022, I will release other components of TaichiGAME.
 
-To implement the physics engines, we refer to the [Physics2D (c++, MIT License)](https://github.com/AngryAccelerated/Physics2D) project, and rewrite entire module of it in python with taichi and add more unit tests. The following architecture diagram illustrates the basic features:
+To implement the physics engines, I refer to the [Physics2D (c++, MIT License)](https://github.com/AngryAccelerated/Physics2D) project, and rewrite entire module of it in python with taichi and add more unit tests. The following architecture diagram illustrates the basic features:
 
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/arch.drawio.svg"/>
@@ -64,7 +64,7 @@ To implement the physics engines, we refer to the [Physics2D (c++, MIT License)]
 </p>
 
 ## What is missing
-First,  the physics engine components is under alpha phase, so it is lack of stability and reliability. Second, to narrow the development period, we use the easy-to-implement numberical methods, that makes the performance suffer a bit.
+First,  the physics engine components is under alpha phase, so it is lack of stability and reliability. Second, to narrow the development period, I use the easy-to-implement numberical methods, that makes the performance suffer a bit.
 
 ## Requirements
 1. python>=3.7, <=3.9, because:
@@ -74,7 +74,7 @@ First,  the physics engine components is under alpha phase, so it is lack of sta
 2. taichi>=0.8.0, because:
     - for support taichi's new features
     - now TaichiGAME don't use the new GGUI `(taichi0.8+ intro)`, so you maybe can use lower version taichi(such as `taichi0.7+`).
-    - **NOTE:** some TaichiGAME's API is based on specific taichi features. In views of the rapid development of taichi, we don't have much enery and time to maintain TaichiGAME to adapt or be compatiable to multiple different major version of taichi. It can make TaichiGAME too verbose. So we decide to **ONLY maintain TaichiGAME to adapt to current major verion plus one latest previous major verion of taichi**. For now, because a major version of taichi has not been released yet, we decide to **CHANGE** the 'major version' of previous policy into 'minor version'. Specifically, we develop and test all features of TaichiGAME in `taichi0.8+` , and **ONLY** maintain compatible version of TaichiGAME to `taichi0.7+`, the TaichiGAME based on `taichi<0.7+` will no longer be maintained.
+    - **NOTE:** some TaichiGAME's API is based on specific taichi features. In views of the rapid development of taichi, I don't have much enery and time to maintain TaichiGAME to adapt or be compatiable to multiple different major version of taichi. It can make TaichiGAME too verbose. So I decide to **ONLY maintain TaichiGAME to adapt to current major verion plus one latest previous major verion of taichi**. For now, because a major version of taichi has not been released yet, I decide to **CHANGE** the 'major version' of previous policy into 'minor version'. Specifically, I develop and test all features of TaichiGAME in `taichi0.8+` , and **ONLY** maintain compatible version of TaichiGAME to `taichi0.7+`, the TaichiGAME based on `taichi<0.7+` will no longer be maintained.
 
 ## Install
 
@@ -98,7 +98,7 @@ After installation, type following command to run the build-in example.
 $ python3 testbed.py
 ```
 
-> NOTE: When running code, you maybe notice terminal print some informations like `[Taichi] version 0.8.7, llvm 10.0.0, commit 1c3c705a, osx, python 3.8.8`. We have tested TaichiGAME under `taichi>=0.7`. Your output maybe different from ours, but it doesn't matter.
+> NOTE: When running code, you maybe notice terminal print some informations like `[Taichi] version 0.8.7, llvm 10.0.0, commit 1c3c705a, osx, python 3.8.8`. I have tested TaichiGAME under `taichi>=0.7`. Your output maybe different from mine, but it doesn't matter.
 
 ### Testbed control
  - Press `left arrow` or `right arrow` key to switch different frames.
@@ -115,7 +115,7 @@ insert a class diagram/chart
 ## Contribution
 If you want to contribute to TaichiGAME, be sure to review the [guidelines](CONTRIBUTING.md). This is an open project and contributions and collaborations are always welcome!! This project adheres to TaichiGAME's [code_of_conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
 
-We use GitHub issues for tracking requests and bugs, so please direct specific questions to [issues panel](https://github.com/maksyuki/TaichiGAME/issues).
+I use GitHub issues for tracking requests and bugs, so please direct specific questions to [issues panel](https://github.com/maksyuki/TaichiGAME/issues).
 
 The TaichiGAME project strives to abide by generally accepted best practices in open-source software development, so feel free to raise a issues :smile:
 
