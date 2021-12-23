@@ -52,14 +52,16 @@ When I carried out a research on asteroid rover motion planning supported by NFS
 
 ## Feature
 
-> NOTE: Due to our research is still under review and revise, I could not release all results now. At present, I only release the initial physics engine components of TaichiGAME. So I only introduce physics engine components now. In the first half of 2022, I will release other components of TaichiGAME.
+> NOTE: Due to my research is still under review and revise, I could not release all results now. At present, I only release the initial physics engine components of TaichiGAME. So I only introduce physics engine components now. In the first half of 2022, I will release other components of TaichiGAME.
 
 To implement the physics engines, I refer to the [Physics2D (c++, MIT License)](https://github.com/AngryAccelerated/Physics2D) project, and rewrite entire module of it in python with taichi and add more unit tests. The following architecture diagram illustrates the basic features:
 
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/arch.drawio.svg"/>
  <p align="center">
-  <em>This basic features of physics components in TaichiGAME.</em>
+  <em>This basic features of physics components in TaichiGAME</em>
+  <br>
+  <em>(open it in a new window to browse the larger picture)</em>
  </p>
 </p>
 
@@ -112,18 +114,34 @@ $ python3 testbed.py
    | `g` | toggle center visibility | `z` | toggle contact visibility |
 
 ### Quick Start
-If you want to use `TaichiGAME` to implement your own simulation. You need to import `TaichiGAME` package first:
+If you want to use `TaichiGAME` to implement your own simulation. You need to import `TaichiGAME` package first and init the `taichi`:
 ```python
+import taichi as ti
 import TaichiGAME as tg
-```
-Then, you need to :
-1. define a `tg.Scene`
-2. define a frame and register it to the scene
-3. 
-follow step to step.
-### 1
-```python
 
+ti.init(arch=ti.gpu)
+```
+Then, you need to define a instance of `Scene` class. The `Scene` class is the base container holding all the resources, such as `Frame`, `Camera` and so on.
+
+```python
+# api: (class) tg.Scene(name: str, width: int = 1280, height: int = 720)
+scene = tg.Scene(name='TaichiGAME testbed')
+```
+After that, you need to inherhit base class `Frame` and implement the `load()` and `render()` methods.  `load()` is called once when frame is initialized. If you want to custom extra render, you can implement `render()` optional. It is called in main render loop.
+```python
+class YourCustomFrameName(ng.Frame):
+    def load():
+      ...
+
+    def render():
+      ...
+```
+At last, you need to register the frame to the scene. Afterwards,
+```python
+custom_frame = YourCustomFrameName()
+scene.register_frame(custom_frame)
+scene.init_frame()
+scene.show()
 ```
 
 If you want to know more details, you can refer to the official example [`testbed.py`](./examples/testbed.py). 
