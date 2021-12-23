@@ -114,7 +114,7 @@ $ python3 testbed.py
    | `g` | toggle center visibility | `z` | toggle contact visibility |
 
 ### Quick Start
-If you want to use `TaichiGAME` to implement your own simulation. You need to import `TaichiGAME` package first and init the `taichi`:
+If you want to use `TaichiGAME` to implement your own simulation. You need to import `taichi` and `TaichiGAME` package first:
 ```python
 import taichi as ti
 import TaichiGAME as tg
@@ -136,7 +136,7 @@ class YourCustomFrameName(ng.Frame):
     def render():
       ...
 ```
-At last, you need to register the frame to the scene. Afterwards,
+At last, you need to register the frame to the scene, initialize the frame and show the scene. Register mulitple frames to the scene is allowed as testbed.py do.
 ```python
 custom_frame = YourCustomFrameName()
 scene.register_frame(custom_frame)
