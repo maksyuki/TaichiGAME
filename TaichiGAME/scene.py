@@ -12,8 +12,7 @@ try:
     from taichi.ui.gui import GUI  # for taichi >= 0.8.7
 except ImportError:
     print(cra.Fore.GREEN +
-          '[scene]taichi < 0.8.7 import gui \'from taichi.misc.gui\'')
-    print(cra.Fore.GREEN + 'so feel free for this import error\n')
+          '[scene]taichi < 0.8.7 import gui \'from taichi.misc.gui\'\n')
     from taichi.misc.gui import GUI
 
 from .common.camera import Camera

@@ -7,11 +7,8 @@ try:
     from taichi.ui.gui import GUI  # for taichi >= 0.8.7
 except ImportError:
     print(cra.Fore.GREEN +
-          '[camera]taichi < 0.8.7 import gui \'from taichi.misc.gui\'')
-    print(cra.Fore.GREEN + 'so feel free for this import error\n')
+          '[camera]taichi < 0.8.7 import gui \'from taichi.misc.gui\'\n')
     from taichi.misc.gui import GUI
-
-cra.deinit()  # show information in normal mode
 
 import numpy as np
 
