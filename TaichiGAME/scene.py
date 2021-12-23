@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Tuple, Union, List, cast, Optional
 
+import colorama as cra
 import taichi as ti
 
 from TaichiGAME.dynamics.joint.point import PointJoint, PointJointPrimitive
@@ -10,8 +11,9 @@ from TaichiGAME.frame import Frame
 try:
     from taichi.ui.gui import GUI  # for taichi >= 0.8.7
 except ImportError:
-    print('taichi < 0.8.7 import gui \'from taichi.misc.gui\'')
-    print('so feel free for this import error')
+    print(cra.Fore.GREEN +
+          'taichi < 0.8.7 import gui \'from taichi.misc.gui\'')
+    print(cra.Fore.GREEN + 'so feel free for this import error')
     from taichi.misc.gui import GUI
 
 from .common.camera import Camera
