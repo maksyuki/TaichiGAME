@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Callable, Tuple, Union, List, cast, Optional
+from typing import Tuple, Union, List, cast, Optional
 
 import taichi as ti
 
@@ -64,6 +64,7 @@ class Scene():
         # calcuate step
         self._fps = 120
         self._dt = 1 / self._fps
+        self._paused = False
         # NOTE: some algorithm need to cacluate the pos's len
         # in init state
         self._mouse_pos: Matrix = Matrix([1.0, 1.0], 'vec')
@@ -218,12 +219,13 @@ class Scene():
 
     def show(self) -> None:
         while self._gui.running:
-            self.physics_sim()
-            self.render()
 
             for e in self._gui.get_events():
                 if e.key == ti.GUI.ESCAPE:
                     exit()
+
+                elif e.key == ti.GUI.SPACE and e.type == GUI.RELEASE:
+                    self._paused = not self._paused
 
                 elif e.key == ti.GUI.LMB:
                     self.handle_left_mouse_event(e.type, e.pos[0], e.pos[1])
@@ -281,5 +283,10 @@ class Scene():
 
                 elif e.key == 'z' and e.type == GUI.PRESS:
                     self._cam.contact_visible = not self._cam.contact_visible
+
+            if not self._paused:
+                self.physics_sim()
+
+            self.render()
 
             self._gui.show()
