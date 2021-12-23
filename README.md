@@ -149,7 +149,7 @@ If you want to export the result as video, you need to add `video` config to the
 scene = tg.Scene(name='TaichiGAME testbed', option={'video': True})
 ```
 
-> NOTE: TaichiGAME use taichi's `VideoManager` to export video. you need to install the `ffmpeg` first. How to install ffmpeg you can refer to [Install ffmpeg](https://docs.taichi.graphics/lang/articles/misc/export_results#export-videos)
+> NOTE: TaichiGAME use taichi's export apis to export video. you need to install the `ffmpeg` first. How to install ffmpeg you can refer to [Install ffmpeg](https://docs.taichi.graphics/lang/articles/misc/export_results#export-videos) section of taichi doc.
 
 If you want to know more details, you can refer to the official example [`testbed.py`](./examples/testbed.py). 
 
