@@ -10,9 +10,9 @@ from TaichiGAME.frame import Frame
 try:
     from taichi.ui.gui import GUI  # for taichi >= 0.8.7
 except ImportError:
-    print('taichi < 0.8.7 import gui \'from taichi.misc._gui\'')
+    print('taichi < 0.8.7 import gui \'from taichi.misc.gui\'')
     print('so feel free for this import error')
-    from taichi.misc._gui import GUI
+    from taichi.misc.gui import GUI
 
 from .common.camera import Camera
 from .common.config import Config
@@ -49,11 +49,11 @@ class Scene():
         self._cam.viewport = Camera.Viewport(Matrix([0.0, height], 'vec'),
                                              Matrix([width, 0.0], 'vec'))
         self._cam.body_visible = True
-        self._cam.center_visible = True
-        self._cam.aabb_visible = True
-        self._cam.dbvt_visible = True
-        self._cam.rot_line_visible = True
-        self._cam.joint_visible = True
+        # self._cam.center_visible = True
+        # self._cam.aabb_visible = True
+        # self._cam.dbvt_visible = True
+        # self._cam.rot_line_visible = True
+        # self._cam.joint_visible = True
         self._cam._world = self._world
         self._cam._dbvt = self._dbvt
 

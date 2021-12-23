@@ -4,9 +4,9 @@ from typing import List, Optional
 try:
     from taichi.ui.gui import GUI  # for taichi >= 0.8.7
 except ImportError:
-    print('taichi < 0.8.7 import gui \'from taichi.misc._gui\'')
+    print('taichi < 0.8.7 import gui \'from taichi.misc.gui\'')
     print('so feel free for this import error')
-    from taichi.misc._gui import GUI
+    from taichi.misc.gui import GUI
 
 import numpy as np
 
