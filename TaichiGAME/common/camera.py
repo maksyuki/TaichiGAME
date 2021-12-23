@@ -1,12 +1,16 @@
 from __future__ import annotations
 from typing import List, Optional
 
+import colorama as cra
+
 try:
     from taichi.ui.gui import GUI  # for taichi >= 0.8.7
 except ImportError:
-    print('taichi < 0.8.7 import gui \'from taichi.misc._gui\'')
-    print('so feel free for this import error')
-    from taichi.misc._gui import GUI
+    print(
+        cra.Fore.GREEN +
+        '[TaichiGAME.camera]taichi < 0.8.7 import gui \'from taichi.misc.gui\''
+    )
+    from taichi.misc.gui import GUI
 
 import numpy as np
 
@@ -94,6 +98,9 @@ class Camera():
 
     # render factory method
     def render(self, gui: GUI) -> None:
+        # for i in range(100):
+        #     gui.circle([0.5, 0.5], radius=10, color=0x068587)
+        # return
         if self.visible:
             # assert self.world is not None
             self.smooth_scale()
@@ -115,7 +122,7 @@ class Camera():
                         self.render_aabb(gui, elem._aabb)
 
             if self.dbvh_visible:
-                raise NotImplementedError
+                pass
 
             if self.dbvt_visible:
                 assert self._dbvt is not None
@@ -426,10 +433,10 @@ class Camera():
             self.render_aabb(gui, aabb)
 
     def render_contact(self, gui: GUI) -> None:
-        raise NotImplementedError
+        pass
 
     def render_grid_scale_line(self, gui: GUI) -> None:
-        raise NotImplementedError
+        pass
 
     def render_dbvh(self, gui: GUI, node: DBVH.Node) -> None:
-        raise NotImplementedError
+        pass

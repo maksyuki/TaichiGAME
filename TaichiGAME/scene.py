@@ -1,6 +1,7 @@
 from __future__ import annotations
-from typing import Callable, Tuple, Union, List, cast, Optional
+from typing import Tuple, Union, List, cast, Optional
 
+import colorama as cra
 import taichi as ti
 
 from TaichiGAME.dynamics.joint.point import PointJoint, PointJointPrimitive
@@ -10,9 +11,10 @@ from TaichiGAME.frame import Frame
 try:
     from taichi.ui.gui import GUI  # for taichi >= 0.8.7
 except ImportError:
-    print('taichi < 0.8.7 import gui \'from taichi.misc._gui\'')
-    print('so feel free for this import error')
-    from taichi.misc._gui import GUI
+    print(
+        cra.Fore.GREEN +
+        '[TaichiGAME.scene]taichi < 0.8.7 import gui \'from taichi.misc.gui\'')
+    from taichi.misc.gui import GUI
 
 from .common.camera import Camera
 from .common.config import Config
@@ -25,8 +27,8 @@ from .dynamics.constraint.contact import ContactMaintainer
 
 
 class Scene():
-    def __init__(self, width: int = 1280, height: int = 720):
-        self._gui: GUI = GUI('TaichiGAME',
+    def __init__(self, name: str, width: int = 1280, height: int = 720):
+        self._gui: GUI = GUI(name,
                              res=(width, height),
                              background_color=Config.BackgroundColor)
         # the physics world, all sim is run in physics world
@@ -50,10 +52,10 @@ class Scene():
                                              Matrix([width, 0.0], 'vec'))
         self._cam.body_visible = True
         self._cam.center_visible = True
-        self._cam.aabb_visible = True
-        self._cam.dbvt_visible = True
         self._cam.rot_line_visible = True
         self._cam.joint_visible = True
+        # self._cam.aabb_visible = True
+        # self._cam.dbvt_visible = True
         self._cam._world = self._world
         self._cam._dbvt = self._dbvt
 
@@ -64,6 +66,7 @@ class Scene():
         # calcuate step
         self._fps = 120
         self._dt = 1 / self._fps
+        self._paused = False
         # NOTE: some algorithm need to cacluate the pos's len
         # in init state
         self._mouse_pos: Matrix = Matrix([1.0, 1.0], 'vec')
@@ -218,12 +221,13 @@ class Scene():
 
     def show(self) -> None:
         while self._gui.running:
-            self.physics_sim()
-            self.render()
 
             for e in self._gui.get_events():
                 if e.key == ti.GUI.ESCAPE:
                     exit()
+
+                elif e.key == ti.GUI.SPACE and e.type == GUI.RELEASE:
+                    self._paused = not self._paused
 
                 elif e.key == ti.GUI.LMB:
                     self.handle_left_mouse_event(e.type, e.pos[0], e.pos[1])
@@ -281,5 +285,10 @@ class Scene():
 
                 elif e.key == 'z' and e.type == GUI.PRESS:
                     self._cam.contact_visible = not self._cam.contact_visible
+
+            if not self._paused:
+                self.physics_sim()
+
+            self.render()
 
             self._gui.show()
