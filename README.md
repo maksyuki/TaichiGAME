@@ -103,7 +103,8 @@ $ python3 testbed.py
 > NOTE: When running code, you maybe notice terminal print some informations like `[Taichi] version 0.8.7, llvm 10.0.0, commit 1c3c705a, osx, python 3.8.8`. I have tested TaichiGAME under `taichi>=0.7`. Your output maybe different from mine, but it doesn't matter.
 
 ### Testbed keyborad and mouse control
- - Press `esc` to exit the gui, press `left arrow` or `right arrow` key to switch different frames.
+ - Press `esc` to exit the gui, `space` to pause simulation.
+ - Press `left arrow` or `right arrow` key to switch different frames.
  - Press and hold `right mouse button` to move viewport position. Move `mouse wheel` to zoom in or out the viewport.
  - Press and hold `left mouse button` to apply a mouse joint constraint to selected shape from the start point(mouse press position) to end point(current mouse hold position).
  - | keyboard button | function | keyboard button | function | keyboard button | function |
@@ -124,7 +125,7 @@ ti.init(arch=ti.gpu)
 Then, you need to define a instance of `Scene` class. The `Scene` class is the base container holding all the resources, such as `Frame`, `Camera` and so on.
 
 ```python
-# api: (class) tg.Scene(name: str, width: int = 1280, height: int = 720)
+# api: (class) tg.Scene(name: str, width: int = 1280, height: int = 720, option={})
 scene = tg.Scene(name='TaichiGAME testbed')
 ```
 After that, you need to inherhit base class `Frame` and implement the `load()` and `render()` methods.  `load()` is called once when frame is initialized. If you want to custom extra render, you can implement `render()` optional. It is called in main render loop.
@@ -143,6 +144,12 @@ scene.register_frame(custom_frame)
 scene.init_frame()
 scene.show()
 ```
+If you want to export the result as video, you need to add `video` config to the `scene`'s options list. Such as:
+```python
+scene = tg.Scene(name='TaichiGAME testbed', option={'video': True})
+```
+
+> NOTE: TaichiGAME use taichi's `VideoManager` to export video. you need to install the `ffmpeg` first. How to install ffmpeg you can refer to [Install ffmpeg](https://docs.taichi.graphics/lang/articles/misc/export_results#export-videos)
 
 If you want to know more details, you can refer to the official example [`testbed.py`](./examples/testbed.py). 
 
