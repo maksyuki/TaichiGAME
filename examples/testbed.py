@@ -53,7 +53,7 @@ class FrameBroadPhaseDetect(ng.Frame):
         tmpx: float = 0.0
         tmpy: float = 0.0
         cnt: np.ndarray = np.array([])
-        for i in range(101):
+        for i in range(51):
             bd = scene._world.create_body()
             tmpx = -10 + rng.random() * 20.0
             tmpy = -6 + rng.random() * 12.0
@@ -129,7 +129,7 @@ class FrameRaycast(ng.Frame):
         tmpx: float = 0.0
         tmpy: float = 0.0
         cnt: np.ndarray = np.array([])
-        for i in range(101):
+        for i in range(51):
             bd = scene._world.create_body()
             tmpx = -10 + rng.random() * 20.0
             tmpy = -6 + rng.random() * 12.0
