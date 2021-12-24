@@ -5,6 +5,7 @@ import taichi as ti
 
 from .common.config import Config
 from .common.ti_viewport import Viewport
+from .dynamics.ti_phy_world import PhysicsWorld
 
 
 @ti.data_oriented
@@ -14,6 +15,11 @@ class Scene():
                            res=(width, height),
                            background_color=Config.BackgroundColor)
 
+        # physics world
+        self._world = PhysicsWorld()
+        # calcuate step
+        self._fps = 120
+        self._dt = 1 / self._fps
         # viewport system
         self._viewport = Viewport(ti.Vector([0, height]), ti.Vector([width,
                                                                      0]))
@@ -42,9 +48,14 @@ class Scene():
         # the right-mouse btn drag move flag(change viewport)
         self._mouse_viewport_move: bool = False
 
+    def physics_sim(self) -> None:
+        self._world.step_velocity(self._dt)
+        self._world.step_position(self._dt)
+
     def render(self) -> None:
         self.smooth_scale()
         self.render_axis()
+        self.render_body()
 
     @ti.func
     def world_to_screen(self, world, scale, origx, origy, xformx, xformy, vw,
@@ -100,6 +111,24 @@ class Scene():
         self._gui.lines(begin=self._axis_lin_st.to_numpy(),
                         end=self._axis_lin_ed.to_numpy(),
                         color=Config.AxisLineColor)
+
+    def render_body(self) -> None:
+        self._world.random_set()
+        # self._gui.circles(self._world._pos.to_numpy(),
+        #                   radius=self._world._cir_radius.to_numpy(),
+        #                   color=Config.FillColor)
+        # self._gui.lines(begin=self._world._edg_st.to_numpy(),
+        #                 end=self._world._edg_ed.to_numpy(),
+        #                 color=0xFF0000)
+        # self._gui.triangles(a=self._world._tri_a.to_numpy(),
+                            # b=self._world._tri_b.to_numpy(),
+                            # c=self._world._tri_c.to_numpy(),
+                            # color=0xFF0000)
+        
+        for i in range(6):
+            self._gui.lines(begin=self._world._edg_st.to_numpy(),
+                            end=self._world._edg_ed.to_numpy(),
+                            color=0xFF0000)
 
     def handle_mouse_move_evt(self, x: float, y: float) -> None:
         cur_pos: ti.Vector = self.screen_to_world(ti.Vector([x, y]))
@@ -161,6 +190,7 @@ class Scene():
                 elif e.key == ti.GUI.RIGHT and e.type == ti.GUI.RELEASE:
                     pass
 
+            self.physics_sim()
             self.render()
             self._gui.show()
 

@@ -12,6 +12,7 @@ class PhysicsWorld():
         self._linear_vel_damping: float = 0.9
         self._ang_vel_damping: float = 0.9
 
+        # body physics params
         self._body_len: int = body_len
         self._mass = ti.field(float, shape=self._body_len)
         self._inertia = ti.field(float, shape=self._body_len)
@@ -23,6 +24,47 @@ class PhysicsWorld():
         self._ang_vel = ti.field(float, shape=self._body_len)
         self._force = ti.Vector.field(2, float, shape=self._body_len)
         self._torque = ti.field(float, shape=self._body_len)
+
+        # body shape
+        self._cir_radius = ti.field(float, shape=self._body_len)
+
+        self._edg_st = ti.Vector.field(2, float, shape=self._body_len)
+        self._edg_ed = ti.Vector.field(2, float, shape=self._body_len)
+        self._tri_a = ti.Vector.field(2, float, shape=self._body_len)
+        self._tri_b = ti.Vector.field(2, float, shape=self._body_len)
+        self._tri_c = ti.Vector.field(2, float, shape=self._body_len)
+        self._polyx = ti.Vector.field(6, float, shape=self._body_len)
+        self._polyy = ti.Vector.field(6, float, shape=self._body_len)
+        self._poly_st = ti.Vector.field(2, float, shape=(self._body_len, 6))
+        self._poly_ed = ti.Vector.field(2, float, shape=(self._body_len, 6))
+
+    @ti.kernel
+    def random_set(self):
+        for i in range(self._body_len):
+            self._pos[i] = ti.Vector([ti.random(), ti.random()])
+            self._cir_radius[i] = ti.random() * 4 + 2
+            self._edg_st[i] = ti.Vector([ti.random(), ti.random()])
+            self._edg_ed[i] = self._edg_st[i] + 0.1
+            self._tri_a[i] = ti.Vector([ti.random(), ti.random()])
+            self._tri_b[i] = self._tri_a[i] + 0.05
+            self._tri_c[i] = ti.Vector(
+                [self._tri_a[i].x, self._tri_a[i].y + 0.05])
+
+            # self._polyx[i][0] = 0.5
+            # self._polyy[i][0] = 0.5
+            # self._polyx[i][1] = 0.6
+            # self._polyy[i][1] = 0.6
+            # self._polyx[i][2] = 0.5
+            # self._polyy[i][2] = 0.7
+            # self._polyx[i][3] = 0.4
+            # self._polyy[i][3] = 0.7
+            # self._polyx[i][4] = 0.3
+            # self._polyy[i][4] = 0.6
+            # self._polyx[i][5] = 0.4
+            # self._polyy[i][5] = 0.5
+            # for j in range(6):
+                # self._poly_st[i, j] = self._polyx[i][j]
+                # self._poly_ed[i, j] = self._poly
 
     @ti.kernel
     def step_velocity(self, dt: float):
