@@ -154,11 +154,22 @@ scene = tg.Scene(name='TaichiGAME testbed', option={'video': True})
 If you want to know more details, you can refer to the official example [`testbed.py`](./examples/testbed.py). 
 
 ## Technical details
+1. [intro]: the structure of the code
+2. [experience]: first, rewrite the code to pure python. then rewrite key components in taichi, For example, 
 
 ### Structure
-insert a class diagram/chart
+1. [data structure] insert a class diagram/chart
+1. [render strucutre] how to render the filled shape in gui: picture to show the three shape in
 ### Algorithm
+1. [geometry algorithm]
+2. [viewport system]
+
 ### Implement
+1. [key]: the main loop
+2. then, point out the key content of the data with the 
+3. 
+
+
 ## Contribution
 If you want to contribute to TaichiGAME, be sure to review the [guidelines](CONTRIBUTING.md). This is an open project and contributions and collaborations are always welcome!! This project adheres to TaichiGAME's [code_of_conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
 

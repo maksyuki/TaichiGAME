@@ -17,5 +17,5 @@ class RandomGenerator():
         return RandomGenerator.start_id
 
     @staticmethod
-    def pop(id: int):
-        RandomGenerator.empty_list.append(id)
+    def pop(val: int):
+        RandomGenerator.empty_list.append(val)
