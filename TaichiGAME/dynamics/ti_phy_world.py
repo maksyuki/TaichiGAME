@@ -33,12 +33,11 @@ class PhysicsWorld():
         self._shape_type = ti.field(int, shape=self._body_len)
         # circle
         self._cirpos = ti.Vector.field(2, float, shape=self._body_len)
-        self._scirpos = ti.Vector.field(2, float, shape=self._body_len)
+        self._cirspos = ti.Vector.field(2, float, shape=self._body_len)
         self._cir_rad = ti.field(float, shape=self._body_len)
         self._scir_rad = ti.field(float, shape=self._body_len)
         # edge
         self._edgpos = ti.Vector.field(2, float, shape=self._body_len)
-        self._sedgpos = ti.Vector.field(2, float, shape=self._body_len)
         self._edg_st = ti.Vector.field(2, float, shape=self._body_len)
         self._edg_sst = ti.Vector.field(2, float, shape=self._body_len)
         self._edg_ed = ti.Vector.field(2, float, shape=self._body_len)
@@ -46,6 +45,7 @@ class PhysicsWorld():
 
         # polygon triangle
         self._poly_tripos = ti.Vector.field(2, float, shape=self._body_len)
+        self._poly_trispos = ti.Vector.field(2, float, shape=self._body_len)
         self._poly_trist = ti.Vector.field(2, float, shape=(self._body_len, 3))
         self._poly_tried = ti.Vector.field(2, float, shape=(self._body_len, 3))
         self._poly_trisst = ti.Vector.field(2,
@@ -60,6 +60,7 @@ class PhysicsWorld():
 
         # polygon rect
         self._poly_recpos = ti.Vector.field(2, float, shape=self._body_len)
+        self._poly_recspos = ti.Vector.field(2, float, shape=self._body_len)
         self._poly_recst = ti.Vector.field(2, float, shape=(self._body_len, 4))
         self._poly_reced = ti.Vector.field(2, float, shape=(self._body_len, 4))
         self._poly_recsst = ti.Vector.field(2,
@@ -75,6 +76,7 @@ class PhysicsWorld():
 
         # polygon pen
         self._poly_penpos = ti.Vector.field(2, float, shape=self._body_len)
+        self._poly_penspos = ti.Vector.field(2, float, shape=self._body_len)
         self._poly_penst = ti.Vector.field(2, float, shape=(self._body_len, 5))
         self._poly_pened = ti.Vector.field(2, float, shape=(self._body_len, 5))
         self._poly_pensst = ti.Vector.field(2,
@@ -90,6 +92,7 @@ class PhysicsWorld():
 
         # capsule
         self._cap_pos = ti.Vector.field(2, float, shape=self._body_len)
+        self._cap_spos = ti.Vector.field(2, float, shape=self._body_len)
         self._cap_width = ti.field(float, shape=self._body_len)
         self._cap_height = ti.field(float, shape=self._body_len)
         self._cap_c1 = ti.Vector.field(2, float, shape=self._body_len)

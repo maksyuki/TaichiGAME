@@ -59,8 +59,9 @@ class Scene():
 
     def render(self) -> None:
         self.smooth_scale()
-        self.render_axis()
+        # self.render_axis()
         self.render_body()
+        self.render_center()
 
     def register_frame(self, frame: Frame) -> None:
         self._ext_frame_list.append(frame)
@@ -153,7 +154,7 @@ class Scene():
                       xformx: float, xformy: float, vw: float, vh: float):
         for i in range(len(self._world._body_list)):
             if self._world._shape_type[i] == 1:
-                self._world._scirpos[i] = self.world_to_screen(
+                self._world._cirspos[i] = self.world_to_screen(
                     self._world._cirpos[i], scale, origx, origy, xformx,
                     xformy, vw, vh)
                 self._world._scir_rad[i] = self._world._cir_rad[i] * scale
@@ -161,6 +162,9 @@ class Scene():
             elif self._world._shape_type[i] == 2:
                 pass
             elif self._world._shape_type[i] == 3:
+                self._world._poly_trispos[i] = self.world_to_screen(
+                    self._world._poly_tripos[i], scale, origx, origy, xformx,
+                    xformy, vw, vh)
                 for j in range(3):
                     self._world._poly_trisst[i, j] = self.world_to_screen(
                         self._world._poly_tripos[i] +
@@ -177,6 +181,9 @@ class Scene():
                 self._world._poly_tri_c[i, 0] = self._world._poly_trisst[i, 2]
 
             elif self._world._shape_type[i] == 4:
+                self._world._poly_recspos[i] = self.world_to_screen(
+                    self._world._poly_recpos[i], scale, origx, origy, xformx,
+                    xformy, vw, vh)
                 for j in range(4):
                     self._world._poly_recsst[i, j] = self.world_to_screen(
                         self._world._poly_recpos[i] +
@@ -197,6 +204,9 @@ class Scene():
                             i, j - 2] = self._world._poly_recsst[i, j]
 
             elif self._world._shape_type[i] == 5:
+                self._world._poly_penspos[i] = self.world_to_screen(
+                    self._world._poly_penpos[i], scale, origx, origy, xformx,
+                    xformy, vw, vh)
                 for j in range(5):
                     self._world._poly_pensst[i, j] = self.world_to_screen(
                         self._world._poly_penpos[i] +
@@ -220,6 +230,10 @@ class Scene():
                 pass
 
             elif self._world._shape_type[i] == 7:
+                self._world._cap_spos[i] = self.world_to_screen(
+                    self._world._cap_pos[i], scale, origx, origy, xformx,
+                    xformy, vw, vh)
+
                 tmp1 = ti.Vector([0.0, 0.0])
                 tmp2 = ti.Vector([0.0, 0.0])
                 offset = ti.min(self._world._cap_width[i],
@@ -277,9 +291,8 @@ class Scene():
                         scale, origx, origy, xformx, xformy, vw, vh)
 
                     self._world._cap_rec_c[i, j] = self.world_to_screen(
-                            self._world._cap_pos[i] +
-                            self._world._cap_p[i, j + 2], scale, origx, origy,
-                            xformx, xformy, vw, vh)
+                        self._world._cap_pos[i] + self._world._cap_p[i, j + 2],
+                        scale, origx, origy, xformx, xformy, vw, vh)
 
     def render_body(self) -> None:
         # self._world.random_set()
@@ -287,7 +300,7 @@ class Scene():
                            self._origin.y, self._xform.x, self._xform.y,
                            self._viewport.width, self._viewport.height)
 
-        self._gui.circles(self._world._scirpos.to_numpy(),
+        self._gui.circles(self._world._cirspos.to_numpy(),
                           radius=self._world._scir_rad[1],
                           color=Config.FillColor)
 
@@ -295,19 +308,28 @@ class Scene():
         tri_ed = self._world._poly_trised.to_numpy()
         tri_st = tri_st.reshape(tri_st.shape[0] * tri_st.shape[1], -1)
         tri_ed = tri_ed.reshape(tri_ed.shape[0] * tri_ed.shape[1], -1)
-        self._gui.lines(begin=tri_st, end=tri_ed, color=Config.OuterLineColor, radius=2)
+        self._gui.lines(begin=tri_st,
+                        end=tri_ed,
+                        color=Config.OuterLineColor,
+                        radius=2)
 
         rec_st = self._world._poly_recsst.to_numpy()
         rec_ed = self._world._poly_recsed.to_numpy()
         rec_st = rec_st.reshape(rec_st.shape[0] * rec_st.shape[1], -1)
         rec_ed = rec_ed.reshape(rec_ed.shape[0] * rec_ed.shape[1], -1)
-        self._gui.lines(begin=rec_st, end=rec_ed, color=Config.OuterLineColor,  radius=2)
+        self._gui.lines(begin=rec_st,
+                        end=rec_ed,
+                        color=Config.OuterLineColor,
+                        radius=2)
 
         pen_st = self._world._poly_pensst.to_numpy()
         pen_ed = self._world._poly_pensed.to_numpy()
         pen_st = pen_st.reshape(pen_st.shape[0] * pen_st.shape[1], -1)
         pen_ed = pen_ed.reshape(pen_ed.shape[0] * pen_ed.shape[1], -1)
-        self._gui.lines(begin=pen_st, end=pen_ed, color=Config.OuterLineColor,  radius=2)
+        self._gui.lines(begin=pen_st,
+                        end=pen_ed,
+                        color=Config.OuterLineColor,
+                        radius=2)
 
         tri_a = self._world._poly_tri_a.to_numpy()
         tri_b = self._world._poly_tri_b.to_numpy()
@@ -315,10 +337,7 @@ class Scene():
         tri_a = tri_a.reshape(tri_a.shape[0] * tri_a.shape[1], -1)
         tri_b = tri_b.reshape(tri_b.shape[0] * tri_b.shape[1], -1)
         tri_c = tri_c.reshape(tri_c.shape[0] * tri_c.shape[1], -1)
-        self._gui.triangles(a=tri_a,
-                            b=tri_b,
-                            c=tri_c,
-                            color=Config.FillColor)
+        self._gui.triangles(a=tri_a, b=tri_b, c=tri_c, color=Config.FillColor)
 
         rec_a = self._world._poly_rec_a.to_numpy()
         rec_b = self._world._poly_rec_b.to_numpy()
@@ -326,10 +345,7 @@ class Scene():
         rec_a = rec_a.reshape(rec_a.shape[0] * rec_a.shape[1], -1)
         rec_b = rec_b.reshape(rec_b.shape[0] * rec_b.shape[1], -1)
         rec_c = rec_c.reshape(rec_c.shape[0] * rec_c.shape[1], -1)
-        self._gui.triangles(a=rec_a,
-                            b=rec_b,
-                            c=rec_c,
-                            color=Config.FillColor)
+        self._gui.triangles(a=rec_a, b=rec_b, c=rec_c, color=Config.FillColor)
 
         pen_a = self._world._poly_pen_a.to_numpy()
         pen_b = self._world._poly_pen_b.to_numpy()
@@ -337,10 +353,7 @@ class Scene():
         pen_a = pen_a.reshape(pen_a.shape[0] * pen_a.shape[1], -1)
         pen_b = pen_b.reshape(pen_b.shape[0] * pen_b.shape[1], -1)
         pen_c = pen_c.reshape(pen_c.shape[0] * pen_c.shape[1], -1)
-        self._gui.triangles(a=pen_a,
-                            b=pen_b,
-                            c=pen_c,
-                            color=Config.FillColor)
+        self._gui.triangles(a=pen_a, b=pen_b, c=pen_c, color=Config.FillColor)
 
         offset = np.fmin(self._world._cap_width[0],
                          self._world._cap_height[0]) / 2.0
@@ -358,10 +371,31 @@ class Scene():
         rec_a = rec_a.reshape(rec_a.shape[0] * rec_a.shape[1], -1)
         rec_b = rec_b.reshape(rec_b.shape[0] * rec_b.shape[1], -1)
         rec_c = rec_c.reshape(rec_c.shape[0] * rec_c.shape[1], -1)
-        self._gui.triangles(a=rec_a,
-                            b=rec_b,
-                            c=rec_c,
-                            color=Config.FillColor)
+        self._gui.triangles(a=rec_a, b=rec_b, c=rec_c, color=Config.FillColor)
+
+    def render_center(self) -> None:
+        self._gui.circles(self._world._cirspos.to_numpy(),
+                          color=Config.BodyCenterColor,
+                          radius=4)
+
+        self._gui.circles(self._world._poly_trispos.to_numpy(),
+                          color=Config.BodyCenterColor,
+                          radius=4)
+
+        self._gui.circles(self._world._poly_recspos.to_numpy(),
+                          color=Config.BodyCenterColor,
+                          radius=4)
+
+        self._gui.circles(self._world._poly_penspos.to_numpy(),
+                          color=Config.BodyCenterColor,
+                          radius=4)
+
+        self._gui.circles(self._world._cap_spos.to_numpy(),
+                          color=Config.BodyCenterColor,
+                          radius=4)
+
+    def render_rot_line(self) -> None:
+        pass
 
     def handle_mouse_move_evt(self, x: float, y: float) -> None:
         cur_pos: ti.Vector = self.screen_to_world(ti.Vector([x, y]))
