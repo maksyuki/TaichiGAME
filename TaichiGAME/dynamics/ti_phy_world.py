@@ -24,6 +24,13 @@ class PhysicsWorld():
 
         # body physics params
         self._body_len: int = body_len
+
+        # rot line
+        self._rot_line_hst = ti.Vector.field(2, float, shape=self._body_len)
+        self._rot_line_hed = ti.Vector.field(2, float, shape=self._body_len)
+        self._rot_line_vst = ti.Vector.field(2, float, shape=self._body_len)
+        self._rot_line_ved = ti.Vector.field(2, float, shape=self._body_len)
+
         self._mass = ti.field(float, shape=self._body_len)
         self._inertia = ti.field(float, shape=self._body_len)
         # 1: kinematic 2: static 3: dynamic

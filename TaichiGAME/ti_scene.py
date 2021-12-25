@@ -62,6 +62,7 @@ class Scene():
         # self.render_axis()
         self.render_body()
         self.render_center()
+        self.render_rot_line()
 
     def register_frame(self, frame: Frame) -> None:
         self._ext_frame_list.append(frame)
@@ -405,7 +406,9 @@ class Scene():
                           radius=4)
 
     def render_rot_line(self) -> None:
-        pass
+        xpos = ti.Vector([0.12, 0.0])
+        ypos = ti.Vector([0.12, 0.0])
+        
 
     def handle_mouse_move_evt(self, x: float, y: float) -> None:
         cur_pos: ti.Vector = self.screen_to_world(ti.Vector([x, y]))
