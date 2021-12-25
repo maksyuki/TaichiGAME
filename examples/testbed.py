@@ -1,4 +1,3 @@
-from typing import List
 import sys
 
 import numpy as np
@@ -12,19 +11,19 @@ import TaichiGAME as ng
 
 ti.init(arch=ti.cpu)
 
-scene = ng.Scene('TaichiGAME testbed')
+scene = ng.Scene('CPU Testbed')
 
 
 class FrameBroadPhaseDetect(ng.Frame):
-    def load(self) -> None:
-        tri_data: List[ng.Matrix] = [
+    def load(self):
+        tri_data = [
             ng.Matrix([-1.0, 1.0], 'vec'),
             ng.Matrix([0.0, -2.0], 'vec'),
             ng.Matrix([1.0, -1.0], 'vec'),
             ng.Matrix([-1.0, 1.0], 'vec'),
         ]
 
-        poly_data: List[ng.Matrix] = [
+        poly_data = [
             ng.Matrix([0.0, 4.0], 'vec'),
             ng.Matrix([-3.0, 3.0], 'vec'),
             ng.Matrix([-4.0, 0.0], 'vec'),
@@ -36,23 +35,23 @@ class FrameBroadPhaseDetect(ng.Frame):
             ng.Matrix([0.0, 4.0], 'vec')
         ]
 
-        rect: ng.Rectangle = ng.Rectangle(0.5, 0.5)
-        cir: ng.Circle = ng.Circle(0.5)
-        cap: ng.Capsule = ng.Capsule(1.5, 0.5)
-        tri: ng.Polygon = ng.Polygon()
+        rect = ng.Rectangle(0.5, 0.5)
+        cir = ng.Circle(0.5)
+        cap = ng.Capsule(1.5, 0.5)
+        tri = ng.Polygon()
         tri.vertices = tri_data
-        poly: ng.Polygon = ng.Polygon()
+        poly = ng.Polygon()
         poly.vertices = poly_data
 
         tri.scale(0.5)
         poly.scale(0.1)
 
-        rng: np.random._generator.Generator = np.random.default_rng(seed=6)
+        rng = np.random.default_rng(seed=6)
 
-        bd: ng.Body = ng.Body()
+        bd = ng.Body()
         tmpx: float = 0.0
         tmpy: float = 0.0
-        cnt: np.ndarray = np.array([])
+        cnt = np.array([])
         for i in range(51):
             bd = scene._world.create_body()
             tmpx = -10 + rng.random() * 20.0
@@ -76,7 +75,7 @@ class FrameBroadPhaseDetect(ng.Frame):
             bd.type = ng.Body.Type.Static
             scene._dbvt.insert(bd)
 
-    def render(self) -> None:
+    def render(self):
         # render the query rectangle range
         ng.Render.rd_rect(
             scene._gui,
@@ -84,23 +83,23 @@ class FrameBroadPhaseDetect(ng.Frame):
             scene._cam.world_to_screen(ng.Matrix([4.0, -4.0], 'vec')),
             color=ng.Config.QueryRectLineColor)
 
-        query_region: ng.AABB = ng.AABB(8, 8)
-        query_body_list: List[ng.Body] = scene._dbvt.query(query_region)
+        query_region = ng.AABB(8, 8)
+        query_body_list = scene._dbvt.query(query_region)
 
         for bd in query_body_list:
             scene._cam.render_aabb(scene._gui, ng.AABB.from_body(bd))
 
 
 class FrameRaycast(ng.Frame):
-    def load(self) -> None:
-        tri_data: List[ng.Matrix] = [
+    def load(self):
+        tri_data = [
             ng.Matrix([-1.0, 1.0], 'vec'),
             ng.Matrix([0.0, -2.0], 'vec'),
             ng.Matrix([1.0, -1.0], 'vec'),
             ng.Matrix([-1.0, 1.0], 'vec')
         ]
 
-        poly_data: List[ng.Matrix] = [
+        poly_data = [
             ng.Matrix([0.0, 4.0], 'vec'),
             ng.Matrix([-3.0, 3.0], 'vec'),
             ng.Matrix([-4.0, 0.0], 'vec'),
@@ -112,23 +111,23 @@ class FrameRaycast(ng.Frame):
             ng.Matrix([0.0, 4.0], 'vec')
         ]
 
-        rect: ng.Rectangle = ng.Rectangle(0.5, 0.5)
-        cir: ng.Circle = ng.Circle(0.5)
-        cap: ng.Capsule = ng.Capsule(1.5, 0.5)
-        tri: ng.Polygon = ng.Polygon()
+        rect = ng.Rectangle(0.5, 0.5)
+        cir = ng.Circle(0.5)
+        cap = ng.Capsule(1.5, 0.5)
+        tri = ng.Polygon()
         tri.vertices = tri_data
-        poly: ng.Polygon = ng.Polygon()
+        poly = ng.Polygon()
         poly.vertices = poly_data
 
         tri.scale(0.5)
         poly.scale(0.1)
 
-        rng: np.random._generator.Generator = np.random.default_rng(seed=6)
+        rng = np.random.default_rng(seed=6)
 
-        bd: ng.Body = ng.Body()
+        bd = ng.Body()
         tmpx: float = 0.0
         tmpy: float = 0.0
-        cnt: np.ndarray = np.array([])
+        cnt = np.array([])
         for i in range(51):
             bd = scene._world.create_body()
             tmpx = -10 + rng.random() * 20.0
@@ -152,17 +151,17 @@ class FrameRaycast(ng.Frame):
             bd.type = ng.Body.Type.Static
             scene._dbvt.insert(bd)
 
-    def render(self) -> None:
-        st: ng.Matrix = ng.Matrix([0.0, 0.0], 'vec')
-        dirn: ng.Matrix = scene._mouse_pos.normal()
+    def render(self):
+        st = ng.Matrix([0.0, 0.0], 'vec')
+        dirn = scene._mouse_pos.normal()
 
         ng.Render.rd_line(scene._gui,
                           scene._cam.world_to_screen(st),
                           scene._cam.world_to_screen(dirn * 10.0),
                           color=0xFF0000)
-        query_body_list: List[ng.Body] = scene._dbvt.raycast(st, dirn)
+        query_body_list = scene._dbvt.raycast(st, dirn)
 
-        prim: ng.ShapePrimitive = ng.ShapePrimitive()
+        prim = ng.ShapePrimitive()
         for bd in query_body_list:
             prim._rot = bd.rot
             prim._xform = bd.pos
@@ -174,15 +173,15 @@ class FrameRaycast(ng.Frame):
 
 
 class FrameBitmask(ng.Frame):
-    def load(self) -> None:
-        rect: ng.Rectangle = ng.Rectangle(1.0, 1.0)
-        edg: ng.Edge = ng.Edge()
+    def load(self):
+        rect = ng.Rectangle(1.0, 1.0)
+        edg = ng.Edge()
         edg.set_value(ng.Matrix([-10.0, 0.0], 'vec'),
                       ng.Matrix([10.0, 0.0], 'vec'))
 
         mask: int = 0x01
         for i in range(3):
-            grd: ng.Body = scene._world.create_body()
+            grd = scene._world.create_body()
             grd.shape = edg
             grd.pos = ng.Matrix([0.0, -3.0 + i * 3.0], 'vec')
             grd.fric = 0.9
@@ -195,7 +194,7 @@ class FrameBitmask(ng.Frame):
 
         mask = 0x01
         for i in range(3):
-            bd: ng.Body = scene._world.create_body()
+            bd = scene._world.create_body()
             bd.shape = rect
             bd.pos = ng.Matrix([i * 3.0, 6.0], 'vec')
             bd.fric = 0.9
@@ -206,18 +205,18 @@ class FrameBitmask(ng.Frame):
             mask <<= 1
             scene._dbvt.insert(bd)
 
-    def render(self) -> None:
+    def render(self):
         pass
 
 
 class FrameCollision(ng.Frame):
-    def load(self) -> None:
-        edg: ng.Edge = ng.Edge()
+    def load(self):
+        edg = ng.Edge()
         edg.set_value(ng.Matrix([-10.0, 0.0], 'vec'),
                       ng.Matrix([10.0, 0.0], 'vec'))
-        cap: ng.Capsule = ng.Capsule(2.0, 1.0)
+        cap = ng.Capsule(2.0, 1.0)
 
-        grd: ng.Body = scene._world.create_body()
+        grd = scene._world.create_body()
         grd.shape = edg
         grd.pos = ng.Matrix([0.0, 0.0], 'vec')
         grd.mass = ng.Config.Max
@@ -226,7 +225,7 @@ class FrameCollision(ng.Frame):
         grd.restit = 1.0
         scene._dbvt.insert(grd)
 
-        bd: ng.Body = scene._world.create_body()
+        bd = scene._world.create_body()
         bd.shape = cap
         bd.pos = ng.Matrix([0.0, 6.0], 'vec')
         bd.rot = np.pi / 4
@@ -236,19 +235,19 @@ class FrameCollision(ng.Frame):
         bd.restit = 0.0
         scene._dbvt.insert(bd)
 
-    def render(self) -> None:
+    def render(self):
         pass
 
 
 # BUG: some restit will lead to some enormous bias
 class FrameRestitution(ng.Frame):
-    def load(self) -> None:
-        cir: ng.Circle = ng.Circle(1.0)
-        edg: ng.Edge = ng.Edge()
+    def load(self):
+        cir = ng.Circle(1.0)
+        edg = ng.Edge()
         edg.set_value(ng.Matrix([-100.0, 0.0], 'vec'),
                       ng.Matrix([100.0, 0.0], 'vec'))
 
-        grd: ng.Body = scene._world.create_body()
+        grd = scene._world.create_body()
         grd.shape = edg
         grd.mass = ng.Config.Max
         grd.restit = 1.0
@@ -258,7 +257,7 @@ class FrameRestitution(ng.Frame):
         scene._dbvt.insert(grd)
 
         for i in range(10):
-            bd: ng.Body = scene._world.create_body()
+            bd = scene._world.create_body()
             bd.shape = cir
             bd.mass = 10
             bd.fric = 0.1
@@ -267,22 +266,22 @@ class FrameRestitution(ng.Frame):
             bd.type = ng.Body.Type.Dynamic
             scene._dbvt.insert(bd)
 
-    def render(self) -> None:
+    def render(self):
         pass
 
 
 class FrameFriction(ng.Frame):
-    def load(self) -> None:
-        edg: ng.Edge = ng.Edge()
+    def load(self):
+        edg = ng.Edge()
         edg.set_value(ng.Matrix([0.0, 0.0], 'vec'),
                       ng.Matrix([10.0, 0.0], 'vec'))
-        ramp: ng.Edge = ng.Edge()
+        ramp = ng.Edge()
         ramp.set_value(ng.Matrix([-10.0, 4.0], 'vec'),
                        ng.Matrix([0.0, 0.0], 'vec'))
-        rect: ng.Rectangle = ng.Rectangle(0.5, 0.5)
+        rect = ng.Rectangle(0.5, 0.5)
 
         for i in range(3):
-            grd: ng.Body = scene._world.create_body()
+            grd = scene._world.create_body()
             grd.shape = edg
             grd.fric = 0.1
             grd.mass = ng.Config.Max
@@ -290,7 +289,7 @@ class FrameFriction(ng.Frame):
             grd.restit = 0.0
             grd.type = ng.Body.Type.Static
 
-            ram_grd: ng.Body = scene._world.create_body()
+            ram_grd = scene._world.create_body()
             ram_grd.shape = ramp
             ram_grd.fric = 0.1
             ram_grd.mass = ng.Config.Max
@@ -302,7 +301,7 @@ class FrameFriction(ng.Frame):
             scene._dbvt.insert(ram_grd)
 
         for i in range(1, 4):
-            cube: ng.Body = scene._world.create_body()
+            cube = scene._world.create_body()
             cube.shape = rect
             cube.fric = i * 0.3
             cube.mass = 1
@@ -311,17 +310,17 @@ class FrameFriction(ng.Frame):
             cube.type = ng.Body.Type.Dynamic
             scene._dbvt.insert(cube)
 
-    def render(self) -> None:
+    def render(self):
         pass
 
 
 class FrameStack(ng.Frame):
-    def load(self) -> None:
-        edg: ng.Edge = ng.Edge()
+    def load(self):
+        edg = ng.Edge()
         edg.set_value(ng.Matrix([-100.0, 0.0], 'vec'),
                       ng.Matrix([100.0, 0.0], 'vec'))
-        rect: ng.Rectangle = ng.Rectangle(1.0, 1.0)
-        grd: ng.Body = scene._world.create_body()
+        rect = ng.Rectangle(1.0, 1.0)
+        grd = scene._world.create_body()
         grd.shape = edg
         grd.pos = ng.Matrix([0.0, 0.0], 'vec')
         grd.mass = ng.Config.Max
@@ -332,7 +331,7 @@ class FrameStack(ng.Frame):
         max: int = 4
         for i in range(max):
             for j in range(max - i):
-                bd: ng.Body = scene._world.create_body()
+                bd = scene._world.create_body()
                 bd.pos = ng.Matrix([-10.0 + j * 1.1 + offset, i * 1.8 + 2.0],
                                    'vec')
                 bd.shape = rect
@@ -345,19 +344,19 @@ class FrameStack(ng.Frame):
 
             offset += 0.5
 
-    def render(self) -> None:
+    def render(self):
         pass
 
 
 # BUG: some impl error
 class FrameBridge(ng.Frame):
-    def load(self) -> None:
-        brick: ng.Rectangle = ng.Rectangle(1.5, 0.5)
-        edg: ng.Edge = ng.Edge()
+    def load(self):
+        brick = ng.Rectangle(1.5, 0.5)
+        edg = ng.Edge()
         edg.set_value(ng.Matrix([-100.0, 0.0], 'vec'),
                       ng.Matrix([100.0, 0], 'vec'))
 
-        rect: ng.Body = scene._world.create_body()
+        rect = scene._world.create_body()
         rect.shape = brick
         rect.pos = ng.Matrix([-15.0, 0.0], 'vec')
         rect.rot = 0.0
@@ -366,15 +365,15 @@ class FrameBridge(ng.Frame):
         rect.fric = 0.01
         rect.type = ng.Body.Type.Dynamic
 
-        grd: ng.Body = scene._world.create_body()
+        grd = scene._world.create_body()
         grd.shape = edg
         grd.pos = ng.Matrix([0.0, -15.0], 'vec')
         grd.mass = ng.Config.Max
         grd.type = ng.Body.Type.Static
         scene._dbvt.insert(grd)
 
-        ppm: ng.PointJointPrimitive = ng.PointJointPrimitive()
-        revol: ng.RevoluteJointPrimitive = ng.RevoluteJointPrimitive()
+        ppm = ng.PointJointPrimitive()
+        revol = ng.RevoluteJointPrimitive()
 
         half: float = brick.width / 2.0
         ppm._bodya = rect
@@ -389,7 +388,7 @@ class FrameBridge(ng.Frame):
         scene._dbvt.insert(rect)
 
         for i in range(1, cnt):
-            rect2: ng.Body = scene._world.create_body()
+            rect2 = scene._world.create_body()
             rect2.shape = brick
             rect2.pos = ng.Matrix([-15.0 + i * brick.width * 1.2, 0.0], 'vec')
             rect2.rot = 0.0
@@ -417,20 +416,20 @@ class FrameBridge(ng.Frame):
         ppm._force_max = 10000.0
         scene._world.create_joint(ppm)
 
-    def render(self) -> None:
+    def render(self):
         pass
 
 
 class FrameDomino(ng.Frame):
-    def load(self) -> None:
-        floor: ng.Rectangle = ng.Rectangle(15.0, 0.5)
-        rect: ng.Rectangle = ng.Rectangle(0.5, 0.5)
-        brick: ng.Rectangle = ng.Rectangle(0.3, 3.0)
-        edg: ng.Edge = ng.Edge()
+    def load(self):
+        floor = ng.Rectangle(15.0, 0.5)
+        rect = ng.Rectangle(0.5, 0.5)
+        brick = ng.Rectangle(0.3, 3.0)
+        edg = ng.Edge()
         edg.set_value(ng.Matrix([-100.0, 0.0], 'vec'),
                       ng.Matrix([100.0, 0.0], 'vec'))
 
-        grd: ng.Body = scene._world.create_body()
+        grd = scene._world.create_body()
         grd.shape = edg
         grd.type = ng.Body.Type.Static
         grd.mass = ng.Config.Max
@@ -439,7 +438,7 @@ class FrameDomino(ng.Frame):
         grd.restit = 0.0
         scene._dbvt.insert(grd)
 
-        tile: ng.Body = scene._world.create_body()
+        tile = scene._world.create_body()
         tile.shape = floor
         tile.type = ng.Body.Type.Static
         tile.mass = ng.Config.Max
@@ -470,7 +469,7 @@ class FrameDomino(ng.Frame):
         scene._dbvt.insert(tile)
 
         for i in range(9):
-            card: ng.Body = scene._world.create_body()
+            card = scene._world.create_body()
             card.shape = brick
             card.mass = 10
             card.fric = 0.1
@@ -479,7 +478,7 @@ class FrameDomino(ng.Frame):
             card.pos = ng.Matrix([-10.0 + i * 1.2, 12.0], 'vec')
             scene._dbvt.insert(card)
 
-        pendulum: ng.Body = scene._world.create_body()
+        pendulum = scene._world.create_body()
         pendulum.shape = rect
         pendulum.mass = 2.0
         pendulum.fric = 0.1
@@ -487,7 +486,7 @@ class FrameDomino(ng.Frame):
         pendulum.pos = ng.Matrix([-16.0, 16.0], 'vec')
         scene._dbvt.insert(pendulum)
 
-        djp: ng.DistanceJointPrimitive = ng.DistanceJointPrimitive()
+        djp = ng.DistanceJointPrimitive()
         djp._bodya = pendulum
         djp._local_pointa.set_value([0.0, 0.0])
         djp._dist_min = 1.0
@@ -501,7 +500,7 @@ class FrameDomino(ng.Frame):
         # ojp._ref_rot = 0.0
         # scene._world.create_joint(ojp)
 
-    def render(self) -> None:
+    def render(self):
         pass
 
 
