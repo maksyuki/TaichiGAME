@@ -219,6 +219,68 @@ class Scene():
             elif self._world._shape_type[i] == 6:
                 pass
 
+            elif self._world._shape_type[i] == 7:
+                tmp1 = ti.Vector([0.0, 0.0])
+                tmp2 = ti.Vector([0.0, 0.0])
+                offset = ti.min(self._world._cap_width[i],
+                                self._world._cap_height[i]) / 2.0
+                if self._world._cap_width[i] > self._world._cap_height[i]:
+                    tmp1.x = -(self._world._cap_width[i] / 2.0 - offset)
+                    tmp2.x = (self._world._cap_width[i] / 2.0 - offset)
+                else:
+                    tmp1.y = -(self._world._cap_height[i] / 2.0 - offset)
+                    tmp2.y = (self._world._cap_height[i] / 2.0 - offset)
+
+                self._world._cap_c1[i] = self.world_to_screen(
+                    self._world._cap_pos[i] + tmp1, scale, origx, origy,
+                    xformx, xformy, vw, vh)
+
+                self._world._cap_c2[i] = self.world_to_screen(
+                    self._world._cap_pos[i] + tmp2, scale, origx, origy,
+                    xformx, xformy, vw, vh)
+
+                self._world._cap_p[i, 0] = ti.Vector([
+                    -self._world._cap_width[i] / 2.0,
+                    -self._world._cap_height[i] / 2.0
+                ])
+                self._world._cap_p[i, 1] = ti.Vector([
+                    self._world._cap_width[i] / 2.0,
+                    -self._world._cap_height[i] / 2.0
+                ])
+                self._world._cap_p[i, 2] = ti.Vector([
+                    self._world._cap_width[i] / 2.0,
+                    self._world._cap_height[i] / 2.0
+                ])
+                self._world._cap_p[i, 3] = ti.Vector([
+                    -self._world._cap_width[i] / 2.0,
+                    self._world._cap_height[i] / 2.0
+                ])
+
+                if self._world._cap_width[i] > self._world._cap_height[i]:
+                    self._world._cap_p[i, 0].x += offset
+                    self._world._cap_p[i, 1].x -= offset
+                    self._world._cap_p[i, 2].x -= offset
+                    self._world._cap_p[i, 3].x += offset
+                else:
+                    self._world._cap_p[i, 0].y += offset
+                    self._world._cap_p[i, 1].y += offset
+                    self._world._cap_p[i, 2].y -= offset
+                    self._world._cap_p[i, 3].y -= offset
+
+                for j in range(2):
+                    self._world._cap_rec_a[i, j] = self.world_to_screen(
+                        self._world._cap_pos[i] + self._world._cap_p[i, 0],
+                        scale, origx, origy, xformx, xformy, vw, vh)
+
+                    self._world._cap_rec_b[i, j] = self.world_to_screen(
+                        self._world._cap_pos[i] + self._world._cap_p[i, j + 1],
+                        scale, origx, origy, xformx, xformy, vw, vh)
+
+                    self._world._cap_rec_c[i, j] = self.world_to_screen(
+                            self._world._cap_pos[i] +
+                            self._world._cap_p[i, j + 2], scale, origx, origy,
+                            xformx, xformy, vw, vh)
+
     def render_body(self) -> None:
         # self._world.random_set()
         self.gen_body_data(self._meter_to_pixel, self._origin.x,
@@ -233,19 +295,19 @@ class Scene():
         tri_ed = self._world._poly_trised.to_numpy()
         tri_st = tri_st.reshape(tri_st.shape[0] * tri_st.shape[1], -1)
         tri_ed = tri_ed.reshape(tri_ed.shape[0] * tri_ed.shape[1], -1)
-        self._gui.lines(begin=tri_st, end=tri_ed, color=Config.OuterLineColor)
+        self._gui.lines(begin=tri_st, end=tri_ed, color=Config.OuterLineColor, radius=2)
 
         rec_st = self._world._poly_recsst.to_numpy()
         rec_ed = self._world._poly_recsed.to_numpy()
         rec_st = rec_st.reshape(rec_st.shape[0] * rec_st.shape[1], -1)
         rec_ed = rec_ed.reshape(rec_ed.shape[0] * rec_ed.shape[1], -1)
-        self._gui.lines(begin=rec_st, end=rec_ed, color=Config.OuterLineColor)
+        self._gui.lines(begin=rec_st, end=rec_ed, color=Config.OuterLineColor,  radius=2)
 
         pen_st = self._world._poly_pensst.to_numpy()
         pen_ed = self._world._poly_pensed.to_numpy()
         pen_st = pen_st.reshape(pen_st.shape[0] * pen_st.shape[1], -1)
         pen_ed = pen_ed.reshape(pen_ed.shape[0] * pen_ed.shape[1], -1)
-        self._gui.lines(begin=pen_st, end=pen_ed, color=Config.OuterLineColor)
+        self._gui.lines(begin=pen_st, end=pen_ed, color=Config.OuterLineColor,  radius=2)
 
         tri_a = self._world._poly_tri_a.to_numpy()
         tri_b = self._world._poly_tri_b.to_numpy()
@@ -256,8 +318,7 @@ class Scene():
         self._gui.triangles(a=tri_a,
                             b=tri_b,
                             c=tri_c,
-                            color=Config.OuterLineColor)
-
+                            color=Config.FillColor)
 
         rec_a = self._world._poly_rec_a.to_numpy()
         rec_b = self._world._poly_rec_b.to_numpy()
@@ -268,8 +329,7 @@ class Scene():
         self._gui.triangles(a=rec_a,
                             b=rec_b,
                             c=rec_c,
-                            color=Config.OuterLineColor)
-
+                            color=Config.FillColor)
 
         pen_a = self._world._poly_pen_a.to_numpy()
         pen_b = self._world._poly_pen_b.to_numpy()
@@ -280,22 +340,28 @@ class Scene():
         self._gui.triangles(a=pen_a,
                             b=pen_b,
                             c=pen_c,
-                            color=Config.OuterLineColor)
+                            color=Config.FillColor)
 
-        # self._gui.triangles(a=self._world._polytri_a.to_numpy(),
-        # b=self._world._polytri_b.to_numpy(),
-        # c=self._world._polytri_c.to_numpy(),
-        # color=0x0000FF)
-        # self._gui.circles(self._world._cirpos.to_numpy(),
-        #   radius=self._world._cir_rad.to_numpy(),
-        #   color=Config.FillColor)
-        # self._gui.lines(begin=self._world._edg_st.to_numpy(),
-        # end=self._world._edg_ed.to_numpy(),
-        # color=0xFF0000)
-        # self._gui.triangles(a=self._world._tri_a.to_numpy(),
-        # b=self._world._tri_b.to_numpy(),
-        # c=self._world._tri_c.to_numpy(),
-        # color=0xFF0000)
+        offset = np.fmin(self._world._cap_width[0],
+                         self._world._cap_height[0]) / 2.0
+        self._gui.circles(self._world._cap_c1.to_numpy(),
+                          radius=self._meter_to_pixel * offset,
+                          color=Config.FillColor)
+
+        self._gui.circles(self._world._cap_c2.to_numpy(),
+                          radius=self._meter_to_pixel * offset,
+                          color=Config.FillColor)
+
+        rec_a = self._world._cap_rec_a.to_numpy()
+        rec_b = self._world._cap_rec_b.to_numpy()
+        rec_c = self._world._cap_rec_c.to_numpy()
+        rec_a = rec_a.reshape(rec_a.shape[0] * rec_a.shape[1], -1)
+        rec_b = rec_b.reshape(rec_b.shape[0] * rec_b.shape[1], -1)
+        rec_c = rec_c.reshape(rec_c.shape[0] * rec_c.shape[1], -1)
+        self._gui.triangles(a=rec_a,
+                            b=rec_b,
+                            c=rec_c,
+                            color=Config.FillColor)
 
     def handle_mouse_move_evt(self, x: float, y: float) -> None:
         cur_pos: ti.Vector = self.screen_to_world(ti.Vector([x, y]))

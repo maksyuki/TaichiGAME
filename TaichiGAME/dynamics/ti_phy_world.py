@@ -5,7 +5,7 @@ import taichi as ti
 from ..dynamics.body import Body
 from .joint.joint import Joint
 from ..common.random import RandomGenerator
-from ..geometry.shape import Circle, Edge, Polygon, Shape
+from ..geometry.shape import Capsule, Circle, Edge, Polygon, Shape
 
 
 @ti.data_oriented
@@ -88,18 +88,22 @@ class PhysicsWorld():
         self._poly_pen_b = ti.Vector.field(2, float, shape=(self._body_len, 3))
         self._poly_pen_c = ti.Vector.field(2, float, shape=(self._body_len, 3))
 
+        # capsule
+        self._cap_pos = ti.Vector.field(2, float, shape=self._body_len)
+        self._cap_width = ti.field(float, shape=self._body_len)
+        self._cap_height = ti.field(float, shape=self._body_len)
+        self._cap_c1 = ti.Vector.field(2, float, shape=self._body_len)
+        self._cap_c2 = ti.Vector.field(2, float, shape=self._body_len)
+        self._cap_p = ti.Vector.field(2, float, shape=(self._body_len, 4))
+        self._cap_rec_a = ti.Vector.field(2, float, shape=(self._body_len, 2))
+        self._cap_rec_b = ti.Vector.field(2, float, shape=(self._body_len, 2))
+        self._cap_rec_c = ti.Vector.field(2, float, shape=(self._body_len, 2))
+
         self._vel = ti.Vector.field(2, float, shape=self._body_len)
         self._rot = ti.field(float, shape=self._body_len)
         self._ang_vel = ti.field(float, shape=self._body_len)
         self._force = ti.Vector.field(2, float, shape=self._body_len)
         self._torque = ti.field(float, shape=self._body_len)
-
-        # body shape
-        self._poly_st = ti.Vector.field(2, float, shape=6)
-        self._poly_ed = ti.Vector.field(2, float, shape=6)
-        self._polytri_a = ti.Vector.field(2, float, shape=4)
-        self._polytri_b = ti.Vector.field(2, float, shape=4)
-        self._polytri_c = ti.Vector.field(2, float, shape=4)
 
     def create_body(self):
         body: Body = Body()
@@ -169,46 +173,13 @@ class PhysicsWorld():
 
                 elif vert_len == 7:
                     self._shape_type[i] = 6
-                    pass
 
-    # @ti.kernel
-    # def random_set(self):
-    #     for i in range(self._body_len):
-    #         self._pos[i] = ti.Vector([ti.random(), ti.random()])
-    #         self._cir_rad[i] = ti.random() * 4 + 2
-    #         self._edg_st[i] = ti.Vector([ti.random(), ti.random()])
-    #         self._edg_ed[i] = self._edg_st[i] + 0.1
-    #         self._tri_a[i] = ti.Vector([ti.random(), ti.random()])
-    #         self._tri_b[i] = self._tri_a[i] + 0.05
-    #         self._tri_c[i] = ti.Vector(
-    #             [self._tri_a[i].x, self._tri_a[i].y + 0.05])
-
-    #     self._poly_st[0] = ti.Vector([ti.random(), ti.random()])
-    #     self._poly_st[1] = self._poly_st[0] + 0.1
-    #     self._poly_st[2] = ti.Vector(
-    #         [self._poly_st[0].x, self._poly_st[0].y + 0.2])
-    #     self._poly_st[3] = ti.Vector(
-    #         [self._poly_st[0].x - 0.1, self._poly_st[0].y + 0.2])
-    #     self._poly_st[4] = ti.Vector(
-    #         [self._poly_st[0].x - 0.2, self._poly_st[0].y + 0.1])
-    #     self._poly_st[5] = ti.Vector(
-    #         [self._poly_st[0].x - 0.1, self._poly_st[0].y])
-
-    #     self._poly_ed[0] = self._poly_st[0] + 0.1
-    #     self._poly_ed[1] = ti.Vector(
-    #         [self._poly_st[0].x, self._poly_st[0].y + 0.2])
-    #     self._poly_ed[2] = ti.Vector(
-    #         [self._poly_st[0].x - 0.1, self._poly_st[0].y + 0.2])
-    #     self._poly_ed[3] = ti.Vector(
-    #         [self._poly_st[0].x - 0.2, self._poly_st[0].y + 0.1])
-    #     self._poly_ed[4] = ti.Vector(
-    #         [self._poly_st[0].x - 0.1, self._poly_st[0].y])
-    #     self._poly_ed[5] = ti.Vector([self._poly_st[0].x, self._poly_st[0].y])
-
-    #     for i in range(4):
-    #         self._polytri_a[i] = self._poly_st[0]
-    #         self._polytri_b[i] = self._poly_ed[i]
-    #         self._polytri_c[i] = self._poly_ed[i + 1]
+            elif self._body_list[i].shape.type == Shape.Type.Capsule:
+                self._shape_type[i] = 7
+                self._cap_pos[i] = pos
+                cap: Capsule = cast(Capsule, self._body_list[i].shape)
+                self._cap_width[i] = cap.width
+                self._cap_height[i] = cap.height
 
     @ti.kernel
     def step_velocity(self, dt: float):
