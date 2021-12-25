@@ -24,28 +24,25 @@ class FrameBroadPhaseDetect(ng.Frame):
             ng.Matrix([-1.0, 1.0], 'vec'),
         ]
 
-        # poly_data: List[ng.Matrix] = [
-        #     ng.Matrix([0.0, 4.0], 'vec'),
-        #     ng.Matrix([-3.0, 3.0], 'vec'),
-        #     ng.Matrix([-4.0, 0.0], 'vec'),
-        #     ng.Matrix([-3.0, -3.0], 'vec'),
-        #     ng.Matrix([0.0, -4.0], 'vec'),
-        #     ng.Matrix([3.0, -3.0], 'vec'),
-        #     ng.Matrix([4.0, 0.0], 'vec'),
-        #     ng.Matrix([3.0, 3.0], 'vec'),
-        #     ng.Matrix([0.0, 4.0], 'vec')
-        # ]
+        poly_data = [
+            ng.Matrix([0.0, 4.0], 'vec'),
+            ng.Matrix([-3.0, 3.0], 'vec'),
+            ng.Matrix([-4.0, 0.0], 'vec'),
+            ng.Matrix([-3.0, -3.0], 'vec'),
+            ng.Matrix([0.0, -4.0], 'vec'),
+            ng.Matrix([0.0, 4.0], 'vec')
+        ]
 
         rect: ng.Rectangle = ng.Rectangle(0.5, 0.5)
         cir: ng.Circle = ng.Circle(0.5)
         cap: ng.Capsule = ng.Capsule(1.5, 0.5)
         tri: ng.Polygon = ng.Polygon()
         tri.vertices = tri_data
-        # poly: ng.Polygon = ng.Polygon()
-        # poly.vertices = poly_data
+        poly: ng.Polygon = ng.Polygon()
+        poly.vertices = poly_data
 
         tri.scale(0.5)
-        # poly.scale(0.1)
+        poly.scale(0.1)
 
         rng = np.random.default_rng(seed=6)
 
@@ -53,8 +50,8 @@ class FrameBroadPhaseDetect(ng.Frame):
         tmpx: float = 0.0
         tmpy: float = 0.0
         cnt = np.array([])
-        for i in range(101):
-            # bd = scene._world.create_body()
+        for i in range(51):
+            bd = scene._world.create_body()
             tmpx = -10 + rng.random() * 20.0
             tmpy = -6 + rng.random() * 12.0
             bd.pos = ng.Matrix([tmpx, tmpy], 'vec')
@@ -67,8 +64,7 @@ class FrameBroadPhaseDetect(ng.Frame):
             elif cnt[0] == 2:
                 bd.shape = tri
             elif cnt[0] == 3:
-                # bd.shape = poly
-                pass
+                bd.shape = poly
             elif cnt[0] == 4:
                 bd.shape = cap
 
@@ -93,4 +89,7 @@ class FrameBroadPhaseDetect(ng.Frame):
         #     scene._cam.render_aabb(scene._gui, ng.AABB.from_body(bd))
 
 
+frame_broad_phase = FrameBroadPhaseDetect()
+scene.register_frame(frame_broad_phase)
+scene.init_frame()
 scene.show()
