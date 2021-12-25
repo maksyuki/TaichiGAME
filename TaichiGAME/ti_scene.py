@@ -149,10 +149,20 @@ class Scene():
                         end=self._axis_lin_ed.to_numpy(),
                         color=Config.AxisLineColor)
 
+    @ti.func
+    def rotate_mat(self, radian):
+        cos_val = ti.cos(radian)
+        sin_val = ti.sin(radian)
+        res = ti.Matrix([[cos_val, -sin_val], [sin_val, cos_val]])
+
+        return res
+
     @ti.kernel
     def gen_body_data(self, scale: float, origx: float, origy: float,
                       xformx: float, xformy: float, vw: float, vh: float):
         for i in range(len(self._world._body_list)):
+            rot_mat = self.rotate_mat(self._world._rot[i])
+
             if self._world._shape_type[i] == 1:
                 self._world._cirspos[i] = self.world_to_screen(
                     self._world._cirpos[i], scale, origx, origy, xformx,
@@ -168,12 +178,12 @@ class Scene():
                 for j in range(3):
                     self._world._poly_trisst[i, j] = self.world_to_screen(
                         self._world._poly_tripos[i] +
-                        self._world._poly_trist[i, j], scale, origx, origy,
+                        rot_mat @ self._world._poly_trist[i, j], scale, origx, origy,
                         xformx, xformy, vw, vh)
 
                     self._world._poly_trised[i, j] = self.world_to_screen(
                         self._world._poly_tripos[i] +
-                        self._world._poly_tried[i, j], scale, origx, origy,
+                        rot_mat @ self._world._poly_tried[i, j], scale, origx, origy,
                         xformx, xformy, vw, vh)
 
                 self._world._poly_tri_a[i, 0] = self._world._poly_trisst[i, 0]
@@ -187,12 +197,12 @@ class Scene():
                 for j in range(4):
                     self._world._poly_recsst[i, j] = self.world_to_screen(
                         self._world._poly_recpos[i] +
-                        self._world._poly_recst[i, j], scale, origx, origy,
+                        rot_mat @ self._world._poly_recst[i, j], scale, origx, origy,
                         xformx, xformy, vw, vh)
 
                     self._world._poly_recsed[i, j] = self.world_to_screen(
                         self._world._poly_recpos[i] +
-                        self._world._poly_reced[i, j], scale, origx, origy,
+                        rot_mat @ self._world._poly_reced[i, j], scale, origx, origy,
                         xformx, xformy, vw, vh)
 
                     if j >= 2:
@@ -210,12 +220,12 @@ class Scene():
                 for j in range(5):
                     self._world._poly_pensst[i, j] = self.world_to_screen(
                         self._world._poly_penpos[i] +
-                        self._world._poly_penst[i, j], scale, origx, origy,
+                        rot_mat @ self._world._poly_penst[i, j], scale, origx, origy,
                         xformx, xformy, vw, vh)
 
                     self._world._poly_pensed[i, j] = self.world_to_screen(
                         self._world._poly_penpos[i] +
-                        self._world._poly_pened[i, j], scale, origx, origy,
+                        rot_mat @ self._world._poly_pened[i, j], scale, origx, origy,
                         xformx, xformy, vw, vh)
 
                     if j >= 2:
@@ -246,11 +256,11 @@ class Scene():
                     tmp2.y = (self._world._cap_height[i] / 2.0 - offset)
 
                 self._world._cap_c1[i] = self.world_to_screen(
-                    self._world._cap_pos[i] + tmp1, scale, origx, origy,
+                    self._world._cap_pos[i] + rot_mat @ tmp1, scale, origx, origy,
                     xformx, xformy, vw, vh)
 
                 self._world._cap_c2[i] = self.world_to_screen(
-                    self._world._cap_pos[i] + tmp2, scale, origx, origy,
+                    self._world._cap_pos[i] + rot_mat @ tmp2, scale, origx, origy,
                     xformx, xformy, vw, vh)
 
                 self._world._cap_p[i, 0] = ti.Vector([
@@ -283,15 +293,15 @@ class Scene():
 
                 for j in range(2):
                     self._world._cap_rec_a[i, j] = self.world_to_screen(
-                        self._world._cap_pos[i] + self._world._cap_p[i, 0],
+                        self._world._cap_pos[i] + rot_mat @ self._world._cap_p[i, 0],
                         scale, origx, origy, xformx, xformy, vw, vh)
 
                     self._world._cap_rec_b[i, j] = self.world_to_screen(
-                        self._world._cap_pos[i] + self._world._cap_p[i, j + 1],
+                        self._world._cap_pos[i] + rot_mat @ self._world._cap_p[i, j + 1],
                         scale, origx, origy, xformx, xformy, vw, vh)
 
                     self._world._cap_rec_c[i, j] = self.world_to_screen(
-                        self._world._cap_pos[i] + self._world._cap_p[i, j + 2],
+                        self._world._cap_pos[i] + rot_mat @ self._world._cap_p[i, j + 2],
                         scale, origx, origy, xformx, xformy, vw, vh)
 
     def render_body(self) -> None:
