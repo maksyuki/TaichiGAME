@@ -5,7 +5,7 @@ class RandomGenerator():
     # now only use the seq methods(not random) to give unique id
     # NOTE: need to make a single instance in the project
     empty_list: List[int] = []
-    start_id: int = 1000
+    start_id: int = 0
 
     @staticmethod
     def unique() -> int:
