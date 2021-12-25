@@ -1,4 +1,11 @@
+from typing import Optional, Union, List, cast
+
 import taichi as ti
+
+from ..dynamics.body import Body
+from .joint.joint import Joint
+from ..common.random import RandomGenerator
+from ..geometry.shape import Circle, Edge, Shape
 
 
 @ti.data_oriented
@@ -12,31 +19,66 @@ class PhysicsWorld():
         self._linear_vel_damping: float = 0.9
         self._ang_vel_damping: float = 0.9
 
+        self._body_list: List[Body] = []
+        self._joint_list: List[Joint] = []
+
         # body physics params
         self._body_len: int = body_len
         self._mass = ti.field(float, shape=self._body_len)
         self._inertia = ti.field(float, shape=self._body_len)
-        # -1: static 0: dynamic 1: kinematic
+        # 0: kinematic 1: static 2: dynamic
         self._type = ti.field(float, shape=self._body_len)
         self._pos = ti.Vector.field(2, float, shape=self._body_len)
         self._vel = ti.Vector.field(2, float, shape=self._body_len)
-        self._rot = ti.Vector.field(2, float, shape=self._body_len)
+        self._rot = ti.field(float, shape=self._body_len)
         self._ang_vel = ti.field(float, shape=self._body_len)
         self._force = ti.Vector.field(2, float, shape=self._body_len)
         self._torque = ti.field(float, shape=self._body_len)
 
         # body shape
         self._cir_radius = ti.field(float, shape=self._body_len)
-
         self._edg_st = ti.Vector.field(2, float, shape=self._body_len)
         self._edg_ed = ti.Vector.field(2, float, shape=self._body_len)
         self._tri_a = ti.Vector.field(2, float, shape=self._body_len)
         self._tri_b = ti.Vector.field(2, float, shape=self._body_len)
         self._tri_c = ti.Vector.field(2, float, shape=self._body_len)
-        self._polyx = ti.Vector.field(6, float, shape=self._body_len)
-        self._polyy = ti.Vector.field(6, float, shape=self._body_len)
-        self._poly_st = ti.Vector.field(2, float, shape=(self._body_len, 6))
-        self._poly_ed = ti.Vector.field(2, float, shape=(self._body_len, 6))
+        self._poly_st = ti.Vector.field(2, float, shape=6)
+        self._poly_ed = ti.Vector.field(2, float, shape=6)
+        self._polytri_a = ti.Vector.field(2, float, shape=4)
+        self._polytri_b = ti.Vector.field(2, float, shape=4)
+        self._polytri_c = ti.Vector.field(2, float, shape=4)
+
+    def create_body(self):
+        body: Body = Body()
+        body.id = RandomGenerator.unique()
+        self._body_list.append(body)
+        return body
+
+    def init_data(self):
+        bd_len: int = len(self._body_list)
+        for i in range(bd_len):
+            self._mass[i] = self._body_list[i].mass
+            self._inertia[i] = self._body_list[i].inertia
+            self._type[i] = self._body_list[i].type
+            self._pos[i] = ti.Vector(
+                [self._body_list[i].pos.x, self._body_list[i].pos.y])
+            self._vel[i] = ti.Vector(
+                [self._body_list[i].vel.x, self._body_list[i].vel.y])
+            self._rot[i] = self._body_list[i].rot
+            self._ang_vel[i] = self._body_list[i].ang_vel
+            self._force[i] = ti.Vector(
+                [self._body_list[i].forces.x, self._body_list[i].forces.y])
+            self._torque[i] = self._body_list[i].torques
+
+            if self._body_list[i].shape == Shape.Type.Circle:
+                cir: Circle = cast(Circle, self._body_list[i].shape)
+                self._cir_radius[i] = cir.radius
+            elif self._body_list[i].shape == Shape.Type.Edge:
+                edg: Edge = cast(Edge, self._body_list[i].shape)
+                self._edg_st[i] = ti.Vector([edg.start.x, edg.start.y])
+                self._edg_ed[i] = ti.Vector([edg.end.x, edg.end.y])
+            elif self._body_list[i].shape == Shape.Type.Polygon:
+                pass
 
     @ti.kernel
     def random_set(self):
@@ -50,21 +92,32 @@ class PhysicsWorld():
             self._tri_c[i] = ti.Vector(
                 [self._tri_a[i].x, self._tri_a[i].y + 0.05])
 
-            # self._polyx[i][0] = 0.5
-            # self._polyy[i][0] = 0.5
-            # self._polyx[i][1] = 0.6
-            # self._polyy[i][1] = 0.6
-            # self._polyx[i][2] = 0.5
-            # self._polyy[i][2] = 0.7
-            # self._polyx[i][3] = 0.4
-            # self._polyy[i][3] = 0.7
-            # self._polyx[i][4] = 0.3
-            # self._polyy[i][4] = 0.6
-            # self._polyx[i][5] = 0.4
-            # self._polyy[i][5] = 0.5
-            # for j in range(6):
-                # self._poly_st[i, j] = self._polyx[i][j]
-                # self._poly_ed[i, j] = self._poly
+        self._poly_st[0] = ti.Vector([ti.random(), ti.random()])
+        self._poly_st[1] = self._poly_st[0] + 0.1
+        self._poly_st[2] = ti.Vector(
+            [self._poly_st[0].x, self._poly_st[0].y + 0.2])
+        self._poly_st[3] = ti.Vector(
+            [self._poly_st[0].x - 0.1, self._poly_st[0].y + 0.2])
+        self._poly_st[4] = ti.Vector(
+            [self._poly_st[0].x - 0.2, self._poly_st[0].y + 0.1])
+        self._poly_st[5] = ti.Vector(
+            [self._poly_st[0].x - 0.1, self._poly_st[0].y])
+
+        self._poly_ed[0] = self._poly_st[0] + 0.1
+        self._poly_ed[1] = ti.Vector(
+            [self._poly_st[0].x, self._poly_st[0].y + 0.2])
+        self._poly_ed[2] = ti.Vector(
+            [self._poly_st[0].x - 0.1, self._poly_st[0].y + 0.2])
+        self._poly_ed[3] = ti.Vector(
+            [self._poly_st[0].x - 0.2, self._poly_st[0].y + 0.1])
+        self._poly_ed[4] = ti.Vector(
+            [self._poly_st[0].x - 0.1, self._poly_st[0].y])
+        self._poly_ed[5] = ti.Vector([self._poly_st[0].x, self._poly_st[0].y])
+
+        for i in range(4):
+            self._polytri_a[i] = self._poly_st[0]
+            self._polytri_b[i] = self._poly_ed[i]
+            self._polytri_c[i] = self._poly_ed[i + 1]
 
     @ti.kernel
     def step_velocity(self, dt: float):
@@ -107,3 +160,9 @@ class PhysicsWorld():
                 self._rot[i] = self._rot[i] + self._ang_vel[i] * dt
                 self._force[i] = ti.Vector([0.0, 0.0])
                 self._torque[i] = 0.0
+
+    def clear_all_bodies(self) -> None:
+        self._body_list.clear()
+
+    def clear_all_joints(self) -> None:
+        self._joint_list.clear()
