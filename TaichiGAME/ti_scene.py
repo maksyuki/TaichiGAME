@@ -1,4 +1,4 @@
-from typing import Union
+from typing import List
 
 import numpy as np
 import taichi as ti
@@ -6,7 +6,7 @@ import taichi as ti
 from .common.config import Config
 from .common.ti_viewport import Viewport
 from .dynamics.ti_phy_world import PhysicsWorld
-
+from .frame import Frame
 
 @ti.data_oriented
 class Scene():
@@ -48,6 +48,10 @@ class Scene():
         # the right-mouse btn drag move flag(change viewport)
         self._mouse_viewport_move: bool = False
 
+        # extern frame table
+        self._ext_frame_list: List[Frame] = []
+        self._ext_frame_idx: int = 0
+
     def physics_sim(self) -> None:
         self._world.step_velocity(self._dt)
         self._world.step_position(self._dt)
@@ -56,6 +60,37 @@ class Scene():
         self.smooth_scale()
         self.render_axis()
         self.render_body()
+
+    def register_frame(self, frame: Frame) -> None:
+        self._ext_frame_list.append(frame)
+
+    def remove_frame(self, frame: Frame) -> None:
+        # NOTE: need to check if exist first
+        self._ext_frame_list.remove(frame)
+
+    def clear_all(self) -> None:
+        self._world.clear_all_bodies()
+        self._world.clear_all_joints()
+        # self._maintainer.clear_all()
+        # self._dbvt.clear_all()
+
+    def calc_nxt_frame(self, delta: int) -> None:
+        ext_len: int = len(self._ext_frame_list)
+        assert -ext_len <= delta <= ext_len
+
+        self._ext_frame_idx = Config.clamp(self._ext_frame_idx, 0, ext_len - 1)
+        # NOTE: the sign of mod in python depend on dividend
+        self._ext_frame_idx = (self._ext_frame_idx + delta) % ext_len
+
+    def init_frame(self) -> None:
+        self.change_frame(0)
+        # set the data to the world
+        self._world.init_data()
+
+    def change_frame(self, delta: int) -> None:
+        self.clear_all()
+        self.calc_nxt_frame(delta)
+        self._ext_frame_list[self._ext_frame_idx].load()
 
     @ti.func
     def world_to_screen(self, world, scale, origx, origy, xformx, xformy, vw,
@@ -112,23 +147,30 @@ class Scene():
                         end=self._axis_lin_ed.to_numpy(),
                         color=Config.AxisLineColor)
 
+    @ti.kernel
+    def gen_body_data(self):
+        pass
+
     def render_body(self) -> None:
-        self._world.random_set()
+        # self._world.random_set()
+        self.gen_body_data()
+        self._gui.lines(begin=self._world._poly_st.to_numpy(),
+                        end=self._world._poly_ed.to_numpy(),
+                        color=0x0000FF)
+        self._gui.triangles(a=self._world._polytri_a.to_numpy(),
+                            b=self._world._polytri_b.to_numpy(),
+                            c=self._world._polytri_c.to_numpy(),
+                            color=0x0000FF)
         # self._gui.circles(self._world._pos.to_numpy(),
         #                   radius=self._world._cir_radius.to_numpy(),
         #                   color=Config.FillColor)
         # self._gui.lines(begin=self._world._edg_st.to_numpy(),
-        #                 end=self._world._edg_ed.to_numpy(),
-        #                 color=0xFF0000)
+                        # end=self._world._edg_ed.to_numpy(),
+                        # color=0xFF0000)
         # self._gui.triangles(a=self._world._tri_a.to_numpy(),
-                            # b=self._world._tri_b.to_numpy(),
-                            # c=self._world._tri_c.to_numpy(),
-                            # color=0xFF0000)
-        
-        for i in range(6):
-            self._gui.lines(begin=self._world._edg_st.to_numpy(),
-                            end=self._world._edg_ed.to_numpy(),
-                            color=0xFF0000)
+        # b=self._world._tri_b.to_numpy(),
+        # c=self._world._tri_c.to_numpy(),
+        # color=0xFF0000)
 
     def handle_mouse_move_evt(self, x: float, y: float) -> None:
         cur_pos: ti.Vector = self.screen_to_world(ti.Vector([x, y]))
