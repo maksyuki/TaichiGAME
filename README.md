@@ -154,7 +154,7 @@ scene = tg.Scene(name='TaichiGAME testbed', option={'video': True})
 If you want to know more details, you can refer to the official example [`testbed.py`](./examples/testbed.py). 
 
 ## Technical details
-In general, the simulation is divided into two parts: **_physics calculation_** and **_frame render_**. This collision detection pipeline refer to the [Box2D](https://github.com/erincatto/box2d) and [Matter.js](https://github.com/liabru/matter-js)
+In general, the simulation is divided into two parts: **_physics calculation_** and **_frame render_**. This collision detection pipeline refer to the [Box2D](https://github.com/erincatto/box2d) and [Matter.js](https://github.com/liabru/matter-js).
 
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/flow.drawio.svg"/>
@@ -165,13 +165,11 @@ In general, the simulation is divided into two parts: **_physics calculation_** 
  </p>
 </p>
 
-### Implement
-1. [key]: the main loop
-2. then, point out the key content of the data with the 
-3. 
+### Physics calculation
+1. DBVT(**_Dynamics Bounding Volume Tree_**) is a tree data structure are used to accelerate ray casts, overlap queries, and closest point queries for large worlds. Now the bounding box type of TaichiGAME use is AABB(**_Axis-Aligned Bounding Box_**). Using surface area heuristic strategy to insert node. If you want to know more details, you can refer to [[4]](#id_dbvt).
 
-### Algorithm
-1. [geometry algorithm]
+2. GJK() collision detection
+3. Constraint(detection and joint)
 
 ### Render shape
 All the shape's geometry data are provided in body coordinate system. For point/circle, TaichiGAME only use `ti.GUI.circles` to draw inner shape with fill color. For polgyon, TaichiGAME use `ti.GUI.triangles` to fill the shape by triangulation and use `ti.GUI.lines` to draw the outline. Capsule is composed of two circles and one rectangle.
@@ -260,13 +258,16 @@ All of the TaichiGAME codes are release under the [MIT License](LICENSE).
 3. Use [Inkscape 1.1.1 (3bf5ae0d25, 2021-09-20, window x64 version, GPL-3.0)](https://inkscape.org/) to draw the logo. Use [diagrams.net (online, Apache-2.0)](https://www.diagrams.net/) to draw flow and architecture diagrams. Use [GeoGebra (online, GPL-3.0)](https://www.geogebra.org/) to draw shapes to help debug computer geometry algorithm in TaichiGAME. You can get all of resources from [TaichiGAME-res repo](https://github.com/maksyuki/TaichiGAME-res).
 
 ## Reference
-1.  _Foundations of Physically Based Modeling and Animation_ By Donald H. House, John C. Keyser
-2. _Real-Time Collision Detection_ By Christer Ericson
-3. _Game Programming Gems 7_ By Scott Jacobs 
-4. _Physically Based Rendering section 4.3 [BVH](https://www.pbr-book.org/3ed-2018/Primitives_and_Intersection_Acceleration/Bounding_Volume_Hierarchies) and [DBVH](https://box2d.org/files/ErinCatto_DynamicBVH_GDC2019.pdf)_, GDC2019, Erin Catto, Blizzard Entertainment
-5. [Continuous Collision](https://box2d.org/files/ErinCatto_ContinuousCollision_GDC2013.pdf), GDC2013, Erin Catto, @erin_catto Principle Software Engineer, Blizzard
-6. [Constrained Dynamics](https://dyn4j.org/tags#constrained-dynamics), dyn4j, a java collision detection and phyics engine
-7. [Contact Manifolds](https://box2d.org/files/ErinCatto_ContactManifolds_GDC2007.pdf), GDC2007, Erin Catto Blizzard Entertainment
+[1]  _Foundations of Physically Based Modeling and Animation_ By Donald H. House, John C. Keyser
 
+[2] _Real-Time Collision Detection_ By Christer Ericson
 
+[3] _Game Programming Gems 7_ By Scott Jacobs
 
+[4] _Physically Based Rendering section 4.3 [BVH](https://www.pbr-book.org/3ed-2018/Primitives_and_Intersection_Acceleration/Bounding_Volume_Hierarchies) and [DBVH](https://box2d.org/files/ErinCatto_DynamicBVH_GDC2019.pdf)_, GDC2019, Erin Catto, Blizzard Entertainment <span id="id_dbvt"></span>
+
+[5] [Continuous Collision](https://box2d.org/files/ErinCatto_ContinuousCollision_GDC2013.pdf), GDC2013, Erin Catto, @erin_catto Principle Software Engineer, Blizzard
+
+[6] [Constrained Dynamics](https://dyn4j.org/tags#constrained-dynamics), dyn4j, a java collision detection and phyics engine
+
+[7] [Contact Manifolds](https://box2d.org/files/ErinCatto_ContactManifolds_GDC2007.pdf), GDC2007, Erin Catto Blizzard Entertainment
