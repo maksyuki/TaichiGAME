@@ -154,7 +154,7 @@ scene = tg.Scene(name='TaichiGAME testbed', option={'video': True})
 If you want to know more details, you can refer to the official example [`testbed.py`](./examples/testbed.py). 
 
 ## Technical details
-In general, 
+In general, the simulation is 
 ### Implement
 ([pic] show the flow of the design.)
 1. [key]: the main loop
@@ -162,11 +162,12 @@ In general,
 3. 
 
 ## Performance optimization
-First, I implement a cpu-based testbed([testbed.py](./examples/testbed.py)), which only use taichi to render the frames. Due to heavy calculation, that make simulation slowly. After analysis and trade-off, I design to rewrite some modules to make testbed into taichi-based([ti_testbed.py](./examples/ti_testbed.py)), the solutions are:
+First, I implement a cpu-based testbed([testbed.py](./examples/testbed.py)), which only use taichi to render the frames. Due to heavy calculation, that make simulation slowly. After analysis and trade-off, I decide to rewrite some modules to make testbed into taichi-based([ti_testbed.py](./examples/ti_testbed.py)), the solutions are:
 1. **Redesign the calculate structure** to fully utilize the taichi computing ability.
 2. **Reuse some IO data structure** to provide unified external interface.
-3. **Design a conversion method** to get the data from 'python' scope to 'taichi' scope.
+3. **Design a conversion method** to transfer data from 'python' scope into 'taichi' scope.
 
+> NOTE: As the final exam is approaching, the optimization is still working in progress. That means the `ti_testbed.py` is not quite complete.
 
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/structure.drawio.svg"/>
@@ -208,7 +209,7 @@ def load(self) -> None:
     poly.vertices = poly_data
 ```
 ### Design a conversion method
-In `init_data(self)` of [ti_phy_world.py](./TaichiGAME/dynamics/ti_phy_world.py), all numpy-based data is converted into taichi-based data in python scope.
+In `init_data(self)` of [ti_phy_world.py](./TaichiGAME/dynamics/ti_phy_world.py), all numpy-based data is converted into taichi-based data.
 ```python
 self._vel[i] = ti.Vector([self._body_list[i].vel.x, self._body_list[i].vel.y])
 self._rot[i] = self._body_list[i].rot
@@ -225,6 +226,8 @@ All the shape's geometry data are provided in body coordinate system. For point/
   <em>Base geometry shape and render method </em>
  </p>
 </p>
+
+Because the polygon is filled by triangulation, TaichiGAME render one **N**-vertices polgon need to draw **N** lines and fill **N-2** triangles. Meanwhile, the `GUI` component of `taichi` not like `GGUI`, It cannot render on GPU. So if the frames have too many polygons to render, the workload becomes terrible large. In future, I will transplant TaichiGAME render into `GGUI`.
 
 ### Algorithm
 1. [geometry algorithm]
