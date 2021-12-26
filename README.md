@@ -164,10 +164,24 @@ In general, the simulation is divided into two parts: **_physics calculation_** 
 </p>
 
 ### Implement
-([pic] show the flow of the design.)
 1. [key]: the main loop
 2. then, point out the key content of the data with the 
 3. 
+
+### Algorithm
+1. [geometry algorithm]
+
+### Render shape
+All the shape's geometry data are provided in body coordinate system. For point/circle, TaichiGAME only use `ti.GUI.circles` to draw inner shape with fill color. For polgyon, TaichiGAME use `ti.GUI.triangles` to fill the shape by triangulation and use `ti.GUI.lines` to draw the outline. Capsule is composed of two circles and one rectangle.
+
+<p align="center">
+ <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/render.drawio.svg"/>
+ <p align="center">
+  <em>Base geometry shape and render method </em>
+ </p>
+</p>
+
+Because the polygon is filled by triangulation, TaichiGAME render one **N**-vertices polgon need to draw **N** lines and fill **N-2** triangles. Meanwhile, the `GUI` component of `taichi` not like `GGUI`, It cannot render on GPU. So if the frames have too many polygons to render, the workload becomes terrible large. In future, I will transplant TaichiGAME render into `GGUI`.
 
 ## Performance optimization
 First, I implement a cpu-based testbed([testbed.py](./examples/testbed.py)), which only use taichi to render the frames. Due to heavy calculation, that make simulation slowly. After analysis and trade-off, I decide to rewrite some modules to make testbed into taichi-based([ti_testbed.py](./examples/ti_testbed.py)), the solutions are:
@@ -180,7 +194,10 @@ First, I implement a cpu-based testbed([testbed.py](./examples/testbed.py)), whi
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/structure.drawio.svg"/>
  <p align="center">
-  <em>The different between cpu-based and gpu-based structure</em>
+  <em>The simulation flow chart</em>
+  <br>
+  <em>(open it in a new window to browse the larger picture)</em>
+ </p>
  </p>
 </p>
 
@@ -224,22 +241,6 @@ self._rot[i] = self._body_list[i].rot
 self._ang_vel[i] = self._body_list[i].ang_vel
 self._force[i] = ti.Vector([self._body_list[i].forces.x, self._body_list[i].forces.y])
 ```
-
-### Render shape
-All the shape's geometry data are provided in body coordinate system. For point/circle, TaichiGAME only use `ti.GUI.circles` to draw inner shape with fill color. For polgyon, TaichiGAME use `ti.GUI.triangles` to fill the shape by triangulation and use `ti.GUI.lines` to draw the outline. Capsule is composed of two circles and one rectangle.
-
-<p align="center">
- <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/render.drawio.svg"/>
- <p align="center">
-  <em>Base geometry shape and render method </em>
- </p>
-</p>
-
-Because the polygon is filled by triangulation, TaichiGAME render one **N**-vertices polgon need to draw **N** lines and fill **N-2** triangles. Meanwhile, the `GUI` component of `taichi` not like `GGUI`, It cannot render on GPU. So if the frames have too many polygons to render, the workload becomes terrible large. In future, I will transplant TaichiGAME render into `GGUI`.
-
-### Algorithm
-1. [geometry algorithm]
-
 
 ## Contribution
 If you want to contribute to TaichiGAME, be sure to review the [guidelines](CONTRIBUTING.md). This is an open project and contributions and collaborations are always welcome!! This project adheres to TaichiGAME's [code_of_conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
