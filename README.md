@@ -154,9 +154,27 @@ scene = tg.Scene(name='TaichiGAME testbed', option={'video': True})
 If you want to know more details, you can refer to the official example [`testbed.py`](./examples/testbed.py). 
 
 ## Technical details
-1. [intro]: the structure of the code
-2. [experience]: first, rewrite the code to pure python. then rewrite key components in taichi, For example, 
+First, I implement a cpu-based testbed([testbed.py](./examples/testbed.py)), which only use taichi to render the frames. Due to heavy calculation, that make simulation slowly. After analysis and trade-off, I design to rewrite some modules to make testbed into taichi-based([ti_testbed.py](./examples/ti_testbed.py)), the solutions are:
+1. **Redesign the calculate structure** to fully utilize the taichi computing ability.
+2. **Reuse some IO data structure** to provide unified external interface.
+3. **Design a conversion method** to get the data from 'python' scope to 'taichi' scope.
 
+
+<p align="center">
+ <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/structure.drawio.svg"/>
+ <p align="center">
+  <em>This basic features of physics components in TaichiGAME</em>
+  <br>
+  <em>(open it in a new window to browse the larger picture)</em>
+ </p>
+</p>
+
+
+### Redesign the calculate structure
+2. [experience]
+
+### Reuse the IO data structure
+### 
 ### Structure
 1. [data structure] insert a class diagram/chart
 1. [render strucutre] how to render the filled shape in gui: picture to show the three shape in
