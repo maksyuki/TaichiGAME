@@ -154,6 +154,14 @@ scene = tg.Scene(name='TaichiGAME testbed', option={'video': True})
 If you want to know more details, you can refer to the official example [`testbed.py`](./examples/testbed.py). 
 
 ## Technical details
+In general, 
+### Implement
+([pic] show the flow of the design.)
+1. [key]: the main loop
+2. then, point out the key content of the data with the 
+3. 
+
+## Performance optimization
 First, I implement a cpu-based testbed([testbed.py](./examples/testbed.py)), which only use taichi to render the frames. Due to heavy calculation, that make simulation slowly. After analysis and trade-off, I design to rewrite some modules to make testbed into taichi-based([ti_testbed.py](./examples/ti_testbed.py)), the solutions are:
 1. **Redesign the calculate structure** to fully utilize the taichi computing ability.
 2. **Reuse some IO data structure** to provide unified external interface.
@@ -163,29 +171,63 @@ First, I implement a cpu-based testbed([testbed.py](./examples/testbed.py)), whi
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/structure.drawio.svg"/>
  <p align="center">
-  <em>This basic features of physics components in TaichiGAME</em>
-  <br>
-  <em>(open it in a new window to browse the larger picture)</em>
+  <em>The different between cpu-based and gpu-based structure</em>
  </p>
 </p>
 
 
 ### Redesign the calculate structure
-2. [experience]
+Use `ti.Vector.field` to hold all variables in [ti_phy_world.py](./TaichiGAME/dynamics/ti_phy_world.py). Every type of shape has own pos and geometry features field.
 
 ### Reuse the IO data structure
-### 
-### Structure
-1. [data structure] insert a class diagram/chart
-1. [render strucutre] how to render the filled shape in gui: picture to show the three shape in
+Share common shape module , so you can define frame like cpu-based simulation do:
+```python
+def load(self) -> None:
+    tri_data = [
+        ng.Matrix([-1.0, 1.0], 'vec'),
+        ng.Matrix([0.0, -2.0], 'vec'),
+        ng.Matrix([1.0, -1.0], 'vec'),
+        ng.Matrix([-1.0, 1.0], 'vec'),
+    ]
+
+    poly_data = [
+        ng.Matrix([0.0, 4.0], 'vec'),
+        ng.Matrix([-3.0, 3.0], 'vec'),
+        ng.Matrix([-4.0, 0.0], 'vec'),
+        ng.Matrix([-3.0, -3.0], 'vec'),
+        ng.Matrix([0.0, -4.0], 'vec'),
+        ng.Matrix([0.0, 4.0], 'vec')
+    ]
+
+    rect: ng.Rectangle = ng.Rectangle(0.5, 0.5)
+    cir: ng.Circle = ng.Circle(0.5)
+    cap: ng.Capsule = ng.Capsule(1.5, 0.5)
+    tri: ng.Polygon = ng.Polygon()
+    tri.vertices = tri_data
+    poly: ng.Polygon = ng.Polygon()
+    poly.vertices = poly_data
+```
+### Design a conversion method
+In `init_data(self)` of [ti_phy_world.py](./TaichiGAME/dynamics/ti_phy_world.py), all numpy-based data is converted into taichi-based data in python scope.
+```python
+self._vel[i] = ti.Vector([self._body_list[i].vel.x, self._body_list[i].vel.y])
+self._rot[i] = self._body_list[i].rot
+self._ang_vel[i] = self._body_list[i].ang_vel
+self._force[i] = ti.Vector([self._body_list[i].forces.x, self._body_list[i].forces.y])
+```
+
+### Render shape
+All the shape's geometry data are provided in body coordinate system. For point/circle, TaichiGAME only use `ti.GUI.circles` to draw inner shape with fill color. For polgyon, TaichiGAME use `ti.GUI.triangles` to fill the shape by triangulation and use `ti.GUI.lines` to draw the outline. Capsule is composed of two circles and one rectangle.
+
+<p align="center">
+ <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/render.drawio.svg"/>
+ <p align="center">
+  <em>Base geometry shape and render method </em>
+ </p>
+</p>
+
 ### Algorithm
 1. [geometry algorithm]
-2. [viewport system]
-
-### Implement
-1. [key]: the main loop
-2. then, point out the key content of the data with the 
-3. 
 
 
 ## Contribution
