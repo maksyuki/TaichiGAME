@@ -154,7 +154,15 @@ scene = tg.Scene(name='TaichiGAME testbed', option={'video': True})
 If you want to know more details, you can refer to the official example [`testbed.py`](./examples/testbed.py). 
 
 ## Technical details
-In general, the simulation is 
+In general, the simulation is divided into two parts: **_physics calculation_** and **_frame render_**. 
+
+<p align="center">
+ <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/flow.drawio.svg"/>
+ <p align="center">
+  <em>The different between cpu-based and gpu-based structure</em>
+ </p>
+</p>
+
 ### Implement
 ([pic] show the flow of the design.)
 1. [key]: the main loop
