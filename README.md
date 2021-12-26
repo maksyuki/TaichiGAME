@@ -3,9 +3,6 @@
   <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/logo.png" />
   <br />
   <br />
-<!-- Labels: -->
-  <!-- First row: -->
-
   <a href="https://github.com/maksyuki/TaichiGAME/actions">
     <img src="https://img.shields.io/github/workflow/status/maksyuki/TaichiGAME/unit-test/main?label=unit-test&logo=github&style=flat-square">
   </a>
@@ -24,8 +21,11 @@
   <a href="https://github.com/maksyuki/TaichiGAME">
     <img src="https://img.shields.io/github/license/maksyuki/TaichiGAME?color=brightgreen&logo=github&style=flat-square">
   </a>
-  <a href="https://github.com/maksyuki/TaichiGAME">
+  <!-- <a href="https://github.com/maksyuki/TaichiGAME">
     <img src="https://img.shields.io/tokei/lines/github/maksyuki/TaichiGAME?style=flat-square">
+  </a> -->
+  <a href="https://github.com/maksyuki/TaichiGAME">
+    <img src="https://img.shields.io/badge/total%20lines-12k-blue?style=flat-square">
   </a>
   <a href="https://github.com/google/yapf">
     <img src="https://img.shields.io/badge/code%20style-yapf%20mypy-red?style=flat-square">
@@ -154,12 +154,14 @@ scene = tg.Scene(name='TaichiGAME testbed', option={'video': True})
 If you want to know more details, you can refer to the official example [`testbed.py`](./examples/testbed.py). 
 
 ## Technical details
-In general, the simulation is divided into two parts: **_physics calculation_** and **_frame render_**. 
+In general, the simulation is divided into two parts: **_physics calculation_** and **_frame render_**. This collision detection pipeline refer to the [Box2D](https://github.com/erincatto/box2d) and [Matter.js](https://github.com/liabru/matter-js)
 
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/flow.drawio.svg"/>
  <p align="center">
-  <em>The different between cpu-based and gpu-based structure</em>
+   <em>The simulation flow chart</em>
+  <br>
+  <em>(open it in a new window to browse the larger picture)</em>
  </p>
 </p>
 
@@ -194,9 +196,7 @@ First, I implement a cpu-based testbed([testbed.py](./examples/testbed.py)), whi
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/structure.drawio.svg"/>
  <p align="center">
-  <em>The simulation flow chart</em>
-  <br>
-  <em>(open it in a new window to browse the larger picture)</em>
+  <em>The different between cpu-based and gpu-based structure</em>
  </p>
  </p>
 </p>
@@ -261,6 +261,12 @@ All of the TaichiGAME codes are release under the [MIT License](LICENSE).
 
 ## Reference
 1.  _Foundations of Physically Based Modeling and Animation_ By Donald H. House, John C. Keyser
-2. 
+2. _Real-Time Collision Detection_ By Christer Ericson
+3. _Game Programming Gems 7_ By Scott Jacobs 
+4. _Physically Based Rendering section 4.3 [BVH](https://www.pbr-book.org/3ed-2018/Primitives_and_Intersection_Acceleration/Bounding_Volume_Hierarchies) and [DBVH](https://box2d.org/files/ErinCatto_DynamicBVH_GDC2019.pdf)_, GDC2019, Erin Catto, Blizzard Entertainment
+5. [Continuous Collision](https://box2d.org/files/ErinCatto_ContinuousCollision_GDC2013.pdf), GDC2013, Erin Catto, @erin_catto Principle Software Engineer, Blizzard
+6. [Constrained Dynamics](https://dyn4j.org/tags#constrained-dynamics), dyn4j, a java collision detection and phyics engine
+7. [Contact Manifolds](https://box2d.org/files/ErinCatto_ContactManifolds_GDC2007.pdf), GDC2007, Erin Catto Blizzard Entertainment
+
 
 
