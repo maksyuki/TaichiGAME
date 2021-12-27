@@ -1,12 +1,8 @@
 from __future__ import annotations
 from typing import List, Optional
 
-try:
-    from taichi.ui.gui import GUI
-except ImportError:
-    from taichi.misc.gui import GUI
-
 import numpy as np
+import taichi as ti
 
 from ..common.config import Config
 from ..render.render import Render
@@ -91,7 +87,7 @@ class Camera():
         self._axis_point_count: int = 20
 
     # render factory method
-    def render(self, gui: GUI) -> None:
+    def render(self, gui: ti.GUI) -> None:
         # for i in range(100):
         #     gui.circle([0.5, 0.5], radius=10, color=0x068587)
         # return
@@ -365,7 +361,7 @@ class Camera():
     def maintainer(self, maintainer: ContactMaintainer) -> None:
         self._maintainer = maintainer
 
-    def render_body(self, gui: GUI) -> None:
+    def render_body(self, gui: ti.GUI) -> None:
         assert self._world is not None
 
         for bd in self._world._body_list:
@@ -384,13 +380,13 @@ class Camera():
             if self._rotation_line_visible:
                 Render.rd_angle_line(gui, prim, self.world_to_screen)
 
-    def render_joint(self, gui: GUI) -> None:
+    def render_joint(self, gui: ti.GUI) -> None:
         assert self._world is not None
         for jt in self._world._joint_list:
             if jt.active:
                 Render.rd_joint(gui, jt, self.world_to_screen)
 
-    def render_axis(self, gui: GUI) -> None:
+    def render_axis(self, gui: ti.GUI) -> None:
         axis_points: List[Matrix] = []
 
         for i in range(-self._axis_point_count, self._axis_point_count + 1):
@@ -409,12 +405,12 @@ class Camera():
                        axis_points[-1],
                        color=Config.AxisLineColor)
 
-    def render_aabb(self, gui: GUI, aabb: AABB) -> None:
+    def render_aabb(self, gui: ti.GUI, aabb: AABB) -> None:
         tmp1: Matrix = self.world_to_screen(aabb.top_left)
         tmp2: Matrix = self.world_to_screen(aabb.bot_right)
         Render.rd_rect(gui, tmp1, tmp2, Config.AABBLineColor)
 
-    def render_dbvt(self, gui: GUI, node_idx: int) -> None:
+    def render_dbvt(self, gui: ti.GUI, node_idx: int) -> None:
         if node_idx == -1:
             return
 
@@ -426,11 +422,11 @@ class Camera():
         if not self._dbvt.tree()[node_idx].is_leaf():
             self.render_aabb(gui, aabb)
 
-    def render_contact(self, gui: GUI) -> None:
+    def render_contact(self, gui: ti.GUI) -> None:
         pass
 
-    def render_grid_scale_line(self, gui: GUI) -> None:
+    def render_grid_scale_line(self, gui: ti.GUI) -> None:
         pass
 
-    def render_dbvh(self, gui: GUI, node: DBVH.Node) -> None:
+    def render_dbvh(self, gui: ti.GUI, node: DBVH.Node) -> None:
         pass
