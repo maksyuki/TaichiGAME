@@ -5,6 +5,7 @@ import taichi as ti
 
 from .common.camera import Camera
 from .common.config import Config
+from .common.export_manager import ExportManager
 from .frame import Frame
 from .collision.broad_phase.dbvt import DBVT
 from .collision.broad_phase.aabb import AABB
@@ -21,10 +22,15 @@ class Scene():
                  name: str,
                  width: int = 1280,
                  height: int = 720,
-                 option: Dict[str, bool] = {}):
+                 option: Dict[str, bool] = {
+                     'video': False,
+                     'gif': False
+                 }):
         self._gui: ti.GUI = ti.GUI(name,
                                    res=(width, height),
                                    background_color=Config.BackgroundColor)
+        self._option: Dict[str, bool] = option
+        self._ex_mgn: ExportManager = ExportManager()
         # the physics world, all sim is run in physics world
         self._world: PhysicsWorld = PhysicsWorld()
         self._dbvt: DBVT = DBVT()
@@ -219,6 +225,11 @@ class Scene():
 
             for e in self._gui.get_events():
                 if e.key == ti.ti.GUI.ESCAPE:
+                    if self._option['gif']:
+                        self._ex_mgn.gen_gif()
+                    elif self._option['video']:
+                        self._ex_mgn.gen_video()
+
                     exit()
 
                 elif e.key == ti.ti.GUI.SPACE and e.type == ti.GUI.RELEASE:
@@ -286,4 +297,7 @@ class Scene():
 
             self.render()
 
-            self._gui.show()
+            if self._option['video'] or self._option['gif']:
+                self._gui.show(self._gui.show(self._ex_mgn.frame_name))
+            else:
+                self._gui.show()
