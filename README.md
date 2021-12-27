@@ -168,13 +168,18 @@ In general, the simulation is divided into two parts: **_physics calculation_** 
 ### Physics calculation
 1. DBVT(**_Dynamics Bounding Volume Tree_**) is a tree data structure are used to accelerate ray casts, overlap queries, and closest point queries for large worlds. Now the bounding box type of TaichiGAME use is AABB(**_Axis-Aligned Bounding Box_**). This data strucutre is a bit like AVL tree. If you want to know more details, you can refer to [[1]](#id_dbvt).
 
-2. GJK(**_Gilbert–Johnson–Keerthi distance algorithm_**) is a method of determining the minimum distance between two convex sets. it does not require that the geometry data be stored in any specific format, but instead relies solely on a support function to iteratively generate closer simplices to the correct answer using the configuration space obstacle (CSO) of two convex shapes, more commonly known as the Minkowski difference(_from wikipedia_). More informations can refer to [[2]](#id_fpbma)[[3]](#id_rtcd)[[4]](#id_gpg7).
+2. GJK(**_Gilbert–Johnson–Keerthi distance algorithm_**) is a method of determining the minimum distance between two convex sets. it does not require that the geometry data be stored in any specific format, but instead relies solely on a support function to iteratively generate closer simplices to the correct answer using the configuration space obstacle (CSO) of two convex shapes, more commonly known as the Minkowski difference(_[from wikipedia](https://en.wikipedia.org/wiki/Gilbert%E2%80%93Johnson%E2%80%93Keerthi_distance_algorithm)_). More informations can refer to [[2]](#id_fpbma)[[3]](#id_rtcd)[[4]](#id_gpg7).
 
-3. Constraint solving is aim to restrict freedom of movement. TaichiGAME use impulse-based constraint dynamics to calculate the equation.
+3. Constraint solving is aim to restrict freedom of movement. TaichiGAME use impulse-based constraint dynamics to calculate the equation. Based on moment-of-momentum equation and the method of lagrange multipliers, the impulse lambda can be deduced as：
 
-![Image](https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/lambda.png)
+<p align="center">
+ <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/lambda.png">
+</p>
 
-![Image](https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/i_b.png)
+the impuse of a object is ![Image](https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/i_a.png), the impuse of b object is ![Image](https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/i_b.png).
+
+
+To counter the fall of objects, previous equation need to introduce bias item. The penetration error is ![Image](https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/pen_error.png), and according to the **_Baumgarte Stabilization Method_**: ![Image](https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/bsm.png), the bias impuse can be cacluate as ![Image](https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/bias_lambda.png).
 
 ### Render shape
 All the shape's geometry data are provided in body coordinate system. For point/circle, TaichiGAME only use `ti.GUI.circles` to draw inner shape with fill color. For polgyon, TaichiGAME use `ti.GUI.triangles` to fill the shape by triangulation and use `ti.GUI.lines` to draw the outline. Capsule is composed of two circles and one rectangle.
