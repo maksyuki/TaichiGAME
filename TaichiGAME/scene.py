@@ -4,10 +4,6 @@ from typing import Tuple, Union, List, cast, Optional
 import colorama as cra
 import taichi as ti
 
-from TaichiGAME.dynamics.joint.point import PointJoint, PointJointPrimitive
-from TaichiGAME.collision.broad_phase.aabb import AABB
-from TaichiGAME.frame import Frame
-
 try:
     from taichi.ui.gui import GUI  # for taichi >= 0.8.7
 except ImportError:
@@ -18,12 +14,15 @@ except ImportError:
 
 from .common.camera import Camera
 from .common.config import Config
+from .frame import Frame
 from .collision.broad_phase.dbvt import DBVT
+from .collision.broad_phase.aabb import AABB
 from .math.matrix import Matrix
 from .collision.detector import Collsion, Detector
 from .dynamics.body import Body
 from .dynamics.phy_world import PhysicsWorld
 from .dynamics.constraint.contact import ContactMaintainer
+from .dynamics.joint.point import PointJoint, PointJointPrimitive
 
 
 class Scene():

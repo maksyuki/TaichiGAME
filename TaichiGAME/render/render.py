@@ -3,21 +3,20 @@ import numpy as np
 
 import taichi as ti
 
-from TaichiGAME.dynamics.joint.point import PointJoint
-from TaichiGAME.dynamics.joint.revolute import RevoluteJoint
-from TaichiGAME.dynamics.joint.revolute import RevoluteJointPrimitive
-
 try:
     from taichi.ui.gui import GUI
 except ImportError:
     from taichi.misc.gui import GUI
 
+from ..common.config import Config
 from ..math.matrix import Matrix
-from ..geometry.shape import Capsule, Circle, Edge, Point
+from ..geometry.shape import Capsule, Circle, Edge
 from ..geometry.shape import Polygon, Shape, ShapePrimitive
 from ..dynamics.joint.joint import Joint, JointType
 from ..dynamics.joint.distance import DistanceJoint
-from ..common.config import Config
+from ..dynamics.joint.point import PointJoint
+from ..dynamics.joint.revolute import RevoluteJoint
+from ..dynamics.joint.revolute import RevoluteJointPrimitive
 
 
 class Render():
