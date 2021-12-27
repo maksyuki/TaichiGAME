@@ -117,6 +117,7 @@ $ python3 testbed.py
 ### Quick Start
 If you want to use `TaichiGAME` to implement your own simulation. You need to import `taichi` and `TaichiGAME` package first:
 ```python
+import numpy as np
 import taichi as ti
 import TaichiGAME as tg
 
@@ -144,10 +145,11 @@ scene.register_frame(custom_frame)
 scene.init_frame()
 scene.show()
 ```
-If you want to export the result as video, you need to add `video` config to the `scene`'s options list. Such as:
+If you want to export the result as video or gif, you need to add `video` or `gif` config to the `scene`'s options list. Such as:
 ```python
-scene = tg.Scene(name='TaichiGAME testbed', option={'video': True})
+scene = tg.Scene(name='TaichiGAME testbed', option={'video': True, 'gif': True})
 ```
+the video or gif is saved as `./export-res/video.mp4` and `./export-res/video.gif` by default.
 
 > NOTE: TaichiGAME use taichi's APIs to export video, so you need to install the `ffmpeg` first. How to install ffmpeg you can refer to [Install ffmpeg](https://docs.taichi.graphics/lang/articles/misc/export_results#export-videos) section of taichi doc.
 
