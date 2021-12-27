@@ -257,6 +257,8 @@ class FrameRestitution(ng.Frame):
         scene._dbvt.insert(grd)
 
         for i in range(10):
+            if i == 4 or i == 9:
+                continue
             bd = scene._world.create_body()
             bd.shape = cir
             bd.mass = 10

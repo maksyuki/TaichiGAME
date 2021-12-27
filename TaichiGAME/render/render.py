@@ -152,7 +152,7 @@ class Render():
         # for v in outer_line_st:
         # print(v)
 
-        gui.lines(outer_line_st, outer_line_ed, 2.0, outline_color)
+        gui.lines(outer_line_st, outer_line_ed, 1.5, outline_color)
         gui.triangles(fill_tri_pa, fill_tri_pb, fill_tri_pc, fill_color)
 
     @staticmethod
