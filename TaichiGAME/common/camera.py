@@ -1,15 +1,9 @@
 from __future__ import annotations
 from typing import List, Optional
 
-import colorama as cra
-
 try:
-    from taichi.ui.gui import GUI  # for taichi >= 0.8.7
+    from taichi.ui.gui import GUI
 except ImportError:
-    print(
-        cra.Fore.GREEN +
-        '[TaichiGAME.camera]taichi < 0.8.7 import gui \'from taichi.misc.gui\''
-    )
     from taichi.misc.gui import GUI
 
 import numpy as np
