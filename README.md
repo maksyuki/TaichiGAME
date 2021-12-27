@@ -170,7 +170,11 @@ In general, the simulation is divided into two parts: **_physics calculation_** 
 
 2. GJK(**_Gilbert–Johnson–Keerthi distance algorithm_**) is a method of determining the minimum distance between two convex sets. it does not require that the geometry data be stored in any specific format, but instead relies solely on a support function to iteratively generate closer simplices to the correct answer using the configuration space obstacle (CSO) of two convex shapes, more commonly known as the Minkowski difference(_from wikipedia_). More informations can refer to [[2]](#id_fpbma)[[3]](#id_rtcd)[[4]](#id_gpg7).
 
-3. Constraint solving is aim to restrict freedom of movement.
+3. Constraint solving is aim to restrict freedom of movement. TaichiGAME use impulse-based constraint dynamics to calculate the equation.
+
+![Image](https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/lambda.png)
+
+![Image](https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/i_b.png)
 
 ### Render shape
 All the shape's geometry data are provided in body coordinate system. For point/circle, TaichiGAME only use `ti.GUI.circles` to draw inner shape with fill color. For polgyon, TaichiGAME use `ti.GUI.triangles` to fill the shape by triangulation and use `ti.GUI.lines` to draw the outline. Capsule is composed of two circles and one rectangle.
