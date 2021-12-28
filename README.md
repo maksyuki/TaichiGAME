@@ -156,8 +156,17 @@ the video or gif is saved as `./export-res/video.mp4` and `./export-res/video.gi
 If you want to know more details, you can refer to the official example [`testbed.py`](./examples/testbed.py). 
 
 ### Simulation result
+1. DBVT query: the 
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/dbvt_query.gif"/>
+ <p align="center">
+  <em>The different between cpu-based and gpu-based structure</em>
+ </p>
+ </p>
+</p>
+
+<p align="center">
+ <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/raycast.gif"/>
  <p align="center">
   <em>The different between cpu-based and gpu-based structure</em>
  </p>
