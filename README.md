@@ -52,21 +52,21 @@ When I carried out a research on asteroid rover motion planning supported by NFS
 
 ## Feature
 
-> NOTE: Due to my research is still under review and revise, I could not release all results now. At present, I only release the initial physics engine components of TaichiGAME. So I only introduce physics engine components now. In the first half of 2022, I will release other components of TaichiGAME.
+> NOTE: Due to my research is still under review and revise, I could not release all results now. At present, I only release the initial physics engine component of TaichiGAME. So I only introduce physics engine component now. In the first half of 2022, I will release other components of TaichiGAME.
 
-To implement the physics engines, I refer to the [Physics2D (c++, MIT License)](https://github.com/AngryAccelerated/Physics2D) project, and rewrite entire module of it in python with taichi and add more unit tests. The following architecture diagram illustrates the basic features:
+To implement the physics engines, I refer to the [Physics2D (c++, MIT License)](https://github.com/AngryAccelerated/Physics2D) project, and rewrite entire content of it into python with taichi and add more unit tests. The following architecture chart illustrates the basic features:
 
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/arch.drawio.svg"/>
  <p align="center">
-  <em>This basic features of physics components in TaichiGAME</em>
+  <em>The basic features of physics component in TaichiGAME</em>
   <br>
   <em>(open it in a new window to browse the larger picture)</em>
  </p>
 </p>
 
 ## What is missing
-First,  the physics engine components is under alpha phase, so it is lack of stability and reliability. Second, to narrow the development period, I use the easy-to-implement numberical methods, that makes the performance suffer a bit.
+First,  the physics engine component is under alpha phase, so it is lack of stability and reliability. Second, to narrow the development period, I use the easy-to-implement numberical methods, that makes the performance suffer a bit.
 
 ## Requirements
 1. python>=3.7, <=3.9, because:
@@ -105,7 +105,7 @@ $ python3 testbed.py
 ### Testbed keyborad and mouse control
  - Press `esc` to exit the gui, `space` to pause simulation.
  - Press `left arrow` or `right arrow` key to switch different frames.
- - Press and hold `right mouse button` to move viewport position. Move `mouse wheel` to zoom in or out the viewport.
+ - Press and hold `right mouse button` to move viewport position. Roll `mouse wheel` to zoom in or out the viewport.
  - Press and hold `left mouse button` to apply a mouse joint constraint to selected shape from the start point(mouse press position) to end point(current mouse hold position).
  - | keyboard button | function | keyboard button | function | keyboard button | function |
    | :-------------: | :------: | :-------------: | :------: | :-------------: | :------: |
@@ -113,6 +113,70 @@ $ python3 testbed.py
    | `r` | toggle body visibility | `t` | toggle axis visibility | `a` | toggle dbvh visibility |
    | `s` | toggle visibility dbvt | `d` | toggle grid visibility | `f` | toggle rotation line visibility |
    | `g` | toggle center visibility | `z` | toggle contact visibility |
+
+### Testbed simulation result
+1. DBVT query: this frame is aim to show the dbvt's ability to accelerate the broad phase query of collision. The red rectangle represents the query region, yellow rectangles represent the query results(AABB of the shape).
+<p align="center">
+ <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/dbvt_query.gif"/>
+ <p align="center">
+  <em>The dbvt query with smooth viewport zoom in</em>
+ </p>
+</p>
+
+2. Raycast: this frame cast a ray in given direction. You can move the cast direction by mouse, and the cast shapes are rendered in cyan color.
+<p align="center">
+ <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/raycast.gif"/>
+ <p align="center">
+  <em>The raycast from the origin in direction </em>
+ </p>
+</p>
+
+3. Bitmask: this frame shows the having same bitmask property squere and ground can contact. Meanwhile, the yellow rectangles represent the real time update result of dbvt.
+<p align="center">
+ <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/bitmask.gif"/>
+ <p align="center">
+  <em>The bitmask of three square contact with ground</em>
+ </p>
+</p>
+
+4. Collision: those frames show multiple collision examples. First one is a simple collision, second frame shows eight balls hit the ground with different restitution increased from left to right, the last one shows the three squares slide down from slopes with different friction coefficient.
+
+<p align="center">
+ <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/collision_simple.gif"/>
+ <p align="center">
+  <em>A capsule hit the ground</em>
+ </p>
+</p>
+
+<p align="center">
+ <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/collision_restit.gif"/>
+ <p align="center">
+  <em>Eight balls hit the ground with different restitution</em>
+ </p>
+</p>
+
+<p align="center">
+ <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/collision_fric.gif"/>
+ <p align="center">
+  <em>Three squares slide down from slope</em>
+ </p>
+</p>
+
+5. Stack: this frame shows a free fall square stack. You can apply mouse joint constraint to the shape.
+<p align="center">
+ <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/stack.gif"/>
+ <p align="center">
+  <em>The free fall stack</em>
+ </p>
+</p>
+
+6. Domino: this frame shows a pendulum strike a domino card and trigger a ripple collison. The surface of ground and slope are both smooth, so the card can not stay static on the slope.
+<p align="center">
+ <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/domino.gif"/>
+ <p align="center">
+  <em>The domino simulation</em>
+ </p>
+</p>
 
 ### Quick Start
 If you want to use `TaichiGAME` to implement your own simulation. You need to import `taichi` and `TaichiGAME` package first:
@@ -154,71 +218,6 @@ the video or gif is saved as `./export-res/video.mp4` and `./export-res/video.gi
 > NOTE: TaichiGAME use taichi's APIs to export video, so you need to install the `ffmpeg` first. How to install ffmpeg you can refer to [Install ffmpeg](https://docs.taichi.graphics/lang/articles/misc/export_results#export-videos) section of taichi doc.
 
 If you want to know more details, you can refer to the official example [`testbed.py`](./examples/testbed.py). 
-
-### Simulation result
-1. DBVT query: this frame is aim to show the dbvt's ability to accelerate the broad phase query of collision. The red rectangle represents the query region, yellow rectangles represent the query results(AABB of the shape).
-<p align="center">
- <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/dbvt_query.gif"/>
- <p align="center">
-  <em>The dbvt query with smooth viewport zoom in</em>
- </p>
-</p>
-
-2. Raycast: this frame cast a ray in given direction. You can move the cast direction by mouse, and the cast shapes are rendered in cyan color.
-<p align="center">
- <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/raycast.gif"/>
- <p align="center">
-  <em>The raycast from the origin in direction </em>
- </p>
-</p>
-
-3. Bitmask: this frame shows the having same bitmask property squere and ground can contact. Meanwhile, the yellow rectangles represent the dynamics update result of dbvt.
-<p align="center">
- <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/bitmask.gif"/>
- <p align="center">
-  <em>The bitmask of three square contact with ground</em>
- </p>
-</p>
-
-4. Collision: those frames show multiple collision examples. First one is a simple collision, second frame shows eight balls hit the ground with different restitution increased from left to right, the last one shows the three squares slide down from slopes with different friction coefficient.
-
-<p align="center">
- <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/collision_simple.gif"/>
- <p align="center">
-  <em>A capsule hit the ground</em>
- </p>
-</p>
-
-<p align="center">
- <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/collision_restit.gif"/>
- <p align="center">
-  <em>Eight balls hit the ground with different restitution</em>
- </p>
-</p>
-
-<p align="center">
- <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/collision_fric.gif"/>
- <p align="center">
-  <em>Three squares slide down from slope</em>
- </p>
-</p>
-
-5. Stack: this frame shows a free fall square stack. You can apply mouse joint constraint to the shape.
-<p align="center">
- <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/stack.gif"/>
- <p align="center">
-  <em>The free fall stack</em>
- </p>
-</p>
-
-6. Domino: this frame shows a pendulum strikes a domino card and trigger a ripple collison. The surface of ground and slope are both smooth, so the card can not stay static on the slope.
-<p align="center">
- <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/domino.gif"/>
- <p align="center">
-  <em>The domino simulation</em>
- </p>
-</p>
-
 
 ## Technical details
 In general, the simulation is divided into two parts: **_physics calculation_** and **_frame render_**. This collision detection pipeline refer to the [Box2D](https://github.com/erincatto/box2d) and [Matter.js](https://github.com/liabru/matter-js).
