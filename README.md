@@ -123,7 +123,7 @@ $ python3 testbed.py
  </p>
 </p>
 
-2. Raycast: this frame cast a ray in given direction. You can move the cast direction by mouse, and the cast shapes are rendered in cyan color.
+2. Raycast: this frame casts a ray in given direction. You can move the cast direction by mouse, and the cast shapes are rendered in cyan color.
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/raycast.gif"/>
  <p align="center">
@@ -131,11 +131,11 @@ $ python3 testbed.py
  </p>
 </p>
 
-3. Bitmask: this frame shows the having same bitmask property squere and ground can contact. Meanwhile, the yellow rectangles represent the real time update result of dbvt.
+3. Bitmask: this frame shows two objects, a square and a ground, are with same bitmask property can contact with each other. Meanwhile, the yellow rectangles represent the real time update result of dbvt.
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/bitmask.gif"/>
  <p align="center">
-  <em>The bitmask of three square contact with ground</em>
+  <em>Three squares contact with ground</em>
  </p>
 </p>
 
@@ -158,7 +158,7 @@ $ python3 testbed.py
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/collision_fric.gif"/>
  <p align="center">
-  <em>Three squares slide down from slope</em>
+  <em>Three squares slide down from slopes</em>
  </p>
 </p>
 
@@ -170,7 +170,7 @@ $ python3 testbed.py
  </p>
 </p>
 
-6. Domino: this frame shows a pendulum strike a domino card and trigger a ripple collison. The surface of ground and slope are both smooth, so the card can not stay static on the slope.
+6. Domino: this frame shows a pendulum strike a domino card and trigger a ripple collison. The surface of ground and slopes are both smooth, so the card can not stay static on the slopes.
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/domino.gif"/>
  <p align="center">
@@ -179,7 +179,7 @@ $ python3 testbed.py
 </p>
 
 ### Quick Start
-If you want to use `TaichiGAME` to implement your own simulation. You need to import `taichi` and `TaichiGAME` package first:
+If you want to use `TaichiGAME` to implement your own simulation. You need to import `numpy`, `taichi` and `TaichiGAME` package first:
 ```python
 import numpy as np
 import taichi as ti
@@ -191,7 +191,7 @@ Then, you need to define a instance of `Scene` class. The `Scene` class is the b
 
 ```python
 # api: (class) tg.Scene(name: str, width: int = 1280, height: int = 720, option={})
-scene = tg.Scene(name='TaichiGAME testbed')
+scene = tg.Scene(name='Your Custom Name')
 ```
 After that, you need to inherhit base class `Frame` and implement the `load()` and `render()` methods.  `load()` is called once when frame is initialized. If you want to custom extra render, you can implement `render()` optional. It is called in main render loop.
 ```python
@@ -202,7 +202,7 @@ class YourCustomFrameName(ng.Frame):
     def render():
       ...
 ```
-At last, you need to register the frame to the scene, initialize the frame and show the scene. Register mulitple frames to the scene is allowed as testbed.py do.
+At last, you need to register the frame to the scene, initialize the frame and show the scene. Register mulitple frames to the scene is allowed as [`testbed.py`](./examples/testbed.py) do.
 ```python
 custom_frame = YourCustomFrameName()
 scene.register_frame(custom_frame)
@@ -211,7 +211,7 @@ scene.show()
 ```
 If you want to export the result as video or gif, you need to add `video` or `gif` config to the `scene`'s options list. Such as:
 ```python
-scene = tg.Scene(name='TaichiGAME testbed', option={'video': True, 'gif': True})
+scene = tg.Scene(name='Your Custom Name', option={'video': True, 'gif': True})
 ```
 the video or gif is saved as `./export-res/video.mp4` and `./export-res/video.gif` by default.
 
@@ -220,7 +220,7 @@ the video or gif is saved as `./export-res/video.mp4` and `./export-res/video.gi
 If you want to know more details, you can refer to the official example [`testbed.py`](./examples/testbed.py). 
 
 ## Technical details
-In general, the simulation is divided into two parts: **_physics calculation_** and **_frame render_**. This collision detection pipeline refer to the [Box2D](https://github.com/erincatto/box2d) and [Matter.js](https://github.com/liabru/matter-js).
+In general, the simulation is divided into two parts: **_physics calculation_** and **_frame render_**. This collision detection pipeline refers to the [Box2D](https://github.com/erincatto/box2d) and [Matter.js](https://github.com/liabru/matter-js).
 
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/flow.drawio.svg"/>
@@ -232,11 +232,11 @@ In general, the simulation is divided into two parts: **_physics calculation_** 
 </p>
 
 ### Physics calculation
-1. DBVT(**_Dynamics Bounding Volume Tree_**) is a tree data structure are used to accelerate ray casts, overlap queries, and closest point queries for large worlds. Now the bounding box type of TaichiGAME use is AABB(**_Axis-Aligned Bounding Box_**). This data strucutre is a bit like AVL tree. If you want to know more details, you can refer to [[1]](#id_dbvt).
+1. DBVT(**_Dynamics Bounding Volume Tree_**) is a tree data structure that is used to accelerate ray casts, overlap queries, and closest point queries for large worlds. Now the bounding box type of TaichiGAME use is AABB(**_Axis-Aligned Bounding Box_**). This data strucutre is a bit like AVL tree. If you want to know more details, you can refer to [[1]](#id_dbvt).
 
-2. GJK(**_Gilbert–Johnson–Keerthi distance algorithm_**) is a method of determining the minimum distance between two convex sets. it does not require that the geometry data be stored in any specific format, but instead relies solely on a support function to iteratively generate closer simplices to the correct answer using the configuration space obstacle (CSO) of two convex shapes, more commonly known as the Minkowski difference(_[from wikipedia](https://en.wikipedia.org/wiki/Gilbert%E2%80%93Johnson%E2%80%93Keerthi_distance_algorithm)_). More informations can refer to [[2]](#id_fpbma)[[3]](#id_rtcd)[[4]](#id_gpg7).
+2. GJK(**_Gilbert–Johnson–Keerthi distance algorithm_**) is a method of determining the minimum distance between two convex sets. It does not require that the geometry data be stored in any specific format, but instead relies solely on a support function to iteratively generate closer simplices to the correct answer using the configuration space obstacle (CSO) of two convex shapes, more commonly known as the Minkowski difference(_[from wikipedia](https://en.wikipedia.org/wiki/Gilbert%E2%80%93Johnson%E2%80%93Keerthi_distance_algorithm)_). More informations can refer to [[2]](#id_fpbma)[[3]](#id_rtcd)[[4]](#id_gpg7).
 
-3. Constraint solving is aim to restrict freedom of movement. TaichiGAME use impulse-based constraint dynamics to calculate the equation. Based on moment-of-momentum equation and the method of lagrange multipliers, the impulse lambda can be deduced as：
+3. Constraint solving is aim to restrict freedom of movement. TaichiGAME uses impulse-based constraint dynamics to calculate the equation. Based on moment-of-momentum equation and the method of lagrange multipliers, the impulse lambda can be deduced as：
 
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/lambda.png">
@@ -248,7 +248,7 @@ the impuse of a object is ![Image](https://raw.githubusercontent.com/maksyuki/Ta
 To counter the fall of objects, previous equation need to introduce bias item. The penetration error is ![Image](https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/pen_error.png), and according to the **_Baumgarte Stabilization Method_**: ![Image](https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/bsm.png), the bias impuse can be cacluate as ![Image](https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/bias_lambda.png).
 
 ### Render shape
-All the shape's geometry data are provided in body coordinate system. For point/circle, TaichiGAME only use `ti.GUI.circles` to draw inner shape with fill color. For polgyon, TaichiGAME use `ti.GUI.triangles` to fill the shape by triangulation and use `ti.GUI.lines` to draw the outline. Capsule is composed of two circles and one rectangle.
+All the shape's geometry data are provided in body coordinate system. For point/circle, TaichiGAME only uses `ti.GUI.circles` to draw inner shape with fill color. For polgyon, TaichiGAME uses `ti.GUI.triangles` to fill the shape by triangulation and uses `ti.GUI.lines` to draw the outline. Capsule is composed of two circles and one rectangle.
 
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/render.drawio.svg"/>
@@ -257,7 +257,7 @@ All the shape's geometry data are provided in body coordinate system. For point/
  </p>
 </p>
 
-Because the polygon is filled by triangulation, TaichiGAME render one **N**-vertices polgon need to draw **N** lines and fill **N-2** triangles. Meanwhile, the `GUI` component of `taichi` not like `GGUI`, It cannot render on GPU. So if the frames have too many polygons to render, the workload becomes terrible large. In future, I will transplant TaichiGAME render into `GGUI`.
+Because the polygon is filled by triangulation, TaichiGAME renders one **N**-vertices polgon need to draw **N** lines and fill **N-2** triangles. Meanwhile, the `GUI` component of `taichi` not like `GGUI`, It cannot render on GPU. So if the frames have too many polygons to render, the workload becomes terrible large. In future, I will transplant TaichiGAME render into `GGUI`.
 
 ## Performance optimization
 First, I implement a cpu-based testbed([testbed.py](./examples/testbed.py)), which only use taichi to render the frames. Due to heavy calculation, that make simulation slowly. After analysis and trade-off, I decide to rewrite some modules to make testbed into taichi-based([ti_testbed.py](./examples/ti_testbed.py)), the solutions are:
@@ -330,7 +330,7 @@ All of the TaichiGAME codes are release under the [MIT License](LICENSE).
 
 2. Thanks to [ACRL](https://github.com/AngryAccelerated) and his engine project [Physics2D](https://github.com/AngryAccelerated/Physics2D). In addition, His [series posts](https://www.zhihu.com/people/acrl/posts) is full of detailed and understandable contents about graphcs and physics engine. Due to him, I learned a tons of konwledges from sratch.
 
-3. Use [Inkscape 1.1.1 (3bf5ae0d25, 2021-09-20, window x64 version, GPL-3.0)](https://inkscape.org/) to draw the logo. Use [diagrams.net (online, Apache-2.0)](https://www.diagrams.net/) to draw flow and architecture diagrams. Use [Shotcut (21.12.24, GPL-3.0)](https://shotcut.org/) to cut and edit the videos and gifs. Use [GeoGebra (online, GPL-3.0)](https://www.geogebra.org/) to draw shapes to help debug computer geometry algorithm in TaichiGAME. You can get all of resources from [TaichiGAME-res repo](https://github.com/maksyuki/TaichiGAME-res).
+3. Use [Inkscape 1.1.1 (3bf5ae0d25, 2021-09-20, window x64 version, GPL-3.0)](https://inkscape.org/) to draw the logo. Use [diagrams.net (online, Apache-2.0)](https://www.diagrams.net/) to draw flow and architecture charts. Use [Shotcut (21.12.24, GPL-3.0)](https://shotcut.org/) to cut and edit the videos and gifs. Use [GeoGebra (online, GPL-3.0)](https://www.geogebra.org/) to draw shapes to help debug computational geometry algorithms in TaichiGAME. You can get all resources from [TaichiGAME-res repo](https://github.com/maksyuki/TaichiGAME-res).
 
 ## Reference
 [1] _Physically Based Rendering section 4.3 [BVH](https://www.pbr-book.org/3ed-2018/Primitives_and_Intersection_Acceleration/Bounding_Volume_Hierarchies) and [DBVH](https://box2d.org/files/ErinCatto_DynamicBVH_GDC2019.pdf)_, GDC2019, Erin Catto, Blizzard Entertainment <span id="id_dbvt"></span>
