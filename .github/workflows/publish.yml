@@ -2,7 +2,7 @@ name: publish package
 
 on:
   push:
-    branches: [ dev feature-2d-physics ]
+    branches: [ dev, feature-2d-physics ]
   release:
     types: [published]
 
