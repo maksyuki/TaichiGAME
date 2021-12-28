@@ -203,6 +203,15 @@ If you want to know more details, you can refer to the official example [`testbe
  </p>
 </p>
 
+5. Stack: this frame shows a free fall square stack. You can apply mouse joint constraint to the shape.
+<p align="center">
+ <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/stack.gif"/>
+ <p align="center">
+  <em>The free fall stack</em>
+ </p>
+</p>
+
+
 ## Technical details
 In general, the simulation is divided into two parts: **_physics calculation_** and **_frame render_**. This collision detection pipeline refer to the [Box2D](https://github.com/erincatto/box2d) and [Matter.js](https://github.com/liabru/matter-js).
 
