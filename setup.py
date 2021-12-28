@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="TaichiGAME",
-    version="0.0.1",
+    version="0.0.2",
     author="maksyuki",
     author_email="maksyuki@126.com",
     description="A Light 2d Rigid Body Physics Engine Based on Taichi Lang",
