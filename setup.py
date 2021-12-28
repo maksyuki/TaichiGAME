@@ -8,7 +8,7 @@ setuptools.setup(
     version="0.0.2",
     author="maksyuki",
     author_email="maksyuki@126.com",
-    description="A Light 2d Rigid Body Physics Engine Based on Taichi Lang",
+    description="GPU Accelerated Motion Engine based on Taichi Lang",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/maksyuki/TaichiGAME",

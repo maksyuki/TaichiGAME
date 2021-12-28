@@ -1,8 +1,6 @@
 name: publish package
 
 on:
-  push:
-    branches: [ main, dev, feature-2d-physics ]
   release:
     types: [published]
 

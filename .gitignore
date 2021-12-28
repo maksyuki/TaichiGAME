@@ -5,3 +5,5 @@ __pycache__
 .mypy_cache
 .coverage
 export-res
+dist
+*.egg-info
