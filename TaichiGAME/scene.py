@@ -22,14 +22,13 @@ class Scene():
                  name: str,
                  width: int = 1280,
                  height: int = 720,
-                 option: Dict[str, bool] = {
-                     'video': False,
-                     'gif': False
-                 }):
+                 option: Dict[str, bool] = {}):
         self._gui: ti.GUI = ti.GUI(name,
                                    res=(width, height),
                                    background_color=Config.BackgroundColor)
-        self._option: Dict[str, bool] = option
+        self._option: Dict[str, bool] = {'video': False, 'gif': False}
+        for v in option:
+            self._option[v] = option[v]
         self._ex_mgn: ExportManager = ExportManager()
         # the physics world, all sim is run in physics world
         self._world: PhysicsWorld = PhysicsWorld()
