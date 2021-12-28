@@ -172,11 +172,34 @@ If you want to know more details, you can refer to the official example [`testbe
  </p>
 </p>
 
-3. Bitmask: this frame show the having same bitmask property squere and ground can contact. Meanwhile, the yellow rectangles represent the dynamics update result of dbvt.
+3. Bitmask: this frame shows the having same bitmask property squere and ground can contact. Meanwhile, the yellow rectangles represent the dynamics update result of dbvt.
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/bitmask.gif"/>
  <p align="center">
   <em>The bitmask of three square contact with ground</em>
+ </p>
+</p>
+
+4. Collision: those frames show multiple collision examples. First one is a simple collision, second frame shows eight balls hit the ground with different restitution increased from left to right, the last one shows the three squares slide down from slopes with different friction coefficient.
+
+<p align="center">
+ <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/collision_simple.gif"/>
+ <p align="center">
+  <em>A capsule hit the ground</em>
+ </p>
+</p>
+
+<p align="center">
+ <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/collision_restit.gif"/>
+ <p align="center">
+  <em>Eight balls hit the ground with different restitution</em>
+ </p>
+</p>
+
+<p align="center">
+ <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/collision_fric.gif"/>
+ <p align="center">
+  <em>Three squares slide down from slope</em>
  </p>
 </p>
 
@@ -232,7 +255,6 @@ First, I implement a cpu-based testbed([testbed.py](./examples/testbed.py)), whi
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/structure.drawio.svg"/>
  <p align="center">
   <em>The different between cpu-based and gpu-based structure</em>
- </p>
  </p>
 </p>
 
