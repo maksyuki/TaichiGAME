@@ -127,7 +127,7 @@ $ python3 testbed.py
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/raycast.gif"/>
  <p align="center">
-  <em>The raycast from the origin in direction </em>
+  <em>The raycast from the origin in given direction </em>
  </p>
 </p>
 
@@ -215,7 +215,7 @@ scene = tg.Scene(name='Your Custom Name', option={'video': True, 'gif': True})
 ```
 the video or gif is saved as `./export-res/video.mp4` and `./export-res/video.gif` by default.
 
-> NOTE: TaichiGAME use taichi's APIs to export video, so you need to install the `ffmpeg` first. How to install ffmpeg you can refer to [Install ffmpeg](https://docs.taichi.graphics/lang/articles/misc/export_results#export-videos) section of taichi doc.
+> NOTE: TaichiGAME uses taichi's APIs to export video, so you need to install the `ffmpeg` first. How to install ffmpeg you can refer to [Install ffmpeg](https://docs.taichi.graphics/lang/articles/misc/export_results#export-videos) section of taichi doc.
 
 If you want to know more details, you can refer to the official example [`testbed.py`](./examples/testbed.py). 
 
