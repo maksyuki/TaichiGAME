@@ -156,20 +156,27 @@ the video or gif is saved as `./export-res/video.mp4` and `./export-res/video.gi
 If you want to know more details, you can refer to the official example [`testbed.py`](./examples/testbed.py). 
 
 ### Simulation result
-1. DBVT query: the 
+1. DBVT query: this frame is aim to show the dbvt's ability to accelerate the broad phase query of collision. The red rectangle represents the query region, yellow rectangles represent the query results(AABB of the shape).
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/dbvt_query.gif"/>
  <p align="center">
-  <em>The different between cpu-based and gpu-based structure</em>
- </p>
+  <em>The dbvt query with smooth viewport zoom in</em>
  </p>
 </p>
 
+2. Raycast: this frame cast a ray in given direction. You can move the cast direction by mouse, and the cast shapes are rendered in cyan color.
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/raycast.gif"/>
  <p align="center">
-  <em>The different between cpu-based and gpu-based structure</em>
+  <em>The raycast from the origin in direction </em>
  </p>
+</p>
+
+3. Bitmask: this frame show the having same bitmask property squere and ground can contact. Meanwhile, the yellow rectangles represent the dynamics update result of dbvt.
+<p align="center">
+ <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/bitmask.gif"/>
+ <p align="center">
+  <em>The bitmask of three square contact with ground</em>
  </p>
 </p>
 
