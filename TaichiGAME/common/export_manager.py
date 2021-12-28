@@ -1,4 +1,5 @@
 import os
+import glob
 
 
 class ExportManager():
@@ -6,7 +7,9 @@ class ExportManager():
         try:
             os.makedirs(root_dir + '/frames')
         except FileExistsError:
-            pass
+            for infile in glob.glob(os.path.join(root_dir + '/frames',
+                                                 '*.png')):
+                os.remove(infile)
 
         self._frame_cnt: int = -1
         self._root_dir: str = root_dir
