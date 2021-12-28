@@ -211,6 +211,14 @@ If you want to know more details, you can refer to the official example [`testbe
  </p>
 </p>
 
+6. Domino: this frame shows a pendulum strikes a domino card and trigger a ripple collison. The surface of ground and slope are both smooth, so the card can not stay static on the slope.
+<p align="center">
+ <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/domino.gif"/>
+ <p align="center">
+  <em>The domino simulation</em>
+ </p>
+</p>
+
 
 ## Technical details
 In general, the simulation is divided into two parts: **_physics calculation_** and **_frame render_**. This collision detection pipeline refer to the [Box2D](https://github.com/erincatto/box2d) and [Matter.js](https://github.com/liabru/matter-js).
