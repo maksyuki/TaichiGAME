@@ -43,7 +43,7 @@
 
 
 ## Overview
-TaichiGAME is aim to become a lightweight simulation engine in **motion planning and control research fields**. And it is written in python and [taichi](https://github.com/taichi-dev/taichi), which combines the traditional numerical methods for solving rigid dynamcis equations, model parameters derivation, with parallel implementation capabilites in order to maximize scientists' productivity.
+TaichiGAME is aim to become a lightweight simulation engine in **motion planning and control research fields**. And it is written in python and [taichi](https://github.com/taichi-dev/taichi), which combines the traditional numerical methods for solving rigid dynamics equations, model parameters derivation, with parallel implementation capabilites in order to maximize scientists' productivity.
 
 ## Motivation
 I am a postgraduate in school of astronautics and major in aerospace robot guidance, navigation and control. During my first year, I took a class on _advanced control theory_ and was taught many different control algorithms for estimating dynamic model, fitting state curves and so on.
@@ -54,7 +54,7 @@ When I carried out a research on asteroid rover motion planning supported by NFS
 
 > NOTE: Due to my research is still under review and revise, I could not release all results now. At present, I only release the initial physics engine component of TaichiGAME. So I only introduce physics engine component now. In the first half of 2022, I will release other components of TaichiGAME.
 
-To implement the physics engines, I refer to the [Physics2D (c++, MIT License)](https://github.com/AngryAccelerated/Physics2D) project, and rewrite entire content of it into python with taichi and add more unit tests. The following architecture chart illustrates the basic features:
+To implement the physics engine, I refer to the [Physics2D (c++, MIT License)](https://github.com/AngryAccelerated/Physics2D) project, and rewrite entire content of it into python with taichi and add more unit tests. The following architecture chart illustrates the basic features:
 
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/arch.drawio.svg"/>
@@ -71,11 +71,11 @@ First,  the physics engine component is under alpha phase, so it is lack of stab
 ## Requirements
 1. python>=3.7, <=3.9, because:
    - use `from __future__ import annotations` to postpone evaluation of annotations `(python3.7+ intro)`
-   - taichi now support the highest version of python is `python3.9`
+   - taichi supports the highest version of python is `python3.9`
 
 2. taichi>=0.8.0, because:
-    - for support taichi's new features
-    - now TaichiGAME don't use the new GGUI `(taichi0.8+ intro)`, so you maybe can use lower version taichi(such as `taichi0.7+`).
+    - support taichi's new features
+    - now TaichiGAME doesn't use the new GGUI `(taichi0.8+ intro)`, so maybe you can use lower version taichi(such as `taichi0.7+`).
     - **NOTE:** some TaichiGAME's API is based on specific taichi features. In views of the rapid development of taichi, I don't have much enery and time to maintain TaichiGAME to adapt or be compatiable to multiple different major version of taichi. It can make TaichiGAME too verbose. So I decide to **ONLY maintain TaichiGAME to adapt to current major verion plus one latest previous major verion of taichi**. For now, because a major version of taichi has not been released yet, I decide to **CHANGE** the 'major version' of previous policy into 'minor version'. Specifically, I develop and test all features of TaichiGAME in `taichi0.8+` , and **ONLY** maintain compatible version of TaichiGAME to `taichi0.7+`, the TaichiGAME based on `taichi<0.7+` will no longer be maintained.
 
 ## Install
@@ -111,11 +111,11 @@ $ python3 testbed.py
    | :-------------: | :------: | :-------------: | :------: | :-------------: | :------: |
    | `q` | toggle frame visibility | `w` | toggle AABB visibility | `e`|  toggle joint visibility|
    | `r` | toggle body visibility | `t` | toggle axis visibility | `a` | toggle dbvh visibility |
-   | `s` | toggle visibility dbvt | `d` | toggle grid visibility | `f` | toggle rotation line visibility |
+   | `s` | toggle dbvt visibility | `d` | toggle grid visibility | `f` | toggle rotation line visibility |
    | `g` | toggle center visibility | `z` | toggle contact visibility |
 
 ### Testbed simulation result
-1. DBVT query: this frame is aim to show the dbvt's ability to accelerate the broad phase query of collision. The red rectangle represents the query region, yellow rectangles represent the query results(AABB of the shape).
+1. **dbvt query**: this frame is aim to show the dbvt's ability to accelerate the broad phase query of collision. The red rectangle represents the query region, yellow rectangles represent the query results(AABB of the shape).
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/dbvt_query.gif"/>
  <p align="center">
@@ -123,7 +123,7 @@ $ python3 testbed.py
  </p>
 </p>
 
-2. Raycast: this frame casts a ray in given direction. You can move the cast direction by mouse, and the cast shapes are rendered in cyan color.
+2. **raycast**: this frame casts a ray in given direction. You can move the cast direction by mouse, and the cast shapes are rendered in cyan color.
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/raycast.gif"/>
  <p align="center">
@@ -131,7 +131,7 @@ $ python3 testbed.py
  </p>
 </p>
 
-3. Bitmask: this frame shows two objects, a square and a ground, are with same bitmask property can contact with each other. Meanwhile, the yellow rectangles represent the real time update result of dbvt.
+3. **bitmask**: this frame shows two objects, a square and a ground, are with same bitmask property can contact with each other. In addition, the yellow rectangles represent the real time update result of dbvt.
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/bitmask.gif"/>
  <p align="center">
@@ -139,7 +139,7 @@ $ python3 testbed.py
  </p>
 </p>
 
-4. Collision: those frames show multiple collision examples. First one is a simple collision, second frame shows eight balls hit the ground with different restitution increased from left to right, the last one shows the three squares slide down from slopes with different friction coefficient.
+4. **collision**: those frames show multiple collision examples. First one is a simple collision, second frame shows eight balls hit the ground with different restitution increased from left to right, the last one shows the three squares slide down from slopes with different friction coefficient.
 
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/collision_simple.gif"/>
@@ -162,7 +162,7 @@ $ python3 testbed.py
  </p>
 </p>
 
-5. Stack: this frame shows a free fall square stack. You can apply mouse joint constraint to the shape.
+5. **stack**: this frame shows a free fall square stack. You can apply mouse joint constraint to the shape.
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/stack.gif"/>
  <p align="center">
@@ -170,7 +170,7 @@ $ python3 testbed.py
  </p>
 </p>
 
-6. Domino: this frame shows a pendulum strike a domino card and trigger a ripple collison. The surface of ground and slopes are both smooth, so the card can not stay static on the slopes.
+6. **domino**: this frame shows a pendulum strike a domino card and trigger a ripple collison. The surface of ground and slopes are both smooth, so the card can not stay static on it.
 <p align="center">
  <img src="https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/domino.gif"/>
  <p align="center">
@@ -245,7 +245,7 @@ In general, the simulation is divided into two parts: **_physics calculation_** 
 the impuse of a object is ![Image](https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/i_a.png), the impuse of b object is ![Image](https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/i_b.png).
 
 
-To counter the fall of objects, previous equation need to introduce bias item. The penetration error is ![Image](https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/pen_error.png), and according to the **_Baumgarte Stabilization Method_**: ![Image](https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/bsm.png), the bias impuse can be cacluate as ![Image](https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/bias_lambda.png).
+To counter the fall of objects, previous equation need to introduce bias item. The penetration error is ![Image](https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/pen_error.png), and according to the **_Baumgarte Stabilization Method_**: ![Image](https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/bsm.png), the bias impuse can be deduced as ![Image](https://raw.githubusercontent.com/maksyuki/TaichiGAME-res/main/bias_lambda.png).
 
 ### Render shape
 All the shape's geometry data are provided in body coordinate system. For point/circle, TaichiGAME only uses `ti.GUI.circles` to draw inner shape with fill color. For polgyon, TaichiGAME uses `ti.GUI.triangles` to fill the shape by triangulation and uses `ti.GUI.lines` to draw the outline. Capsule is composed of two circles and one rectangle.
@@ -257,10 +257,10 @@ All the shape's geometry data are provided in body coordinate system. For point/
  </p>
 </p>
 
-Because the polygon is filled by triangulation, TaichiGAME renders one **N**-vertices polgon need to draw **N** lines and fill **N-2** triangles. Meanwhile, the `GUI` component of `taichi` not like `GGUI`, It cannot render on GPU. So if the frames have too many polygons to render, the workload becomes terrible large. In future, I will transplant TaichiGAME render into `GGUI`.
+Because the polygon is filled by triangulation, TaichiGAME renders one **N**-vertices polgon need to draw **N** lines and fill **N-2** triangles. Meanwhile, the `GUI` component of `taichi` not like `GGUI`, it cannot render on GPU. So if the frames have too many polygons to render, the workload becomes terrible large. In future, I will rewrite TaichiGAME renderer into `GGUI`.
 
 ## Performance optimization
-First, I implement a cpu-based testbed([testbed.py](./examples/testbed.py)), which only use taichi to render the frames. Due to heavy calculation, that make simulation slowly. After analysis and trade-off, I decide to rewrite some modules to make testbed into taichi-based([ti_testbed.py](./examples/ti_testbed.py)), the solutions are:
+First, I implement a cpu-based testbed([testbed.py](./examples/testbed.py)), which only use taichi to render the frames. Due to heavy calculation, that makes simulation slowly. After analysis and trade-off, I decide to rewrite some modules to make testbed into taichi-based([ti_testbed.py](./examples/ti_testbed.py)), the solutions are:
 1. **Redesign the calculate structure** to fully utilize the taichi computing ability.
 2. **Reuse some IO data structure** to provide unified external interface.
 3. **Design a conversion method** to transfer data from 'python' scope into 'taichi' scope.
@@ -276,7 +276,7 @@ First, I implement a cpu-based testbed([testbed.py](./examples/testbed.py)), whi
 
 
 ### Redesign the calculate structure
-Use `ti.Vector.field` to hold all variables in [ti_phy_world.py](./TaichiGAME/dynamics/ti_phy_world.py). Every type of shape has own pos and geometry features field.
+Use `ti.Vector.field` to hold all variables in [ti_phy_world.py](./TaichiGAME/dynamics/ti_phy_world.py). Every type of shape has own position and geometry features field.
 
 ### Reuse the IO data structure
 Share common shape module , so you can define frame like cpu-based simulation do:
