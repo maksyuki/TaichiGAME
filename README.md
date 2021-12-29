@@ -10,10 +10,10 @@
     <img src="https://img.shields.io/codecov/c/github/maksyuki/TaichiGAME/main?logo=codecov&style=flat-square">
   </a>
   <a href="https://github.com/maksyuki/TaichiGAME">
-    <img src="https://img.shields.io/pypi/v/numpy?logo=pypi&style=flat-square">
+    <img src="https://img.shields.io/pypi/v/TaichiGAME?logo=pypi&style=flat-square">
   </a>
   <a href="https://github.com/maksyuki/TaichiGAME">
-    <img src="https://img.shields.io/pypi/pyversions/numpy?logo=python&style=flat-square">
+    <img src="https://img.shields.io/pypi/pyversions/TaichiGAME?logo=python&style=flat-square">
   </a>
   <!-- Second row: -->
   <br>

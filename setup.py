@@ -14,7 +14,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="TaichiGAME",
-    version="0.0.2",
+    version="0.0.1",
     author="maksyuki",
     author_email="maksyuki@126.com",
     description="GPU Accelerated Motion Engine based on Taichi Lang",
