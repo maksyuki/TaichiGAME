@@ -80,7 +80,7 @@ First,  the physics engine component is under alpha phase, so it is lack of stab
 
 ## Install
 
-Installation is simple, you can just type the following command in `shell` or `cmd` terminal(**Recommend**).
+Installation is simple, you can just type the following command in `shell` or `cmd` terminal(**_Recommend_**).
 
 ```shell
 $ python3 -m pip install TaichiGAME
@@ -92,11 +92,11 @@ After installation, type following command to run the build-in example [`testbed
 $ python3 -m TaichiGAME example testbed
 ```
 
-You can type `python3 -m TaichiGAME -h` and `python3 -m TaichiGAME example -h` to get detail command line parameters usage. This cli module refers to [taichi main module](https://github.com/taichi-dev/taichi/blob/master/python/taichi/main.py)
+You can type `python3 -m TaichiGAME -h` and `python3 -m TaichiGAME example -h` to get detail command line parameters usage. This cli module refers to [taichi main module](https://github.com/taichi-dev/taichi/blob/master/python/taichi/main.py).
 
 > NOTE: Recommand use `venv` to isolate test environment from system directories, you can get more details from [Creation of virtual environments](https://docs.python.org/3/library/venv.html).
 
-Another method is `git clone` this repo and `pip install` dependencies, then run the [`testbed.py`](./examples/testbed.py) from package directly.
+Another method is `git clone` this repo, `pip install` dependencies, and then run the [`testbed.py`](./examples/testbed.py) from package directly.
 ```shell
 $ git clone https://github.com/maksyuki/TaichiGAME.git
 $ cd TaichiGAME/
