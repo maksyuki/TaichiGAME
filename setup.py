@@ -4,14 +4,17 @@ import setuptools
 print('this is in [setup] module###############')
 os.system('pwd')
 os.system('ls')
-print('this is in [setup] module end###############')
+print('this is in [setup] module###############')
 try:
-    os.makedirs('TaichiGAME/packaged-examples')
+    os.makedirs('./TaichiGAME/packaged-examples')
 except FileExistsError:
     pass
 
+os.system('ls ./TaichiGAME/packaged-examples')
+os.system("echo 'hello!!!!!!!!!' ")
 os.system('cp ./examples/testbed.py ./TaichiGAME/packaged-examples/')
 os.system('cp ./examples/ti_testbed.py ./TaichiGAME/packaged-examples/')
+os.system('ls ./TaichiGAME/packaged-examples')
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
