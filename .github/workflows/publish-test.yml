@@ -1,4 +1,4 @@
-name: publish package
+name: publish test package
 
 on:
   release:
