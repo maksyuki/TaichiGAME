@@ -1,6 +1,10 @@
 import os
 import setuptools
 
+print('this is in [setup] module###############')
+os.system('pwd')
+os.system('ls')
+print('this is in [setup] module end###############')
 try:
     os.makedirs('TaichiGAME/packaged-examples')
 except FileExistsError:
