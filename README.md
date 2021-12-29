@@ -97,8 +97,9 @@ $ python3 -m pip install -r requirements.txt
 After installation, type following command to run the build-in example [`testbed.py`](./examples/testbed.py).
 
 ```shell
-$ python3 testbed.py
+$ python3 -m TaichiGAME example testbed
 ```
+You can type `python3 -m TaichiGAME -h` and `python3 -m TaichiGAME example -h` to get detail command line parameters usage. This cli module refers to (taichi main module)[https://github.com/taichi-dev/taichi/blob/master/python/taichi/main.py]
 
 > NOTE: When running code, you maybe notice terminal print some informations like `[Taichi] version 0.8.7, llvm 10.0.0, commit 1c3c705a, osx, python 3.8.8`. I have tested TaichiGAME under `taichi>=0.7`. Your output maybe different from mine, but it doesn't matter.
 
