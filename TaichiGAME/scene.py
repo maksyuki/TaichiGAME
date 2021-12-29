@@ -1,36 +1,35 @@
 from __future__ import annotations
-from typing import Tuple, Union, List, cast, Optional
+from typing import Dict, Tuple, Union, List, cast, Optional
 
-import colorama as cra
 import taichi as ti
-
-from TaichiGAME.dynamics.joint.point import PointJoint, PointJointPrimitive
-from TaichiGAME.collision.broad_phase.aabb import AABB
-from TaichiGAME.frame import Frame
-
-try:
-    from taichi.ui.gui import GUI  # for taichi >= 0.8.7
-except ImportError:
-    print(
-        cra.Fore.GREEN +
-        '[TaichiGAME.scene]taichi < 0.8.7 import gui \'from taichi.misc.gui\'')
-    from taichi.misc.gui import GUI
 
 from .common.camera import Camera
 from .common.config import Config
+from .common.export_manager import ExportManager
+from .frame import Frame
 from .collision.broad_phase.dbvt import DBVT
+from .collision.broad_phase.aabb import AABB
 from .math.matrix import Matrix
 from .collision.detector import Collsion, Detector
 from .dynamics.body import Body
 from .dynamics.phy_world import PhysicsWorld
 from .dynamics.constraint.contact import ContactMaintainer
+from .dynamics.joint.point import PointJoint, PointJointPrimitive
 
 
 class Scene():
-    def __init__(self, name: str, width: int = 1280, height: int = 720):
-        self._gui: GUI = GUI(name,
-                             res=(width, height),
-                             background_color=Config.BackgroundColor)
+    def __init__(self,
+                 name: str,
+                 width: int = 1280,
+                 height: int = 720,
+                 option: Dict[str, bool] = {}):
+        self._gui: ti.GUI = ti.GUI(name,
+                                   res=(width, height),
+                                   background_color=Config.BackgroundColor)
+        self._option: Dict[str, bool] = {'video': False, 'gif': False}
+        for v in option:
+            self._option[v] = option[v]
+        self._ex_mgn: ExportManager = ExportManager()
         # the physics world, all sim is run in physics world
         self._world: PhysicsWorld = PhysicsWorld()
         self._dbvt: DBVT = DBVT()
@@ -152,11 +151,12 @@ class Scene():
         self._cam.render(self._gui)
         self._ext_frame_list[self._ext_frame_idx].render()
 
-    def handle_left_mouse_event(self, state: Union[GUI.PRESS, GUI.RELEASE],
-                                x: float, y: float) -> None:
+    def handle_left_mouse_event(self, state: Union[ti.GUI.PRESS,
+                                                   ti.GUI.RELEASE], x: float,
+                                y: float) -> None:
 
         self._mouse_pos = self._cam.screen_to_world(Matrix([x, y], 'vec'))
-        if state == GUI.PRESS:
+        if state == ti.GUI.PRESS:
             if self._mouse_joint is None:
                 return
 
@@ -164,7 +164,7 @@ class Scene():
             mouse_box.pos = self._mouse_pos
             bd_list: List[Body] = self._dbvt.query(mouse_box)
             for bd in bd_list:
-                print(bd.id)
+                # print(bd.id)
                 point: Matrix = self._mouse_pos - bd.pos
                 point = Matrix.rotate_mat(-bd.rot) * point
 
@@ -182,9 +182,9 @@ class Scene():
             self._mouse_joint.active = False
             self._mouse_select_body = None
 
-    def handle_right_mouse_event(self, state: Union[GUI.PRESS,
-                                                    GUI.RELEASE]) -> None:
-        if state == GUI.PRESS:
+    def handle_right_mouse_event(
+            self, state: Union[ti.GUI.PRESS, ti.GUI.RELEASE]) -> None:
+        if state == ti.GUI.PRESS:
             self._mouse_viewport_move = True
         else:
             self._mouse_viewport_move = False
@@ -223,67 +223,72 @@ class Scene():
         while self._gui.running:
 
             for e in self._gui.get_events():
-                if e.key == ti.GUI.ESCAPE:
+                if e.key == ti.ti.GUI.ESCAPE:
+                    if self._option['gif']:
+                        self._ex_mgn.gen_gif()
+                    elif self._option['video']:
+                        self._ex_mgn.gen_video()
+
                     exit()
 
-                elif e.key == ti.GUI.SPACE and e.type == GUI.RELEASE:
+                elif e.key == ti.ti.GUI.SPACE and e.type == ti.GUI.RELEASE:
                     self._paused = not self._paused
 
-                elif e.key == ti.GUI.LMB:
+                elif e.key == ti.ti.GUI.LMB:
                     self.handle_left_mouse_event(e.type, e.pos[0], e.pos[1])
 
-                elif e.key == ti.GUI.RMB:
+                elif e.key == ti.ti.GUI.RMB:
                     self.handle_right_mouse_event(e.type)
 
-                elif e.key == ti.GUI.MOVE:
+                elif e.key == ti.ti.GUI.MOVE:
                     self.handle_mouse_move_event(e.pos[0], e.pos[1])
 
-                elif e.key == ti.GUI.WHEEL:
+                elif e.key == ti.ti.GUI.WHEEL:
                     self.handle_wheel_event(e.delta[1])
 
-                elif e.key == ti.GUI.UP:
+                elif e.key == ti.ti.GUI.UP:
                     print("press up key")
 
-                elif e.key == ti.GUI.DOWN:
+                elif e.key == ti.ti.GUI.DOWN:
                     pass
 
-                elif e.key == ti.GUI.LEFT and e.type == GUI.RELEASE:
+                elif e.key == ti.ti.GUI.LEFT and e.type == ti.GUI.RELEASE:
                     self.change_frame(-1)
 
-                elif e.key == ti.GUI.RIGHT and e.type == GUI.RELEASE:
+                elif e.key == ti.ti.GUI.RIGHT and e.type == ti.GUI.RELEASE:
                     self.change_frame(1)
 
-                elif e.key == 'q' and e.type == GUI.PRESS:
+                elif e.key == 'q' and e.type == ti.GUI.PRESS:
                     self._cam.visible = not self._cam.visible
 
-                elif e.key == 'w' and e.type == GUI.PRESS:
+                elif e.key == 'w' and e.type == ti.GUI.PRESS:
                     self._cam.aabb_visible = not self._cam.aabb_visible
 
-                elif e.key == 'e' and e.type == GUI.PRESS:
+                elif e.key == 'e' and e.type == ti.GUI.PRESS:
                     self._cam.joint_visible = not self._cam.joint_visible
 
-                elif e.key == 'r' and e.type == GUI.PRESS:
+                elif e.key == 'r' and e.type == ti.GUI.PRESS:
                     self._cam.body_visible = not self._cam.body_visible
 
-                elif e.key == 't' and e.type == GUI.PRESS:
+                elif e.key == 't' and e.type == ti.GUI.PRESS:
                     self._cam.axis_visible = not self._cam.axis_visible
 
-                elif e.key == 'a' and e.type == GUI.PRESS:
+                elif e.key == 'a' and e.type == ti.GUI.PRESS:
                     self._cam.dbvh_visible = not self._cam.dbvh_visible
 
-                elif e.key == 's' and e.type == GUI.PRESS:
+                elif e.key == 's' and e.type == ti.GUI.PRESS:
                     self._cam.dbvt_visible = not self._cam.dbvt_visible
 
-                elif e.key == 'd' and e.type == GUI.PRESS:
+                elif e.key == 'd' and e.type == ti.GUI.PRESS:
                     self._cam.grid_visible = not self._cam.grid_visible
 
-                elif e.key == 'f' and e.type == GUI.PRESS:
+                elif e.key == 'f' and e.type == ti.GUI.PRESS:
                     self._cam.rot_line_visible = not self._cam.rot_line_visible
 
-                elif e.key == 'g' and e.type == GUI.PRESS:
+                elif e.key == 'g' and e.type == ti.GUI.PRESS:
                     self._cam.center_visible = not self._cam.center_visible
 
-                elif e.key == 'z' and e.type == GUI.PRESS:
+                elif e.key == 'z' and e.type == ti.GUI.PRESS:
                     self._cam.contact_visible = not self._cam.contact_visible
 
             if not self._paused:
@@ -291,4 +296,7 @@ class Scene():
 
             self.render()
 
-            self._gui.show()
+            if self._option['video'] or self._option['gif']:
+                self._gui.show(self._gui.show(self._ex_mgn.frame_name))
+            else:
+                self._gui.show()
