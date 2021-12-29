@@ -1,15 +1,16 @@
 import os
 import setuptools
 
-print('this is in [setup] module###############')
+os.system("echo 'this is in [setup] module###############'")
 os.system('pwd')
 os.system('ls')
-print('this is in [setup] module###############')
+os.system("echo 'this is in [setup] module end###############'")
 try:
     os.makedirs('./TaichiGAME/packaged-examples')
 except FileExistsError:
     pass
 
+os.system("echo 'start!!!!!!!!!' ")
 os.system('ls ./TaichiGAME/packaged-examples')
 os.system("echo 'hello!!!!!!!!!' ")
 os.system('cp ./examples/testbed.py ./TaichiGAME/packaged-examples/')
@@ -56,7 +57,6 @@ setuptools.setup(
     keywords=['phyics engine', 'dynamics simulation', 'robot motion control'],
     packages=setuptools.find_packages(exclude=['examples', 'tests']),
     include_package_data=True,
-    package_data={'examples': ['testbed.py']},
     install_requires=['taichi'],
     python_requires=">=3.7,<3.10",
 )
