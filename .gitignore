@@ -7,4 +7,3 @@ __pycache__
 export-res
 dist
 *.egg-info
-packaged-examples

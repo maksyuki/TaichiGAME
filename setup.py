@@ -1,20 +1,11 @@
-import os
 import setuptools
-
-try:
-    os.makedirs('TaichiGAME/packaged-examples')
-except FileExistsError:
-    pass
-
-os.system('cp ./examples/testbed.py ./TaichiGAME/packaged-examples/')
-os.system('cp ./examples/ti_testbed.py ./TaichiGAME/packaged-examples/')
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="TaichiGAME",
-    version="0.0.1",
+    version="0.0.2",
     author="maksyuki",
     author_email="maksyuki@126.com",
     description="GPU Accelerated Motion Engine based on Taichi Lang",
@@ -47,9 +38,8 @@ setuptools.setup(
     ],
     license='MIT',
     keywords=['phyics engine', 'dynamics simulation', 'robot motion control'],
-    packages=setuptools.find_packages(exclude=['examples', 'tests']),
+    packages=setuptools.find_packages(exclude=['tests']),
     include_package_data=True,
-    package_data={'examples': ['testbed.py']},
     install_requires=['taichi'],
     python_requires=">=3.7,<3.10",
 )
