@@ -101,8 +101,8 @@ Another method is `git clone` this repo, `pip install` dependencies, and then ru
 $ git clone https://github.com/maksyuki/TaichiGAME.git
 $ cd TaichiGAME/
 $ python3 -m pip install -r requirements.txt
-$ cd examples/ # necessary, run testbed.py from other path can trigger module import error
-$ python3 testbed.py
+$ cd TaichiGAME/ # necessary, run main.py in project root path can trigger module import error
+$ python3 main.py example testbed
 ```
 
 > NOTE: When running code, you maybe notice terminal print some informations like `[Taichi] version 0.8.7, llvm 10.0.0, commit 1c3c705a, osx, python 3.8.8`. I have tested TaichiGAME under `taichi>=0.7`. Your output maybe different from mine, but it doesn't matter.
