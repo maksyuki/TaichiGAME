@@ -164,7 +164,7 @@ class Scene():
             mouse_box.pos = self._mouse_pos
             bd_list: List[Body] = self._dbvt.query(mouse_box)
             for bd in bd_list:
-                print(bd.id)
+                # print(bd.id)
                 point: Matrix = self._mouse_pos - bd.pos
                 point = Matrix.rotate_mat(-bd.rot) * point
 
