@@ -1,21 +1,4 @@
-import os
 import setuptools
-
-os.system("echo 'this is in [setup] module###############'")
-os.system('pwd')
-os.system('ls')
-os.system("echo 'this is in [setup] module end###############'")
-try:
-    os.makedirs('./TaichiGAME/packaged-examples')
-except FileExistsError:
-    pass
-
-os.system("echo 'start!!!!!!!!!' ")
-os.system('ls ./TaichiGAME/packaged-examples')
-os.system("echo 'hello!!!!!!!!!' ")
-os.system('cp ./examples/testbed.py ./TaichiGAME/packaged-examples/')
-os.system('cp ./examples/ti_testbed.py ./TaichiGAME/packaged-examples/')
-os.system('ls ./TaichiGAME/packaged-examples')
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
@@ -55,7 +38,7 @@ setuptools.setup(
     ],
     license='MIT',
     keywords=['phyics engine', 'dynamics simulation', 'robot motion control'],
-    packages=setuptools.find_packages(exclude=['examples', 'tests']),
+    packages=setuptools.find_packages(exclude=['tests']),
     include_package_data=True,
     install_requires=['taichi'],
     python_requires=">=3.7,<3.10",

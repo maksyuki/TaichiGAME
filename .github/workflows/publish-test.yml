@@ -22,9 +22,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install build
     - name: Build package
-      run: |
-        pwd
-        ls
+      run:
         python -m build
     - name: Publish a Python distribution to Test PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
