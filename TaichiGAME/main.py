@@ -1,3 +1,4 @@
+import os
 import sys
 import shutil
 import runpy
@@ -50,7 +51,7 @@ class TaichiGAMEMain():
         msg = "\n"
         space = 20
         for command in sorted(self._registered_commands):  # type: ignore # pylint: disable=E1101
-            msg += f"    {command}{' ' * (space - len(command))}|-> {getattr(self, command).__doc__}\n"
+            msg += f"{command}{' ' * (space - len(command))}|-> {getattr(self, command).__doc__}\n"
         return msg
 
     @staticmethod
@@ -63,8 +64,10 @@ class TaichiGAMEMain():
     def _get_examples_dir() -> Path:
         """Get the path to the examples directory."""
         root_dir = '.'
-        examples_dir = Path(root_dir) / 'examples'
-        print('example dir: ####$#$#$', examples_dir)
+        root_dir = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+
+        examples_dir = Path(root_dir) / 'TaichiGAME/packaged-examples'
         return examples_dir
 
     @staticmethod
