@@ -1,28 +1,22 @@
 from typing import Callable, List, Optional, Tuple, cast
-import numpy as np
 
+import numpy as np
 import taichi as ti
 
-from TaichiGAME.dynamics.joint.point import PointJoint
-from TaichiGAME.dynamics.joint.revolute import RevoluteJoint
-from TaichiGAME.dynamics.joint.revolute import RevoluteJointPrimitive
-
-try:
-    from taichi.ui.gui import GUI
-except ImportError:
-    from taichi.misc.gui import GUI
-
+from ..common.config import Config
 from ..math.matrix import Matrix
-from ..geometry.shape import Capsule, Circle, Edge, Point
+from ..geometry.shape import Capsule, Circle, Edge
 from ..geometry.shape import Polygon, Shape, ShapePrimitive
 from ..dynamics.joint.joint import Joint, JointType
 from ..dynamics.joint.distance import DistanceJoint
-from ..common.config import Config
+from ..dynamics.joint.point import PointJoint
+from ..dynamics.joint.revolute import RevoluteJoint
+from ..dynamics.joint.revolute import RevoluteJointPrimitive
 
 
 class Render():
     @staticmethod
-    def rd_point(gui: GUI,
+    def rd_point(gui: ti.GUI,
                  point: Matrix,
                  color: int = ti.rgb_to_hex([1.0, 1.0, 1.0]),
                  radius: float = 2.0) -> None:
@@ -32,7 +26,7 @@ class Render():
         gui.circle([point.x, point.y], color, radius)
 
     @staticmethod
-    def rd_points(gui: GUI,
+    def rd_points(gui: ti.GUI,
                   points: List[Matrix],
                   color: int = ti.rgb_to_hex([1.0, 1.0, 1.0]),
                   radius: float = 2.0) -> None:
@@ -42,7 +36,7 @@ class Render():
             Render.rd_point(gui, p, color, radius)
 
     @staticmethod
-    def rd_line(gui: GUI,
+    def rd_line(gui: ti.GUI,
                 p1: Matrix,
                 p2: Matrix,
                 color: int = ti.rgb_to_hex([1.0, 1.0, 1.0]),
@@ -56,7 +50,7 @@ class Render():
         gui.line([p1.x, p1.y], [p2.x, p2.y], radius, color)
 
     @staticmethod
-    def rd_lines(gui: GUI,
+    def rd_lines(gui: ti.GUI,
                  lines: List[Tuple[Matrix, Matrix]],
                  color: int = ti.rgb_to_hex([1.0, 1.0, 1.0]),
                  radius: float = 1.0) -> None:
@@ -66,7 +60,7 @@ class Render():
             Render.rd_line(gui, lin[0], lin[1], color, radius)
 
     @staticmethod
-    def rd_shape(gui: GUI,
+    def rd_shape(gui: ti.GUI,
                  prim: ShapePrimitive,
                  world_to_screen: Callable[[Matrix], Matrix],
                  meter_to_pixel: float,
@@ -100,7 +94,7 @@ class Render():
             raise NotImplementedError
 
     @staticmethod
-    def rd_polygon(gui: GUI,
+    def rd_polygon(gui: ti.GUI,
                    prim: ShapePrimitive,
                    world_to_screen: Callable[[Matrix], Matrix],
                    fill_color: int = Config.FillColor,
@@ -158,7 +152,7 @@ class Render():
         # for v in outer_line_st:
         # print(v)
 
-        gui.lines(outer_line_st, outer_line_ed, 2.0, outline_color)
+        gui.lines(outer_line_st, outer_line_ed, 1.5, outline_color)
         gui.triangles(fill_tri_pa, fill_tri_pb, fill_tri_pc, fill_color)
 
     @staticmethod
@@ -166,7 +160,7 @@ class Render():
         raise NotImplementedError
 
     @staticmethod
-    def rd_circle(gui: GUI,
+    def rd_circle(gui: ti.GUI,
                   prim: ShapePrimitive,
                   world_to_screen: Callable[[Matrix], Matrix],
                   meter_to_pixel: float,
@@ -182,7 +176,7 @@ class Render():
         raise NotImplementedError
 
     @staticmethod
-    def rd_edge(gui: GUI, prim: ShapePrimitive,
+    def rd_edge(gui: ti.GUI, prim: ShapePrimitive,
                 world_to_screen: Callable[[Matrix], Matrix]) -> None:
         edg: Edge = cast(Edge, prim._shape)
         tmp1: Matrix = world_to_screen(edg.start + prim._xform)
@@ -198,7 +192,7 @@ class Render():
                        Config.AxisLineColor)
 
     @staticmethod
-    def rd_capsule(gui: GUI,
+    def rd_capsule(gui: ti.GUI,
                    prim: ShapePrimitive,
                    world_to_screen: Callable[[Matrix], Matrix],
                    meter_to_pixel: float,
@@ -264,7 +258,7 @@ class Render():
         gui.triangles(fill_tri_pa, fill_tri_pb, fill_tri_pc, color)
 
     @staticmethod
-    def rd_rect(gui: GUI,
+    def rd_rect(gui: ti.GUI,
                 top_left: Matrix,
                 bot_right: Matrix,
                 color: int = ti.rgb_to_hex([1.0, 1.0, 1.0]),
@@ -279,7 +273,7 @@ class Render():
                  color)
 
     @staticmethod
-    def rd_joint(gui: GUI, joint: Joint,
+    def rd_joint(gui: ti.GUI, joint: Joint,
                  world_to_screen: Callable[[Matrix], Matrix]) -> None:
         jt_type: JointType = joint.type()
         if jt_type == JointType.Rotation:
@@ -311,7 +305,7 @@ class Render():
         pass
 
     @staticmethod
-    def rd_distance_joint(gui: GUI, joint: Joint,
+    def rd_distance_joint(gui: ti.GUI, joint: Joint,
                           world_to_screen: Callable[[Matrix], Matrix]) -> None:
         assert joint is not None
 
@@ -334,7 +328,7 @@ class Render():
                        Config.JointLineColor)
 
     @staticmethod
-    def rd_point_joint(gui: GUI, joint: Joint,
+    def rd_point_joint(gui: ti.GUI, joint: Joint,
                        world_to_screen: Callable[[Matrix], Matrix]) -> None:
         assert joint is not None
 
@@ -349,7 +343,7 @@ class Render():
                        Config.JointLineColor)
 
     @staticmethod
-    def rd_orient_joint(gui: GUI, joint: Joint,
+    def rd_orient_joint(gui: ti.GUI, joint: Joint,
                         world_to_screen: Callable[[Matrix], Matrix]) -> None:
         assert joint is not None
         point_jt: PointJoint = cast(PointJoint, joint)
@@ -370,7 +364,7 @@ class Render():
         pass
 
     @staticmethod
-    def rd_revolute_joint(gui: GUI, joint: Joint,
+    def rd_revolute_joint(gui: ti.GUI, joint: Joint,
                           world_to_screen: Callable[[Matrix], Matrix]) -> None:
         assert joint is not None
         revol: RevoluteJoint = cast(RevoluteJoint, joint)
@@ -391,7 +385,7 @@ class Render():
         pass
 
     @staticmethod
-    def rd_angle_line(gui: GUI, prim: ShapePrimitive,
+    def rd_angle_line(gui: ti.GUI, prim: ShapePrimitive,
                       world_to_screen: Callable[[Matrix], Matrix]) -> None:
         xpos: Matrix = Matrix([0.15, 0.0], 'vec')
         ypos: Matrix = Matrix([0.0, 0.15], 'vec')

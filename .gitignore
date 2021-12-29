@@ -4,3 +4,7 @@ __pycache__
 .pytest_cache
 .mypy_cache
 .coverage
+export-res
+dist
+*.egg-info
+packaged-examples

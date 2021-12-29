@@ -1,5 +1,3 @@
-from TaichiGAME.math.matrix import Matrix
-from TaichiGAME.common.config import Config
 from typing import List, Dict, Optional, Tuple
 
 import numpy as np
@@ -8,6 +6,8 @@ from ..broad_phase.aabb import AABB
 from ...dynamics.body import Body
 from ..detector import Detector
 from ..broad_phase.dbvh import DBVH
+from ...math.matrix import Matrix
+from ...common.config import Config
 
 
 class CCD():
@@ -254,8 +254,7 @@ class CCD():
         for elem in potential:
             (traj_elem, aabb_elem) = CCD.build_trajectory_aabb(elem._body, dt)
             (new_ccd_tarj,
-             new_aabb) = CCD.build_trajectory_aabb(body, dt,
-                                                   elem._body.pos)
+             new_aabb) = CCD.build_trajectory_aabb(body, dt, elem._body.pos)
             res: Optional[CCD.IndexSection] = CCD.find_broad_phase_root(
                 body, new_ccd_tarj, elem._body, traj_elem, dt)
 
