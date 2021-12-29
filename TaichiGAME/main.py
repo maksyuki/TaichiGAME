@@ -63,11 +63,10 @@ class TaichiGAMEMain():
     @staticmethod
     def _get_examples_dir() -> Path:
         """Get the path to the examples directory."""
-        root_dir = '.'
         root_dir = os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-        examples_dir = Path(root_dir) / 'TaichiGAME/packaged-examples'
+        examples_dir = Path(root_dir) / 'TaichiGAME/examples'
         return examples_dir
 
     @staticmethod
@@ -76,7 +75,15 @@ class TaichiGAMEMain():
         examples_dir = TaichiGAMEMain._get_examples_dir()
         all_examples = examples_dir.rglob('*.py')
         all_example_names = {f.stem: f.parent for f in all_examples}
-        return all_example_names
+
+        res: Dict[str, Path] = {}
+        for v in all_example_names:
+            if v == 'main' or v == '__init__':
+                continue
+
+            res[v] = all_example_names[v]
+
+        return res
 
     @staticmethod
     def _example_choices_type(choices):
