@@ -223,7 +223,7 @@ class Scene():
         while self._gui.running:
 
             for e in self._gui.get_events():
-                if e.key == ti.ti.GUI.ESCAPE:
+                if e.key == ti.GUI.ESCAPE:
                     if self._option['gif']:
                         self._ex_mgn.gen_gif()
                     elif self._option['video']:
@@ -231,31 +231,31 @@ class Scene():
 
                     exit()
 
-                elif e.key == ti.ti.GUI.SPACE and e.type == ti.GUI.RELEASE:
+                elif e.key == ti.GUI.SPACE and e.type == ti.GUI.RELEASE:
                     self._paused = not self._paused
 
-                elif e.key == ti.ti.GUI.LMB:
+                elif e.key == ti.GUI.LMB:
                     self.handle_left_mouse_event(e.type, e.pos[0], e.pos[1])
 
-                elif e.key == ti.ti.GUI.RMB:
+                elif e.key == ti.GUI.RMB:
                     self.handle_right_mouse_event(e.type)
 
-                elif e.key == ti.ti.GUI.MOVE:
+                elif e.key == ti.GUI.MOVE:
                     self.handle_mouse_move_event(e.pos[0], e.pos[1])
 
-                elif e.key == ti.ti.GUI.WHEEL:
+                elif e.key == ti.GUI.WHEEL:
                     self.handle_wheel_event(e.delta[1])
 
-                elif e.key == ti.ti.GUI.UP:
+                elif e.key == ti.GUI.UP:
                     print("press up key")
 
-                elif e.key == ti.ti.GUI.DOWN:
+                elif e.key == ti.GUI.DOWN:
                     pass
 
-                elif e.key == ti.ti.GUI.LEFT and e.type == ti.GUI.RELEASE:
+                elif e.key == ti.GUI.LEFT and e.type == ti.GUI.RELEASE:
                     self.change_frame(-1)
 
-                elif e.key == ti.ti.GUI.RIGHT and e.type == ti.GUI.RELEASE:
+                elif e.key == ti.GUI.RIGHT and e.type == ti.GUI.RELEASE:
                     self.change_frame(1)
 
                 elif e.key == 'q' and e.type == ti.GUI.PRESS:
